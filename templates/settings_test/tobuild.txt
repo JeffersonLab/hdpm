@@ -1,0 +1,14 @@
+python false
+xerces-c false
+cernlib false	
+root false
+clhep false
+amptools false
+evio false
+ccdb false
+jana false
+hdds true
+sim-recon true
+online-monitoring true
+online-sbms true
+scripts true

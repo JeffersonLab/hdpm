@@ -1,0 +1,14 @@
+python 2.7
+xerces-c 3.1.2
+cernlib 2005	
+root v5-34-30
+clhep CLHEP_2_2_0_6
+amptools v0.7.0
+evio 4.4.5
+ccdb v1.05.00
+jana 0.7.2
+hdds latest
+sim-recon latest
+online-monitoring latest
+online-sbms latest
+scripts latest

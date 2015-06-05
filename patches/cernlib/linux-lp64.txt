@@ -1,0 +1,20 @@
+--- ./src/config/linux-lp64.cf	2006-12-20 09:21:03.000000000 -0500
++++ /home/scratch/linux-lp64.cf	2011-02-17 11:59:24.858743524 -0500
+@@ -33,7 +33,7 @@
+ #define HasSockets		YES
+ 
+ #define AvoidNullMakeCommand	YES
+-#define StripInstalledPrograms	YES
++#define StripInstalledPrograms	NO
+ #define CompressAllFonts	YES
+ #define Malloc0ReturnsNull	YES
+ #define NeedConstPrototypes	YES
+@@ -173,7 +173,7 @@
+ #define FortranCmd		g77
+ #define XargsCmd		xargs
+ #define FortranSaveFlags	/* */ /* Everything static !? */
+-#define DefaultFCOptions	-fno-automatic -fno-second-underscore -fugly-complex
++#define DefaultFCOptions	-fno-automatic -fno-second-underscore
+ #define CernlibSystem	        -DCERNLIB_LINUX -DCERNLIB_UNIX -DCERNLIB_LNX -DCERNLIB_QMGLIBC -DCERNLIB_QMLXIA64
+ 
+ # endif

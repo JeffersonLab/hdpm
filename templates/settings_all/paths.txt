@@ -1,0 +1,14 @@
+python /apps/python/PRO
+xerces-c xerces-c-3.1.2
+cernlib cern
+root root
+clhep clhep
+amptools AmpTools_v0.7.0/AmpTools
+evio evio-4.4.5
+ccdb ccdb_1.05
+jana jana_0.7.2
+hdds hdds
+sim-recon sim-recon
+online-monitoring online/monitoring
+online-sbms online/SBMS
+scripts scripts/analysis

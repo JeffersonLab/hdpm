@@ -1,0 +1,13 @@
+--- kstring.h	2015-03-25 20:15:56.852847033 -0400
++++ kstring.h.patched	2015-03-25 20:08:53.879725909 -0400
+@@ -48,6 +48,10 @@
+                      const char* str4 );
+ extern char* str5dup( const char* str1, const char* str2, const char* str3,
+                      const char* str4, const char* str5 );
++
++#ifdef strndup
++# undef strndup /* otherwise the next function declaration may bomb */
++#endif
+ extern char* strndup( const char* buf, size_t n );
+ extern char* stridup( int i );
+ 

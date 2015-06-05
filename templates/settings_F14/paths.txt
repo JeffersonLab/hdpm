@@ -1,0 +1,14 @@
+python /apps/python/PRO
+xerces-c /group/halld/Software/ExternalPackages/xerces-c-3.1.1.Linux_CentOS6-x86_64-gcc4.4.7
+cernlib /group/halld/Software/ExternalPackages/cernlib/Linux_CentOS6-x86_64-gcc4.4.6
+root /group/halld/Software/builds/Linux_CentOS6-x86_64-gcc4.4.7/root/root_5.34.26
+clhep clhep  
+amptools AmpTools_v0.7.0/AmpTools
+evio /group/halld/Software/builds/evio/evio-4.3.1
+ccdb /group/halld/Software/builds/Linux_CentOS6-x86_64-gcc4.4.7/ccdb/ccdb_1.05
+jana /group/halld/Software/builds/jana/jana_0.7.2_root_5.34.26
+hdds hdds-commissioning
+sim-recon sim-recon
+online-monitoring online/monitoring
+online-sbms online/SBMS
+scripts scripts/analysis

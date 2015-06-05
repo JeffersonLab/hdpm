@@ -1,0 +1,14 @@
+python 1
+xerces-c 8
+cernlib 1
+root 8
+clhep 1
+amptools 1
+evio 1
+ccdb 1
+jana 8
+hdds 1
+sim-recon 8
+online-monitoring 1
+online-sbms 1
+scripts 1

@@ -1,0 +1,43 @@
+--- ./src/config/linux.cf	2006-09-15 05:34:48.000000000 -0400
++++ ./src0/config/linux.cf	2008-06-27 10:56:42.000000000 -0400
+@@ -88,7 +88,7 @@
+ #define HasSockets		YES
+ 
+ #define AvoidNullMakeCommand	YES
+-#define StripInstalledPrograms	YES
++#define StripInstalledPrograms	NO
+ #define CompressAllFonts	YES
+ #define Malloc0ReturnsNull	YES
+ #define NeedConstPrototypes	YES
+@@ -258,7 +258,7 @@
+ #define FortranCmd		g77
+ #define XargsCmd		xargs
+ #define FortranSaveFlags	/* */ /* Everything static !? */
+-#define DefaultFCOptions	-fno-automatic -fno-second-underscore -fugly-complex
++#define DefaultFCOptions	-fno-automatic -fno-second-underscore
+ #define CernlibSystem	        -DCERNLIB_LINUX -DCERNLIB_UNIX -DCERNLIB_LNX -DCERNLIB_QMGLIBC
+ 
+ # endif
+--- ./src/packlib/kuip/code_motif/iconwidget.c	2006-12-19 05:00:41.000000000 -0500
++++ ./src0/packlib/kuip/code_motif/iconwidget.c	2008-06-27 10:56:42.000000000 -0400
+@@ -34,9 +34,6 @@
+ /* _Xm routine definitions  */
+ void    _XmHighlightBorder ();
+ void   _XmUnhighlightBorder ();
+-#ifndef __APPLE__
+-void   _XmDrawShadow ();
+-#endif
+ 
+ /* Motif1.1 ( except apollo, hpux has _XmPrimitive... with two args only
+  * Gunter 30-jan-95
+--- ./src/geant321/Imakefile	1998-03-05 06:20:07.000000000 -0500
++++ /scratch/gluex4/cernlib/2006/src/geant321/Imakefile	2008-06-30 10:19:58.000000000 -0400
+@@ -37,7 +37,7 @@
+ install.lib:: $(CERN_LIBDIR)/xsneut95.dat
+ 
+ $(CERN_LIBDIR)/xsneut95.dat:
+-	cd $(@D);$(LN) ../share/lib/$(@F) $(@F)
++	cd $(@D); test -L $(@F) || $(LN) ../share/lib/$(@F) $(@F)
+ 
+ #endif
+ #if defined(CERNLIB_VAXVMS)

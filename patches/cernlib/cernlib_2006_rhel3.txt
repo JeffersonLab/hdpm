@@ -1,0 +1,38 @@
+*** ./src/mclibs/herwig/code/hwhiga.F	2006-09-04 08:32:57.000000000 -0400
+--- /work/halld/gluex_rhel3/cernlib/2006/src/mclibs/herwig/code/hwhiga.F	2008-08-01 07:51:36.000000000 -0400
+***************
+*** 72,78 ****
+        TAMP(6)=HWHIG5(T,S,U,EMH2,EMQ2,2,0,5,0,0,0)
+        TAMP(7)=HWHIG5(U,T,S,EMH2,EMQ2,3,0,6,0,0,0)
+        DO 20 I=1,7
+!       TAMPI(I)= REAL(TAMP(I))
+  #if !defined(CERNLIB_GFORTRAN)
+    20  TAMPR(I)=-IMAG(TAMP(I))
+  #else
+--- 72,78 ----
+        TAMP(6)=HWHIG5(T,S,U,EMH2,EMQ2,2,0,5,0,0,0)
+        TAMP(7)=HWHIG5(U,T,S,EMH2,EMQ2,3,0,6,0,0,0)
+        DO 20 I=1,7
+!       TAMPI(I)= DBLE(TAMP(I))
+  #if !defined(CERNLIB_GFORTRAN)
+    20  TAMPR(I)=-IMAG(TAMP(I))
+  #else
+*** ./src/mclibs/herwig/code/hwuli2.F	2006-09-04 08:32:57.000000000 -0400
+--- /work/halld/gluex_rhel3/cernlib/2006/src/mclibs/herwig/code/hwuli2.F	2008-08-01 07:54:31.000000000 -0400
+***************
+*** 18,24 ****
+       &  1.644934066848226D0/
+        PROD(Y,Y2)=Y*(ONE+A1*Y*(ONE+A2*Y*(ONE+A3*Y2*(ONE+A4*Y2*(ONE+A5*Y2*
+       & (ONE+A6*Y2*(ONE+A7*Y2*(ONE+A8*Y2*(ONE+A9*Y2*(ONE+A10*Y2))))))))))
+!       XR=REAL(X)
+  #if !defined(CERNLIB_GFORTRAN)
+        XI=IMAG(X)
+  #else
+--- 18,24 ----
+       &  1.644934066848226D0/
+        PROD(Y,Y2)=Y*(ONE+A1*Y*(ONE+A2*Y*(ONE+A3*Y2*(ONE+A4*Y2*(ONE+A5*Y2*
+       & (ONE+A6*Y2*(ONE+A7*Y2*(ONE+A8*Y2*(ONE+A9*Y2*(ONE+A10*Y2))))))))))
+!       XR=DBLE(X)
+  #if !defined(CERNLIB_GFORTRAN)
+        XI=IMAG(X)
+  #else
