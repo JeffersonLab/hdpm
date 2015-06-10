@@ -8,7 +8,7 @@ geant4 http://geant4.cern.ch/support/source/geant4.10.01.p01.tar.gz
 evio https://coda.jlab.org/drupal/system/files/coda/evio/evio-4.4/evio-4.4.5.tgz
 ccdb https://github.com/JeffersonLab/ccdb
 jana https://phys12svn.jlab.org/repos/tags/jana_0.7.2
-hdds https://halldsvn.jlab.org/repos/trunk/hdds
+hdds https://halldsvn.jlab.org/repos/branches/hdds-commissioning
 sim-recon https://halldsvn.jlab.org/repos/trunk/sim-recon
 online-monitoring https://halldsvn.jlab.org/repos/trunk/online/packages/monitoring
 online-sbms https://halldsvn.jlab.org/repos/trunk/online/packages/SBMS
