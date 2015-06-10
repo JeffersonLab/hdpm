@@ -5,14 +5,14 @@ This is a set of tools for managing **top-level builds** of the Jefferson Lab Ha
 python, xerces-c, cernlib, root, clhep, amptools, geant4, evio, ccdb, jana, hdds, sim-recon, online-monitoring, online-sbms, scripts(analysis)
 
 ## Build-settings templates
-Each subdirectory in the **"templates"** directory, with name **"settings_<id>"**, is a build-settings template. Create new templates by copying and editing the text files to specify the desired build settings.
+Each subdirectory in the **"templates"** directory, with name **"settings_[id]"**, is a build-settings template. Create new templates by copying and editing the text files to specify the desired build settings.
 
 1. **top.txt**
    - **absolute path** of the top-level build directory and **build tag** name separated by a tab or space; this tag is appended to the *BMS_OSNAME* environment variable in order to support side-by-side builds.
-   - alternatively, if you want to use the *defaults*, use **"default"** for the path and/or tag name; the *defaults* are a directory named **"build_<date>"** in the current working directory and **no tag**.
+   - alternatively, if you want to use the *defaults*, use **"default"** for the path and/or tag name; the *defaults* are a directory named **"build_[date]"** in the current working directory and **no tag**.
    - **note:** it is often convenient to make the *build tag* the same as the *template id*; however, this is not mandatory.
 2. **paths.txt**
-   - path of each package (**format:** <name> <path>, 1 package per line); if a relative path is given, it will be joined with the path of the top directory before being used.
+   - path of each package (**format:** [name] [path], 1 package per line); if a relative path is given, it will be joined with the path of the top directory before being used.
    - **important:** do not change the default names of the standard packages; these names cannot be customized without modifying the Julia modules (see below).
 3. **urls.txt**
    - URL of each SVN, Git, or other package.
@@ -42,7 +42,7 @@ The following Julia scripts are used to prepare, manage, and execute top-level b
 
 1. **select_template.jl**
    - Select the settings template specified by the identifier **id** for your next build; all scripts will use the settings which have been copied from the templates directory by running this script.
-   - **usage:** julia select_template.jl <id>
+   - **usage:** julia select_template.jl [id]
 2. **show_settings.jl**
    - Show the current build settings.
    - **usage:** julia show_settings.jl
@@ -63,7 +63,7 @@ The following Julia scripts are used to prepare, manage, and execute top-level b
 The build management scripts depend on these Julia modules. For typical usage, the user should not need to modify these.
 
 1. **Environs.jl**
-   - Sets the environment required by the various Hall-D package builds. A C-shell script and bash script, for setting the environment variables, are saved to the **"<top>/scripts/env"** directory; *source* the appropriate one before using the packages.
+   - Sets the environment required by the various Hall-D package builds. A C-shell script and bash script, for setting the environment variables, are saved to the **"[top]/scripts/env"** directory; *source* the appropriate one before using the packages.
 2. **Packages.jl**
    - Provides a composite type and various functions for organizing the package information and build settings.
 
