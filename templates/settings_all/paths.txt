@@ -4,6 +4,7 @@ cernlib cern
 root root
 clhep clhep
 amptools AmpTools_v0.7.0/AmpTools
+geant4 geant4.10.01.p01
 evio evio-4.4.5
 ccdb ccdb_1.05
 jana jana_0.7.2

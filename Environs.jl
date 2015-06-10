@@ -10,7 +10,7 @@ for pkg in get_packages()
     home[name(pkg)] = path(pkg)
     vers[name(pkg)] = version(pkg)
 end
-if int(vers["cernlib"]) != 2005 && int(vers["cernlib"]) != 2006 println("Warning: Using an old CERN_LEVEL (not 2005 or 2006)") end
+if int(vers["cernlib"]) != 2005 && int(vers["cernlib"]) != 2006 warn("using an old CERN_LEVEL (not 2005 or 2006)") end
 BMS_OSNAME_BASE = osrelease()
 if gettag() != "" 
     BMS_OSNAME = string(osrelease(),"_",gettag())

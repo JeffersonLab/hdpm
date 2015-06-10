@@ -4,6 +4,7 @@ cernlib true
 root true
 clhep true
 amptools true
+geant4 true
 evio true
 ccdb true
 jana true

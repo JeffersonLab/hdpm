@@ -27,7 +27,7 @@ function select_template(id)
 end
 #
 function mkbool(a::ASCIIString)
-    if a != "true" && a != "false" println("Argument should be 'true' or 'false'; typo will result in return value of false.") end
+    if a != "true" && a != "false" error("tobuild() must be 'true' or 'false'; Please check for typos.") end
     if a == "true" return true
     else return false
     end
@@ -49,10 +49,10 @@ end
 function gettop()
     top = string(pwd(),"/build_",readchomp(`date "+%Y-%m-%d"`))
     custom_top = readdlm("settings/top.txt",ASCIIString)
-    if size(custom_top,1) != 1 || size(custom_top,2) != 2 throw("Error reading in custom top directory name.") end
+    if size(custom_top,1) != 1 || size(custom_top,2) != 2 error("problem reading in custom top directory name; top.txt has wrong number of rows or columns.") end
     if custom_top[1,1] != "default" 
         top = custom_top[1,1] 
-        if !ispath(getbase(top)) throw("Error: Base directory of custom top does not exist.") end
+        if !ispath(getbase(top)) error("base directory of custom top does not exist.") end
     end
     return top
 end
@@ -62,7 +62,7 @@ osrelease() = readchomp(`osrelease.pl`)
 function gettag()
     tag = ""
     custom_tag = readdlm("settings/top.txt",ASCIIString)
-    if size(custom_tag,1) != 1 || size(custom_tag,2) != 2 throw("Error reading in custom tag name.") end
+    if size(custom_tag,1) != 1 || size(custom_tag,2) != 2 error("problem reading in custom tag name; top.txt has wrong number of rows or columns.") end
     if custom_tag[1,2] != "default" tag = custom_tag[1,2] end
     return tag
 end
@@ -101,7 +101,11 @@ function get_package(a::ASCIIString)
     end 
 end
 function get_unpack_file(URL)
-    run(`wget $URL`)
+    try
+        run(`wget $URL`)
+    catch
+        run(`curl -O $URL`)
+    end
     file = split(URL,"/")[end]
     run(`tar -xzvf $file`); rm(file)
 end
@@ -115,6 +119,9 @@ function max_sizes()
     return sizes
 end
 function show_settings()
+    if !ispath("settings/") 
+        error("no build settings to show. Please select a build settings template by running:\n'julia select_template.jl <id>'") 
+    end
     print("\n",Base.text_colors[:bold])
     println("Current build settings",Base.text_colors[:bold])
     println("ID: ",getid())

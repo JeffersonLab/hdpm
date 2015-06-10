@@ -4,6 +4,7 @@ cernlib /group/halld/Software/ExternalPackages/cernlib/Linux_CentOS6-x86_64-gcc4
 root /group/halld/Software/builds/Linux_CentOS6-x86_64-gcc4.4.7/root/root_5.34.26
 clhep clhep  
 amptools AmpTools_v0.7.0/AmpTools
+geant4 geant4.10.01.p01
 evio /group/halld/Software/builds/evio/evio-4.3.1
 ccdb /group/halld/Software/builds/Linux_CentOS6-x86_64-gcc4.4.7/ccdb/ccdb_1.05
 jana /group/halld/Software/builds/jana/jana_0.7.2_root_5.34.26

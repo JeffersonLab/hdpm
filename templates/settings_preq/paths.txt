@@ -1,9 +1,10 @@
 python /apps/python/PRO
-xerces-c /local/scratch/nsparks/packages/xerces-c-3.1.2
-cernlib /local/scratch/nsparks/packages/cern
-root /local/scratch/nsparks/packages/root
+xerces-c xerces-c-3.1.2
+cernlib cern
+root root
 clhep clhep
 amptools AmpTools_v0.7.0/AmpTools
+geant4 geant4.10.01.p01
 evio evio-4.4.5
 ccdb ccdb_1.05
 jana jana_0.7.2

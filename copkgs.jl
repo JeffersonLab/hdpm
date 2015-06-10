@@ -1,7 +1,7 @@
 using Packages
 top = gettop()
 for pkg in get_packages()
-    if tobuild(pkg) && ispath(path(pkg)) println("Warning: ",path(pkg)," already exists. Skipping it.") end
+    if tobuild(pkg) && ispath(path(pkg)) info(path(pkg)," already exists. Skipping it.") end
     if tobuild(pkg) && !ispath(path(pkg))
         mk_cd(top)
         if name(pkg) in ["scripts","online-monitoring","online-sbms"] 
@@ -11,7 +11,7 @@ for pkg in get_packages()
         # checkout svn and git packages
         if contains(URL,"svn")
             rev = version(pkg)
-            if rev!="latest"
+            if rev!="latest" && !contains(URL,"tags")
                 run(`svn checkout -r $rev $URL`)
             else
                 run(`svn checkout $URL`)
@@ -26,7 +26,7 @@ for pkg in get_packages()
             end
         end
         # download/unpack other packages
-        if name(pkg) in ["xerces-c","evio","amptools"]
+        if name(pkg) in ["xerces-c","evio","amptools","geant4"]
             get_unpack_file(URL)
             if name(pkg) == "amptools" run(`mv AmpTools $(string("AmpTools_",version(pkg)))`) end
         end
@@ -35,7 +35,11 @@ for pkg in get_packages()
             cd(path(pkg))
             get_unpack_file(replace(URL,".2005.corr.2014.04.17","-2005-all-new")) # get the "all" file
             get_unpack_file(replace(URL,"corr","install")) # get the "install" file
-            run(`wget $URL`) # get the "corr" file
+            try
+                run(`wget $URL`) # get the "corr" file
+            catch
+                run(`curl -O $URL`) 
+            end
             file = split(URL,"/")[end]; run(`mv -f $file cernlib.2005.corr.tgz`)
         end
     end

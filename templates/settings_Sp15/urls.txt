@@ -1,11 +1,12 @@
 python nothing
-xerces-c nothing
-cernlib nothing	
-root nothing
+xerces-c http://www.motorlogy.com/apache/xerces/c/3/sources/xerces-c-3.1.2.tar.gz
+cernlib http://www-zeuthen.desy.de/linear_collider/cernlib/new/cernlib.2005.corr.2014.04.17.tgz
+root http://root.cern.ch/git/root.git
 clhep http://git.cern.ch/pub/CLHEP
 amptools http://sourceforge.net/projects/amptools/files/AmpTools_v0.7.0.tgz
-evio nothing
-ccdb https://phys12svn.jlab.org/repos/tags/ccdb_1.05
+geant4 http://geant4.cern.ch/support/source/geant4.10.01.p01.tar.gz
+evio https://coda.jlab.org/drupal/system/files/coda/evio/evio-4.4/evio-4.4.5.tgz
+ccdb https://github.com/JeffersonLab/ccdb
 jana https://phys12svn.jlab.org/repos/tags/jana_0.7.2
 hdds https://halldsvn.jlab.org/repos/trunk/hdds
 sim-recon https://halldsvn.jlab.org/repos/trunk/sim-recon
