@@ -21,8 +21,9 @@ tobuild(a::Package) = a.tobuild
 Package() = Package("","","","","",false)
 #
 function select_template(id)
+    if !ispath("templates") run(`cp -pr example-templates templates`) end
     run(`rm -rf settings`)
-    run(`cp -pr templates/settings_$id settings`)
+    run(`cp -pr templates/settings-$id settings`)
     println(open("settings/id.txt","w"),id)
 end
 #
@@ -47,14 +48,16 @@ function mk_cd(path)
 end
 #
 function gettop()
-    top = string(pwd(),"/build_",readchomp(`date "+%Y-%m-%d"`))
+    top = string(pwd(),"/builds/",readchomp(`date "+%Y-%m-%d"`))
     custom_top = readdlm("settings/top.txt",ASCIIString)
     if size(custom_top,1) != 1 || size(custom_top,2) != 2 error("problem reading in custom top directory name; top.txt has wrong number of rows or columns.") end
+    if !isabspath(custom_top[1,1]) && !ispath(string(pwd(),"/builds")) mkdir(string(pwd(),"/builds")) end
     if custom_top[1,1] != "default" 
         top = custom_top[1,1] 
+        if !isabspath(top) top = string(pwd(),"/builds/",top) end
         if !ispath(getbase(top)) error("base directory of custom top does not exist.") end
     end
-    return top
+    top
 end
 #
 osrelease() = readchomp(`osrelease.pl`)
