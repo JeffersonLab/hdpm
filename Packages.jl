@@ -48,19 +48,19 @@ function mk_cd(path)
 end
 #
 function gettop()
-    top = string(pwd(),"/builds/",readchomp(`date "+%Y-%m-%d"`))
+    top = string(pwd(),"/pkgs/",readchomp(`date "+%Y-%m-%d"`))
     custom_top = readdlm("settings/top.txt",ASCIIString)
     if size(custom_top,1) != 1 || size(custom_top,2) != 2 error("problem reading in custom top directory name; top.txt has wrong number of rows or columns.") end
-    if !isabspath(custom_top[1,1]) && !ispath(string(pwd(),"/builds")) mkdir(string(pwd(),"/builds")) end
+    if !isabspath(custom_top[1,1]) && !ispath(string(pwd(),"/pkgs")) mkdir(string(pwd(),"/pkgs")) end
     if custom_top[1,1] != "default" 
         top = custom_top[1,1] 
-        if !isabspath(top) top = string(pwd(),"/builds/",top) end
+        if !isabspath(top) top = string(pwd(),"/pkgs/",top) end
         if !ispath(getbase(top)) error("base directory of custom top does not exist.") end
     end
     top
 end
 #
-osrelease() = readchomp(`osrelease.pl`)
+osrelease() = readchomp(`./osrelease.pl`)
 #
 function gettag()
     tag = ""
@@ -89,12 +89,12 @@ function get_packages()
     pkgs = Array(Package,0)
     for i=1:size(paths,1)
         name = paths[i,1]
-        if isabspath(paths[i,2])
-            path = paths[i,2]
-        else
-            path = joinpath(gettop(),paths[i,2])
+        path = paths[i,2]; path = replace(path,"[OS]",osrelease()); path = replace(path,"[VER]",vers[i,2])
+        url = replace(urls[i,2],"[VER]",vers[i,2])
+        if !isabspath(path) && path != "NA"
+            path = joinpath(gettop(),path)
         end
-        push!(pkgs,Package(name,vers[i,2],urls[i,2],path,nthreads[i,2],mkbool(tobuild[i,2])))
+        push!(pkgs,Package(name,vers[i,2],url,path,nthreads[i,2],mkbool(tobuild[i,2])))
     end
     pkgs
 end
@@ -112,37 +112,75 @@ function get_unpack_file(URL)
     file = split(URL,"/")[end]
     run(`tar -xzvf $file`); rm(file)
 end
-function max_sizes()
-    sizes = [:name=>0,:version=>0,:url=>0,:path=>0,:nthreads=>0,:tobuild=>0]
-    for pkg in get_packages()
-        for n in names(pkg)
-            if length(pkg.(n)) > sizes[n] sizes[n] = length(pkg.(n)) end
-        end
-    end 
-    return sizes
-end
-function show_settings()
+function show_settings(;col=:all,sep=8)
     if !ispath("settings/") 
-        error("no build settings to show. Please select a build settings template by running:\n'julia select_template.jl <id>'") 
+        error("no build settings to show. Please select a build settings template by running:\n\t'julia select_template.jl <id>'") 
     end
+    if !(col in names(Package)) && col != :all
+        error("incorrect name: use one of the following ",[string(i) for i in names(Package)])
+    end
+    if sep < 0 sep = 1; info("using min. separation = ",string(sep)," spaces") end
+    if sep > 16 sep = 16; info("using max. separation = ",string(sep)," spaces") end
     print("\n",Base.text_colors[:bold])
     println("Current build settings",Base.text_colors[:bold])
     println("ID: ",getid())
     println("TOP: ",gettop())
     println("TAG: ",gettag())
+    #
+    function get_rel_path(p)
+        p0 = p
+        if contains(p0,getbase(gettop()))
+            p = string("..",split(p0,getbase(gettop()))[2])
+        end
+        if contains(p0,gettop())
+            p = split(p0,gettop())[2]
+            split_path = split(p,"/")
+            p = ""
+            for i=1:length(split_path)
+                p = joinpath(p,split_path[i])
+            end
+        end
+        p
+    end
+    #
+    function max_sizes()
+        sizes = [:name=>0,:version=>0,:url=>0,:path=>0,:nthreads=>0,:tobuild=>0]
+        for pkg in get_packages()
+            for n in names(pkg)
+                if n == :path
+                    l = length(get_rel_path(pkg.(n)))
+                    if l > sizes[n] sizes[n] = l end
+                else
+                    if length(pkg.(n)) > sizes[n] sizes[n] = length(pkg.(n)) end
+                end
+            end
+        end 
+        sizes
+    end
+    #
     sizes = max_sizes()
     print("\n",Base.text_colors[:bold])
     for n in names(Package)
-        print(n,Base.text_colors[:bold])
-        spaces = sizes[n] - length(string(n)) + 8
-        for i=1:spaces print(" ") end
+        if n in [:name,col] || col == :all
+            print(n,Base.text_colors[:bold])
+            spaces = sizes[n] - length(string(n)) + sep
+            for i=1:spaces print(" ") end 
+        end
     end
     print("\n",Base.text_colors[:normal])
     for pkg in get_packages()
         for n in names(pkg)
-            print(pkg.(n),Base.text_colors[:normal])
-            spaces = sizes[n] - length(pkg.(n)) + 8
-            for i=1:spaces print(" ") end
+            if n in [:name,col] || col == :all
+                if n == :path
+                    rp = get_rel_path(pkg.(n))
+                    print(rp,Base.text_colors[:normal])
+                    spaces = sizes[n] - length(rp) + sep
+                else
+                    print(pkg.(n),Base.text_colors[:normal])
+                    spaces = sizes[n] - length(pkg.(n)) + sep
+                end
+                for i=1:spaces print(" ") end
+            end
         end
         print("\n")
     end 
