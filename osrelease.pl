@@ -56,6 +56,8 @@ if ($uname eq 'Linux') {
 	    $release = '_CentOS5';
 	} elsif ($release_string =~ /^CentOS release 6.*/) {
 	    $release = '_CentOS6';
+	} elsif ($release_string =~ /^CentOS Linux release 7.*/) {
+	    $release = '_CentOS7';
 	} elsif ($release_string =~ /^Scientific Linux SL release 5.*/ ) {
 	    $release = '_SL5';
 	} elsif ($release_string =~ /^Scientific Linux release 6.*/ ) {
@@ -98,6 +100,12 @@ if ($uname eq 'Linux') {
 	    $release = '_macosx10.7';
  	} elsif ($release_string =~ /^12.*/) {
 	    $release = '_macosx10.8';
+    } elsif ($release_string =~ /^13.*/) {
+        $release = '_macosx10.9';
+    } elsif ($release_string =~ /^14.*/) {
+        $release = '_macosx10.10';
+    } elsif ($release_string =~ /^15.*/) {
+        $release = '_macosx10.11';
 	} else {
 	    print STDERR "unrecognized Mac OS X (Darwin) release\n";
 	    $release = '_macosx';
@@ -115,11 +123,12 @@ chomp $ccversion;
 $compiler_type = "cc";
 $compiler_version_str = `cc -v 2>&1`;
 if ($compiler_version_str =~ /\sgcc version\s/) {
+
 	$compiler_type = "gcc";
 	$ccversion = `gcc -dumpversion`;
 	chomp $ccversion;
+
 } elsif ($compiler_version_str =~ /clang version\s+/) {
-	$compiler_type = "clang";
 	
 	# clang seems to report different numbers for the version
 	# if you use "clang -dumpversion" or "clang -v". The former
@@ -127,6 +136,25 @@ if ($compiler_version_str =~ /\sgcc version\s/) {
 	# while the later the actual clang version number. Extract
 	# the clang version number here, replacing the one obtained
 	# via "cc -dumpversion" from above.
+	$compiler_type = "clang";
+	$' =~ /\s/;
+	$ccversion = $`;
+
+} elsif ($compiler_version_str =~ /Apple LLVM version\s+/) {
+
+	# Starting with OS X 10.9 (Mavericks) the "cc -v" command
+	# prints things like this:
+	#    Apple LLVM version 5.0 (clang-500.2.79) (based on LLVM 3.3svn)
+	#    Target: x86_64-apple-darwin13.0.0
+	#    Thread model: posix
+	#
+	# (The "-dumpversion" option still seems to report the gcc version
+	# as decribed above).
+	#
+	# It seems they've switched from reporting it as the "clang version"
+	# to the "LLVM version". We follow their lead here by making the compiler
+	# type "llvm".
+	$compiler_type = "llvm";
 	$' =~ /\s/;
 	$ccversion = $`;
 }
