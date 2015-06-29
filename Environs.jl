@@ -49,10 +49,10 @@ myoptenv = ["JANA_CALIB_CONTEXT" => "\"variation=mc\""]
 function putenv() 
     # put myenv variables into global ENV dictionary
     for (k,v) in myenv
-        ENV[k] = v
+        ENV[k] = v 
     end
     function add_to_path(path,new_path)
-        if !contains(path,new_path) 
+        if !contains(path,new_path) && !contains(new_path,"NA") 
             if path == ""
                 return new_path 
             else
@@ -85,8 +85,14 @@ function putenv()
     for plugin_path in plugin_paths
         ENV["JANA_PLUGIN_PATH"] = add_to_path(ENV["JANA_PLUGIN_PATH"],plugin_path)
     end
+    # remove items with Non-Applicable (NA) paths
+    for (k,v) in ENV
+        if contains(v,"NA")
+            pop!(ENV,k)
+        end
+    end
     #
-    return ENV
+    ENV
 end
 
 function printenv()
@@ -102,7 +108,7 @@ function printenv()
     end
     println(file,"#!/bin/tcsh\n#")
     for (k,v) in myenv
-        println(file,"setenv $k $v")
+         if !contains(v,"NA") println(file,"setenv $k $v") end
     end
     for (k,v) in myoptenv
         println(file,"#setenv $k $v")
@@ -119,7 +125,7 @@ function printenv()
     end
     println(file,"#!/bin/bash\n#")
     for (k,v) in myenv
-        println(file,"export $k=$v")
+         if !contains(v,"NA") println(file,"export $k=$v") end
     end
     for (k,v) in myoptenv
         println(file,"#export $k=$v")
