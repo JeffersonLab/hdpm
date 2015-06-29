@@ -15,7 +15,7 @@ for pkg in get_packages()
             PREFIX=joinpath(path(pkg),version(pkg))
             if ispath(PREFIX) run(`rm -rf $PREFIX`) end
             MYENV = putenv(); delete!(MYENV,"ROOTSYS")
-            run(setenv(`sh -c "configure --prefix=$PREFIX --libdir=$PREFIX/lib --incdir=$PREFIX/include --etcdir=$PREFIX/etc --enable-roofit"`,MYENV))
+            run(setenv(`sh -c "./configure --prefix=$PREFIX --libdir=$PREFIX/lib --incdir=$PREFIX/include --etcdir=$PREFIX/etc --enable-roofit"`,MYENV))
             run(setenv(`make -j $(nthreads(pkg))`,MYENV))
             run(`make install`)
             run(`cp -p config.log $PREFIX`)
@@ -23,7 +23,7 @@ for pkg in get_packages()
             run(`make maintainer-clean`)
         end
         if name(pkg) == "xerces-c"
-            run(`sh -c "configure --prefix=$(path(pkg))"`)
+            run(`sh -c "./configure --prefix=$(path(pkg))"`)
             run(`make`); run(`make install`)
         end
         if name(pkg) in ["clhep","geant4"]
