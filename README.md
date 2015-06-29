@@ -28,6 +28,7 @@ Julia is needed to run the package management scripts. If working on a 64-bit Li
 
 ### Quick start options on the JLab CUE
 Put the latest 64-bit Linux Julia executable into your path by doing one of the following:
+
 1. `ln -s /u/group/halld/Software/ExternalPackages/julia-latest/bin/julia ~/bin/julia`
 2. `setenv PATH /u/group/halld/Software/ExternalPackages/julia-latest/bin:$PATH`
 
