@@ -2,7 +2,6 @@ python false
 xerces-c false
 cernlib false	
 root false
-clhep false
 amptools false
 geant4 false
 evio false

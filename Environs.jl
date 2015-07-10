@@ -28,9 +28,6 @@ myenv = [
          "CERN" => home["cernlib"],
          "CERN_LEVEL" => vers["cernlib"],
          "ROOTSYS" => "$ROOTSYS",
-         "CLHEP" => joinpath(home["clhep"],vers["clhep"]),
-         "CLHEP_LIB_DIR" => joinpath(home["clhep"],vers["clhep"],"lib"),
-         "CLHEP_INCLUDE_DIR" => joinpath(home["clhep"],vers["clhep"],"include"),
          "AMPTOOLS" => home["amptools"],
          "XERCESCROOT" => home["xerces-c"],
          "EVIOROOT" => string(home["evio"],"/",readchomp(`uname -s`),"-",readchomp(`uname -m`)),
@@ -67,7 +64,7 @@ function putenv()
     if !haskey(ENV,"PYTHONPATH") ENV["PYTHONPATH"] = "" end
     if !haskey(ENV,"JANA_PLUGIN_PATH") ENV["JANA_PLUGIN_PATH"] = "" end
     # do PATH
-    paths = [home["python"],joinpath(ENV["CERN"],ENV["CERN_LEVEL"]),ENV["ROOTSYS"],ENV["XERCESCROOT"],ENV["EVIOROOT"],ENV["CCDB_HOME"],ENV["HDDS_HOME"],ENV["JANA_HOME"],joinpath(ENV["HALLD_HOME"],ENV["BMS_OSNAME"]),ENV["CLHEP"]]
+    paths = [home["python"],joinpath(ENV["CERN"],ENV["CERN_LEVEL"]),ENV["ROOTSYS"],ENV["XERCESCROOT"],ENV["EVIOROOT"],ENV["CCDB_HOME"],ENV["HDDS_HOME"],ENV["JANA_HOME"],joinpath(ENV["HALLD_HOME"],ENV["BMS_OSNAME"])]
     for p in paths
         ENV["PATH"] = add_to_path(ENV["PATH"],string(p,"/bin"))
     end

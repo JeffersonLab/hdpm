@@ -2,7 +2,6 @@ python /apps/python/PRO
 xerces-c /group/halld/Software/builds/[OS]/xerces-c/xerces-c-[VER]
 cernlib /group/halld/Software/builds/[OS]/cernlib
 root /group/halld/Software/builds/[OS]/root/root_[VER]
-clhep /group/halld/Software/builds/[OS]/clhep/[VER]
 amptools NA
 geant4 NA
 evio /group/halld/Software/builds/[OS]/evio/evio-[VER]

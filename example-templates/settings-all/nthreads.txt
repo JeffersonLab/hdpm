@@ -2,7 +2,6 @@ python 1
 xerces-c 1
 cernlib 1
 root 8
-clhep 8
 amptools 1
 geant4 8
 evio 1

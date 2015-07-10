@@ -2,7 +2,6 @@ python /apps/python/PRO
 xerces-c xerces-c-[VER]
 cernlib cernlib
 root root
-clhep clhep
 amptools AmpTools_[VER]/AmpTools
 geant4 geant4.[VER]
 evio evio-[VER]
