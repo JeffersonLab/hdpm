@@ -9,6 +9,3 @@ ccdb /group/halld/Software/builds/[OS]/ccdb/ccdb_[VER]
 jana /group/halld/Software/builds/[OS]/jana/jana_[VER]
 hdds hdds
 sim-recon sim-recon
-online-monitoring online/monitoring
-online-sbms online/SBMS
-scripts scripts/analysis

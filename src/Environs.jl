@@ -17,8 +17,6 @@ if gettag() != ""
 else
     BMS_OSNAME = osrelease()
 end
-ROOTSYS = joinpath(home["root"],vers["root"])
-if split(home["root"],"/")[end] != "root" ROOTSYS = home["root"] end
 CCDB_CONNECTION = "mysql://ccdb_user@hallddb.jlab.org/ccdb"
 if haskey(ENV,"USER") USER = ENV["USER"]
 else USER = readchomp(`whoami`) end
@@ -27,7 +25,7 @@ myenv = [
          "BMS_OSNAME" => "$BMS_OSNAME",
          "CERN" => home["cernlib"],
          "CERN_LEVEL" => vers["cernlib"],
-         "ROOTSYS" => "$ROOTSYS",
+         "ROOTSYS" => home["root"],
          "AMPTOOLS" => home["amptools"],
          "XERCESCROOT" => home["xerces-c"],
          "EVIOROOT" => string(home["evio"],"/",readchomp(`uname -s`),"-",readchomp(`uname -m`)),
@@ -38,8 +36,7 @@ myenv = [
          "JANA_HOME" => string(home["jana"],"/$BMS_OSNAME_BASE"),
          "JANA_CALIB_URL" => "$CCDB_CONNECTION",
          "JANA_GEOMETRY_URL" => string("xmlfile://",home["hdds"],"/main_HDDS.xml"),
-         "HALLD_HOME" => home["sim-recon"],
-         "MONIT_HOME" => string(home["online-monitoring"],"/$BMS_OSNAME")]
+         "HALLD_HOME" => home["sim-recon"]]
 #         
 myoptenv = ["JANA_CALIB_CONTEXT" => "\"variation=mc\""]
 #
@@ -77,7 +74,7 @@ function putenv()
     for pyp in pypaths
         ENV["PYTHONPATH"] = add_to_path(ENV["PYTHONPATH"],pyp)
     end
-    plugin_paths = [string(ENV["JANA_HOME"],"/plugins"),string(joinpath(ENV["HALLD_HOME"],ENV["BMS_OSNAME"]),"/plugins"),string(ENV["MONIT_HOME"],"/plugins")]
+    plugin_paths = [string(ENV["JANA_HOME"],"/plugins"),string(joinpath(ENV["HALLD_HOME"],ENV["BMS_OSNAME"]),"/plugins")]
     # do JANA_PLUGIN_PATH
     for plugin_path in plugin_paths
         ENV["JANA_PLUGIN_PATH"] = add_to_path(ENV["JANA_PLUGIN_PATH"],plugin_path)
@@ -94,16 +91,14 @@ end
 
 function printenv()
     putenv() # set the environment variables before printing them to C-shell and bash scripts
-    if !ispath("$GLUEX_TOP") mkdir("$GLUEX_TOP") end
-    if !ispath("$GLUEX_TOP/scripts") mkdir("$GLUEX_TOP/scripts") end
-    if !ispath("$GLUEX_TOP/scripts/env") mkdir("$GLUEX_TOP/scripts/env") end
+    mkpath("$GLUEX_TOP/env-setup")
     id = gettag()
     if id == ""
-        file = open("$GLUEX_TOP/scripts/env/env_halld.csh","w")
+        file = open("$GLUEX_TOP/env-setup/env_halld.csh","w")
     else
-        file = open("$GLUEX_TOP/scripts/env/env_halld_$id.csh","w")
+        file = open("$GLUEX_TOP/env-setup/env_halld_$id.csh","w")
     end
-    println(file,"#!/bin/tcsh\n#")
+    println(file,"# tcsh\n#")
     for (k,v) in myenv
          if !contains(v,"NA") println(file,"setenv $k $v") end
     end
@@ -116,11 +111,11 @@ function printenv()
     end
     close(file)
     if id == ""
-        file = open("$GLUEX_TOP/scripts/env/env_halld.sh","w")
+        file = open("$GLUEX_TOP/env-setup/env_halld.sh","w")
     else
-        file = open("$GLUEX_TOP/scripts/env/env_halld_$id.sh","w")
+        file = open("$GLUEX_TOP/env-setup/env_halld_$id.sh","w")
     end
-    println(file,"#!/bin/bash\n#")
+    println(file,"# bash\n#")
     for (k,v) in myenv
          if !contains(v,"NA") println(file,"export $k=$v") end
     end

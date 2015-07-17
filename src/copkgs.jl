@@ -4,20 +4,17 @@ for pkg in get_packages()
     if tobuild(pkg) && ispath(path(pkg)) info(path(pkg)," already exists. Skipping it.") end
     if tobuild(pkg) && !ispath(path(pkg))
         mk_cd(top)
-        if name(pkg) in ["scripts","online-monitoring","online-sbms"] 
-            mk_cd(getbase(path(pkg))) 
-        end
         URL = url(pkg)
         # checkout svn and git packages
         if contains(URL,"svn")
             rev = version(pkg)
             if rev!="latest" && !contains(URL,"tags")
-                run(`svn checkout -r $rev $URL`)
+                run(`svn checkout --non-interactive --trust-server-cert -r $rev $URL $(path(pkg))`)
             else
-                run(`svn checkout $URL`)
+                run(`svn checkout --non-interactive --trust-server-cert $URL $(path(pkg))`)
             end
         end
-        if contains(URL,"git")
+        if contains(URL,"git") && !contains(URL,"archive")
             run(`git clone $URL $(path(pkg))`)
             rev = version(pkg)
             if rev!="latest"
@@ -26,21 +23,20 @@ for pkg in get_packages()
             end
         end
         # download/unpack other packages
-        if name(pkg) in ["xerces-c","evio","amptools","geant4"]
-            get_unpack_file(URL)
-            if name(pkg) == "amptools" run(`mv AmpTools $(string("AmpTools_",version(pkg)))`) end
+        if name(pkg) != "cernlib" && (contains(URL,".tar.gz") || contains(URL,".tgz"))
+            if name(pkg) == "amptools"
+                get_unpack_file(URL,dirname(path(pkg)))
+            else
+                get_unpack_file(URL,path(pkg))               
+            end
         end
         if name(pkg) == "cernlib" && version(pkg) == "2005"
             mkdir(path(pkg))
             cd(path(pkg))
             get_unpack_file(replace(URL,".2005.corr.2014.04.17","-2005-all-new")) # get the "all" file
             get_unpack_file(replace(URL,"corr","install")) # get the "install" file
-            try
-                run(`wget $URL`) # get the "corr" file
-            catch
-                run(`curl -O $URL`) 
-            end
-            file = split(URL,"/")[end]; run(`mv -f $file cernlib.2005.corr.tgz`)
+            run(`curl -O $URL`) # get the "corr" file 
+            run(`mv -f $(basename(URL)) cernlib.2005.corr.tgz`)
         end
     end
 end

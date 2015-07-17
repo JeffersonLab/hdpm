@@ -9,6 +9,3 @@ ccdb 1.05
 jana 0.7.3
 hdds latest
 sim-recon latest
-online-monitoring latest
-online-sbms latest
-scripts latest

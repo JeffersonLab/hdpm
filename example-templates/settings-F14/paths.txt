@@ -7,8 +7,5 @@ geant4 NA
 evio /group/halld/Software/builds/[OS]/evio/evio-[VER]
 ccdb /group/halld/Software/builds/[OS]/ccdb/ccdb_[VER]
 jana /group/halld/Software/builds/[OS]/jana/jana_[VER]
-hdds hdds-commissioning
+hdds /group/halld/Software/builds/[OS]/hdds/hdds-commissioning-[VER]
 sim-recon sim-recon
-online-monitoring online/monitoring
-online-sbms online/SBMS
-scripts scripts/analysis

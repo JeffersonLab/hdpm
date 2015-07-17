@@ -7,8 +7,5 @@ geant4 NA
 evio 4.3.1
 ccdb 1.05
 jana 0.7.3
-hdds latest
+hdds 1.0
 sim-recon latest
-online-monitoring latest
-online-sbms latest
-scripts latest

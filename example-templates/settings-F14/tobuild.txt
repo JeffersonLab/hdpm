@@ -7,8 +7,5 @@ geant4 false
 evio false
 ccdb false
 jana false
-hdds true
+hdds false
 sim-recon true
-online-monitoring true
-online-sbms true
-scripts true

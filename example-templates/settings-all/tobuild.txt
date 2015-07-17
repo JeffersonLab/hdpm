@@ -9,6 +9,3 @@ ccdb true
 jana true
 hdds true
 sim-recon true
-online-monitoring true
-online-sbms true
-scripts true

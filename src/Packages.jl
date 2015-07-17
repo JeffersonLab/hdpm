@@ -1,6 +1,6 @@
 module Packages
 #
-export Package,name,version,url,path,nthreads,tobuild,get_packages,get_package,gettop,osrelease,gettag,select_template,getbase,script,show_settings,get_unpack_file,mk_cd
+export Package,name,version,url,path,nthreads,tobuild,get_packages,get_package,gettop,osrelease,gettag,select_template,show_settings,get_unpack_file,mk_cd
 #
 immutable Package
     name::ASCIIString
@@ -34,14 +34,6 @@ function mkbool(a::ASCIIString)
     end
 end
 #
-function getbase(path) 
-    s = "/"
-    a = split(path,"/")
-    for i=1:length(a) - 1
-        s = joinpath(s,a[i])
-    end
-    s
-end
 function mk_cd(path)
     if !ispath(path) mkdir(path) end 
     cd(path)
@@ -55,12 +47,12 @@ function gettop()
     if custom_top[1,1] != "default" 
         top = custom_top[1,1] 
         if !isabspath(top) top = string(pwd(),"/pkgs/",top) end
-        if !ispath(getbase(top)) error("base directory of custom top does not exist.") end
+        if !ispath(dirname(top)) error("base directory of custom top does not exist.") end
     end
     top
 end
 #
-osrelease() = readchomp(`./osrelease.pl`)
+osrelease() = readchomp(`perl src/osrelease.pl`)
 #
 function gettag()
     tag = ""
@@ -71,14 +63,6 @@ function gettag()
 end
 #
 getid() = readchomp("settings/id.txt")
-#
-function script(pkg)
-    if name(pkg) == "online-sbms" || name(pkg) == "scripts"
-        return true
-    else
-        return false
-    end
-end
 #
 function get_packages()
     vers = readdlm("settings/vers.txt",ASCIIString)
@@ -103,14 +87,16 @@ function get_package(a::ASCIIString)
         if name(pkg) == a return pkg end
     end 
 end
-function get_unpack_file(URL)
-    try
-        run(`wget $URL`)
-    catch
-        run(`curl -O $URL`)
+function get_unpack_file(URL,PATH="")
+    file = basename(URL); println(); info("downloading $file")
+    run(`curl -OL $URL`) 
+    if PATH != ""
+        mkpath(PATH); if readchomp(`tar tf $file`|>`head`)[1] != '.' ncomp = 1 else ncomp = 2 end
+        run(`tar xf $file -C $PATH --strip-components=$ncomp`) 
+    else
+        run(`tar xf $file`) 
     end
-    file = split(URL,"/")[end]
-    run(`tar -xzvf $file`); rm(file)
+    rm(file)
 end
 function show_settings(;col=:all,sep=8)
     if !ispath("settings/") 
@@ -129,8 +115,8 @@ function show_settings(;col=:all,sep=8)
     #
     function get_rel_path(p)
         p0 = p
-        if contains(p0,getbase(gettop()))
-            p = string("..",split(p0,getbase(gettop()))[2])
+        if contains(p0,dirname(gettop()))
+            p = string("..",split(p0,dirname(gettop()))[2])
         end
         if contains(p0,gettop())
             p = split(p0,gettop())[2]
