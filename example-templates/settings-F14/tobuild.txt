@@ -7,5 +7,5 @@ geant4 false
 evio false
 ccdb false
 jana false
-hdds false
+hdds true
 sim-recon true
