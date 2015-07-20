@@ -100,7 +100,7 @@ function get_unpack_file(URL,PATH="")
 end
 function show_settings(;col=:all,sep=8)
     if !ispath("settings/") 
-        error("no build settings to show. Please select a build settings template by running:\n\t'julia select_template.jl <id>'") 
+        error("no build settings to show. Please select a build settings template by running:\n\t'hdpm select <id>'") 
     end
     if !(col in names(Package)) && col != :all
         error("incorrect name: use one of the following ",[string(i) for i in names(Package)])

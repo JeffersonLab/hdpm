@@ -36,26 +36,30 @@ A setup script is provided which will put the 64-bit Linux group installation of
 2. [Julia source at GitHub](https://github.com/JuliaLang/julia)
 
 ## Package management scripts
-The following Julia scripts are used to prepare, manage, and execute top-level builds. For typical usage, the user should not need to modify these.
+The following Julia scripts (located in the **"src"** directory) are used to prepare, manage, and execute top-level builds. For typical usage, the user should not need to modify these.
 
-1. **select_template.jl**
+1. **hdpm.jl**
+   - Unified interface for managing packages. setup.(c)sh creates an alias named `hdpm` for convenience (hdpm='julia hdpm.jl').
+   - **usage:** `hdpm <command> |<args>|`
+   - commands: `help`, `select`, `show`, `co`, `build`, `update`, `clean-build`, `install`
+2. **select_template.jl**
    - Select the settings template specified by the identifier **id** for your next build; all scripts will use the settings which have been copied from the templates directory by running this script.
-   - **usage:** `julia select_template.jl <id>`
-2. **show_settings.jl**
+   - **usage:** `hdpm select <id>`
+3. **show_settings.jl**
    - Show the current build settings. 2 optional arguments specify which column of settings to show (**"name"**, **"version"**, **"url"**, **"path"**, **"nthreads"**, or **"tobuild"**) and/or the integer number of spaces between columns. Use no arguments to show all settings with the default spacing (8 spaces).
-   - **usage:** `julia show_settings.jl [column name] [column spacing]`
-3. **copkgs.jl**
+   - **usage:** `hdpm show [column name] [column spacing]`
+4. **copkgs.jl**
    - Checkout SVN and Git packages; Download others using **curl**.
-   - **usage:** `julia copkgs.jl`
-4. **mkpkgs.jl**
+   - **usage:** `hdpm co`
+5. **mkpkgs.jl**
    - Build all selected packages.
-   - **usage:** `julia mkpkgs.jl`
-5. **update.jl**
+   - **usage:** `hdpm build`
+6. **update.jl**
    - Update SVN and Git packages. For Git packages not set to the *latest* revision, this will checkout the tag/branch denoted by the revision.
-   - **usage:** `julia update.jl`
-6. **clean_build.jl**
+   - **usage:** `hdpm update`
+7. **clean_build.jl**
    - Do a clean build of the packages. This is normally used after running the *update.jl* script. It will first delete your old executables, includes, and shared libs before building. This is currently supported for the *ccdb*, *jana*, *hdds*, and *sim-recon* packages.
-   - **usage:** `julia clean_build.jl`
+   - **usage:** `hdpm clean-build`
 
 ## Julia modules
 The package management scripts depend on these Julia modules. For typical usage, the user should not need to modify these.
