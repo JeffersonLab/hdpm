@@ -23,7 +23,7 @@ for pkg in get_packages()
             mk_cd("../$(name(pkg))_build")
             run(`cmake -DCMAKE_INSTALL_PREFIX=$(path(pkg)) $(path(pkg))`)
             run(`make -j $(nthreads(pkg))`)
-            run(`make install`) 
+            run(`make install`)
             cd("../"); run(`rm -rf $(name(pkg))_build`)
         end
         if name(pkg) == "amptools" run(setenv(`make`,putenv())) end
@@ -31,7 +31,11 @@ for pkg in get_packages()
         if name(pkg) == "evio"  run(`scons --prefix=$(path(pkg)) install`) end
         if name(pkg) in ["jana","hdds","sim-recon"]
             if ispath("src") cd("src") end
-            run(setenv(`scons -u -j$(nthreads(pkg)) install`,putenv()))
+            if name(pkg) == "sim-recon"
+                run(setenv(`scons -u -j$(nthreads(pkg)) install DEBUG=0`,putenv()))
+            else
+                run(setenv(`scons -u -j$(nthreads(pkg)) install`,putenv()))
+            end
         end
     end
 end
