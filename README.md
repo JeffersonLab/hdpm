@@ -1,5 +1,5 @@
 # hdpm - Hall D Package Manager
-This is a set of tools for managing **top-level builds** of the Jefferson Lab Hall-D offline software and online monitoring plugins; Specify a list of paths to the software and its dependencies, and it will set the Hall-D environment variables before building each package, using the standard SCons or Make-based build of each package. Additional tools are provided for top-level checkouts, updates, and clean builds. Testing of these tools has been carried out on 64-bit RedHat/CentOS 6 Linux systems. The user is assumed to already have SVN, Git, python 2.7, cURL, SCons, GNU Make, and CMake (for geant4) installed. 
+This is a set of tools for managing **top-level builds** of the Jefferson Lab Hall-D offline software and online monitoring plugins; Specify a list of paths to the software and its dependencies, and it will set the Hall-D environment variables before building each package, using the standard SCons or Make-based build of each package. Additional tools are provided for top-level checkouts, updates, and clean builds. Testing of these tools has been carried out on 64-bit RedHat/CentOS 6 Linux systems. The user is assumed to already have SVN, Git, python 2.7, cURL, SCons, GNU Make, and CMake (for geant4) installed.
 
 ## Listed packages
 `python`, `xerces-c`, `cernlib`, `root`, `amptools`, `geant4`, `evio`, `ccdb`, `jana`, `hdds`, `sim-recon`
@@ -17,7 +17,7 @@ Builds are configured with text files which can serve as templates for future bu
 3. **urls.txt**
    - URL of each SVN, Git, or other package. If the URL contains the version number of a package, it can be replaced with **"[VER]"**.
 4. **vers.txt**
-   - version, SVN revision, or Git tag/branch of each package. Use this setting to control which version of each package is checked-out/downloaded and built. For SVN and Git packages use **"latest"** to get the most recent revision. 
+   - version, SVN revision, or Git tag/branch of each package. Use this setting to control which version of each package is checked-out/downloaded and built. For SVN and Git packages use **"latest"** to get the most recent revision.
 5. **tobuild.txt**
    - which packages to checkout, update, and/or build; use **"true"** or **"false"**. All of the essential SCons and Make-based builds are supported at this time; However, for **cernlib** just the 2005 version of the Vogt-64-bit build is supported. SVN and Git packages which require no building should be set to **"true"** for checkouts and updates.  
 6. **nthreads.txt**
@@ -32,7 +32,8 @@ A setup script is provided which will put the 64-bit Linux group installation of
 
 ### Download options
 1. [Julia binaries](http://julialang.org/downloads)
-   - `source setup.(c)sh` (downloads 64-bit Linux binary using **curl** and puts it in your path if **not** on JLab CUE) 
+   - `source setup.(c)sh` (64-bit Linux download/setup)
+   - `source setup-osx.sh` (Mac OS X download/setup)
 2. [Julia source at GitHub](https://github.com/JuliaLang/julia)
 
 ## Package management scripts
