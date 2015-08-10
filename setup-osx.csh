@@ -12,9 +12,9 @@ if ( -e ${JLPATH}/julia ) then
     echo $PATH | grep -q $JLPATH
     if ( $? != 0 ) then
 	echo "Putting julia in your PATH."
-	setenv PATH ${JLPATH}:$PATH; echo "Good to go!"; goto end
+	setenv PATH ${JLPATH}:$PATH; goto end
     else
-        echo "You already have julia in your PATH."; echo "Good to go!"; goto end
+        echo "You already have julia in your PATH."; goto end
     endif
 endif
 echo "Downloading julia-$VER."

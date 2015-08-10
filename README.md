@@ -33,7 +33,7 @@ A setup script is provided which will put the 64-bit Linux group installation of
 ### Download options
 1. [Julia binaries](http://julialang.org/downloads)
    - `source setup.(c)sh` (64-bit Linux download/setup)
-   - `source setup-osx.sh` (Mac OS X download/setup)
+   - `source setup-osx.(c)sh` (Mac OS X download/setup)
 2. [Julia source at GitHub](https://github.com/JuliaLang/julia)
 
 ## Package management scripts
