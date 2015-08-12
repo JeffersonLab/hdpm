@@ -24,6 +24,7 @@ hdiutil attach -quiet julia-$VER-osx10.7+.dmg
 mkdir -p pkgs/deps
 cp -pr /Volumes/Julia/Julia-$VER.app/Contents/Resources/julia pkgs/deps/julia-$VER
 hdiutil detach -quiet /Volumes/Julia
+rm -f pkgs/deps/julia-$VER/etc/julia/juliarc.jl
 rm -f julia-$VER-osx10.7+.dmg
 echo "Putting julia in your PATH."
 export PATH=$JLPATH:$PATH
