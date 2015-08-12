@@ -10,13 +10,14 @@ for pkg in get_packages()
     home[name(pkg)] = path(pkg)
     vers[name(pkg)] = version(pkg)
 end
-if int(vers["cernlib"]) != 2005 && int(vers["cernlib"]) != 2006 warn("using an old CERN_LEVEL (not 2005 or 2006)") end
+if int(vers["cernlib"]) != 2005 && int(vers["cernlib"]) != 2006 println();warn("using an old CERN_LEVEL (not 2005 or 2006)") end
 BMS_OSNAME_BASE = osrelease()
-if gettag() != "" 
+if gettag() != ""
     BMS_OSNAME = string(osrelease(),"_",gettag())
 else
     BMS_OSNAME = osrelease()
 end
+@osx_only begin home["cernlib"] = "NA";vers["cernlib"] = "NA";println();info("Mac OS X detected: disabling cernlib ENV") end
 CCDB_CONNECTION = "mysql://ccdb_user@hallddb.jlab.org/ccdb"
 if haskey(ENV,"USER") USER = ENV["USER"]
 else USER = readchomp(`whoami`) end
@@ -37,20 +38,20 @@ myenv = [
          "JANA_CALIB_URL" => "$CCDB_CONNECTION",
          "JANA_GEOMETRY_URL" => string("xmlfile://",home["hdds"],"/main_HDDS.xml"),
          "HALLD_HOME" => home["sim-recon"]]
-#         
+#
 myoptenv = ["JANA_CALIB_CONTEXT" => "\"variation=mc\""]
 #
-function putenv() 
+function putenv()
     # put myenv variables into global ENV dictionary
     for (k,v) in myenv
-        ENV[k] = v 
+        ENV[k] = v
     end
     function add_to_path(path,new_path)
-        if !contains(path,new_path) && !contains(new_path,"NA") 
+        if !contains(path,new_path) && !contains(new_path,"NA")
             if path == ""
-                return new_path 
+                return new_path
             else
-                return string(new_path,":",path) 
+                return string(new_path,":",path)
             end
         end
         path
@@ -109,6 +110,7 @@ function printenv()
         path = ENV[path_name]
         println(file,"\nsetenv $path_name $path")
     end
+    @osx_only println(file,"\nsetenv DYLD_LIBRARY_PATH \$LD_LIBRARY_PATH")
     close(file)
     if id == ""
         file = open("$GLUEX_TOP/env-setup/env_halld.sh","w")
@@ -126,6 +128,7 @@ function printenv()
         path = ENV[path_name]
         println(file,"\nexport $path_name=$path")
     end
+    @osx_only println(file,"\nexport DYLD_LIBRARY_PATH=\$LD_LIBRARY_PATH")
     close(file)
 end
 

@@ -35,7 +35,7 @@ function mkbool(a::ASCIIString)
 end
 #
 function mk_cd(path)
-    if !ispath(path) mkdir(path) end 
+    if !ispath(path) mkdir(path) end
     cd(path)
 end
 #
@@ -44,8 +44,8 @@ function gettop()
     custom_top = readdlm("settings/top.txt",ASCIIString)
     if size(custom_top,1) != 1 || size(custom_top,2) != 2 error("problem reading in custom top directory name; top.txt has wrong number of rows or columns.") end
     if !isabspath(custom_top[1,1]) && !ispath(string(pwd(),"/pkgs")) mkdir(string(pwd(),"/pkgs")) end
-    if custom_top[1,1] != "default" 
-        top = custom_top[1,1] 
+    if custom_top[1,1] != "default"
+        top = custom_top[1,1]
         if !isabspath(top) top = string(pwd(),"/pkgs/",top) end
         if !ispath(dirname(top)) error("base directory of custom top does not exist.") end
     end
@@ -85,22 +85,22 @@ end
 function get_package(a::ASCIIString)
     for pkg in get_packages()
         if name(pkg) == a return pkg end
-    end 
+    end
 end
 function get_unpack_file(URL,PATH="")
-    file = basename(URL); println(); info("downloading $file")
-    run(`curl -OL $URL`) 
+    file = basename(URL); info("downloading $file")
+    run(`curl -OL $URL`)
     if PATH != ""
         mkpath(PATH); if readchomp(`tar tf $file`|>`head`)[1] != '.' ncomp = 1 else ncomp = 2 end
-        run(`tar xf $file -C $PATH --strip-components=$ncomp`) 
+        run(`tar xf $file -C $PATH --strip-components=$ncomp`)
     else
-        run(`tar xf $file`) 
+        run(`tar xf $file`)
     end
     rm(file)
 end
 function show_settings(;col=:all,sep=8)
-    if !ispath("settings/") 
-        error("no build settings to show. Please select a build settings template by running:\n\t'hdpm select <id>'") 
+    if !ispath("settings/")
+        error("no build settings to show. Please select a build settings template by running:\n\t'hdpm select <id>'")
     end
     if !(col in names(Package)) && col != :all
         error("incorrect name: use one of the following ",[string(i) for i in names(Package)])
@@ -109,7 +109,11 @@ function show_settings(;col=:all,sep=8)
     if sep > 16 sep = 16; info("using max. separation = ",string(sep)," spaces") end
     print("\n",Base.text_colors[:bold])
     println("Current build settings",Base.text_colors[:bold])
-    println("ID: ",getid())
+    try
+        println("ID: ",getid())
+    catch
+        println("ID: ","id file not found; This will not affect build.")
+    end
     println("TOP: ",gettop())
     println("TAG: ",gettag())
     #
@@ -140,7 +144,7 @@ function show_settings(;col=:all,sep=8)
                     if length(pkg.(n)) > sizes[n] sizes[n] = length(pkg.(n)) end
                 end
             end
-        end 
+        end
         sizes
     end
     #
@@ -150,7 +154,7 @@ function show_settings(;col=:all,sep=8)
         if n in [:name,col] || col == :all
             print(n,Base.text_colors[:bold])
             spaces = sizes[n] - length(string(n)) + sep
-            for i=1:spaces print(" ") end 
+            for i=1:spaces print(" ") end
         end
     end
     print("\n",Base.text_colors[:normal])
@@ -169,7 +173,7 @@ function show_settings(;col=:all,sep=8)
             end
         end
         print("\n")
-    end 
+    end
 end
 #
 end

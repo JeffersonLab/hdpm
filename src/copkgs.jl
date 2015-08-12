@@ -1,8 +1,10 @@
 using Packages
 top = gettop()
 for pkg in get_packages()
-    if tobuild(pkg) && ispath(path(pkg)) info(path(pkg)," already exists. Skipping it.") end
+    @osx_only if name(pkg) == "cernlib" info("Mac OS X detected: skipping cernlib");continue end
+    if tobuild(pkg) && ispath(path(pkg)) info(path(pkg)," exists") end
     if tobuild(pkg) && !ispath(path(pkg))
+        println()
         mk_cd(top)
         URL = url(pkg)
         # checkout svn and git packages
@@ -27,7 +29,7 @@ for pkg in get_packages()
             if name(pkg) == "amptools"
                 get_unpack_file(URL,dirname(path(pkg)))
             else
-                get_unpack_file(URL,path(pkg))               
+                get_unpack_file(URL,path(pkg))
             end
         end
         if name(pkg) == "cernlib" && version(pkg) == "2005"
@@ -35,7 +37,7 @@ for pkg in get_packages()
             cd(path(pkg))
             get_unpack_file(replace(URL,".2005.corr.2014.04.17","-2005-all-new")) # get the "all" file
             get_unpack_file(replace(URL,"corr","install")) # get the "install" file
-            run(`curl -O $URL`) # get the "corr" file 
+            run(`curl -O $URL`) # get the "corr" file
             run(`mv -f $(basename(URL)) cernlib.2005.corr.tgz`)
         end
     end
