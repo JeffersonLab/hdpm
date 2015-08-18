@@ -12,7 +12,7 @@ if length(ARGS) == 0 || (length(ARGS) == 1 && ARGS[1] == "help")
     \t show        Show selected packages
     \t fetch       Checkout/download/clone selected packages
     \t build       Build selected packages (fetch if needed)
-    \t update      Update selected packages
+    \t update      Update selected Git/SVN packages
     \t clean       Completely remove build products of selected packages
     \t clean-build Clean build of selected packages
 Use 'hdpm help <command>' to see available arguments.")
@@ -21,12 +21,8 @@ if length(ARGS) == 1 && ARGS[1] != "help"
     if ARGS[1] == "fetch"
         run(`julia src/copkgs.jl`)
     elseif ARGS[1] == "build"
-        if success(`julia src/mkpkgs.jl`)
-            run(`julia src/mkpkgs.jl`)
-        else
-            run(`julia src/copkgs.jl`)
-            run(`julia src/mkpkgs.jl`)
-        end
+        run(`julia src/copkgs.jl`)
+        run(`julia src/mkpkgs.jl`)
     elseif ARGS[1] == "update"
         run(`julia src/update.jl`)
     elseif ARGS[1] == "clean"
@@ -63,7 +59,7 @@ if length(ARGS) == 2 && ARGS[1] == "help"
         println("usage: hdpm build |<pkgs>...|")
         println("pkgs: ",string(pkg_names))
     elseif ARGS[2] == "update"
-        println("Update the selected packages")
+        println("Update selected Git/SVN packages")
         println("usage: hdpm update |<pkgs>...|")
         println("pkgs: ",string(pkg_names))
     elseif ARGS[2] == "clean"
@@ -92,12 +88,8 @@ if length(ARGS) == 2 && ARGS[1] != "help"
             run(`julia src/copkgs.jl`)
             run(`julia src/mkpkgs.jl`)
         elseif ARGS[2] in pkg_names
-            if success(`julia src/mkpkgs.jl $(ARGS[2])`)
-                run(`julia src/mkpkgs.jl $(ARGS[2])`)
-            else
-                run(`julia src/copkgs.jl $(ARGS[2])`)
-                run(`julia src/mkpkgs.jl $(ARGS[2])`)
-            end
+            run(`julia src/copkgs.jl $(ARGS[2])`)
+            run(`julia src/mkpkgs.jl $(ARGS[2])`)
         else
             error("Unknown argument. Use 'hdpm help $(ARGS[1])' to see available arguments.")
         end
@@ -137,12 +129,8 @@ if length(ARGS) >= 3 && (length(ARGS) <= length(pkg_names) + 1) && ARGS[1] != "s
     if ARGS[1] == "fetch"
         run(`julia src/copkgs.jl $nargs`)
     elseif ARGS[1] == "build"
-        if success(`julia src/mkpkgs.jl $nargs`)
-            run(`julia src/mkpkgs.jl $nargs`)
-        else
-            run(`julia src/copkgs.jl $nargs`)
-            run(`julia src/mkpkgs.jl $nargs`)
-        end
+        run(`julia src/copkgs.jl $nargs`)
+        run(`julia src/mkpkgs.jl $nargs`)
     elseif ARGS[1] == "update"
         run(`julia src/update.jl $nargs`)
     elseif ARGS[1] == "clean"

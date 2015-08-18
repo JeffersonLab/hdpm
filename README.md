@@ -13,7 +13,7 @@ Builds are configured with text files which can serve as templates for future bu
    - **note:** it is often convenient to make the *build tag* the same as the *template id*; however, this is not mandatory.
 2. **paths.txt**
    - path of each package (**format:** `<name> <path>`, 1 package per line); if a relative path is given, it will be joined with the path of the top directory before being used. If the path contains the version number and/or *BMS_OSNAME*, they can be replaced by **"[VER]"** and/or **"[OS]"**, respectively. To exclude a package from the build environment, set the path to **"NA"** (non-applicable). Core dependencies cannot be excluded, so this is only relevant to `amptools` and `geant4` at this time.
-   - **important:** do not change the default names of the standard packages; these names cannot be customized.
+   - **important:** do not change the names or order of listed packages; these names cannot be customized.
 3. **urls.txt**
    - URL of each SVN, Git, or other package. If the URL contains the version number of a package, it can be replaced with **"[VER]"**.
 4. **vers.txt**

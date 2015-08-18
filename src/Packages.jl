@@ -73,6 +73,11 @@ function get_packages()
     vers = readdlm("settings/vers.txt",ASCIIString)
     urls = readdlm("settings/urls.txt",ASCIIString)
     paths = readdlm("settings/paths.txt",ASCIIString)
+    pkg_names = get_pkg_names()
+    @assert(vers[:,1] == pkg_names,string("'vers.txt' has wrong number of packages, names, or order.\nNeed to match ",pkg_names,"\n"))
+    @assert(urls[:,1] == pkg_names,string("'urls.txt' has wrong number of packages, names, or order.\nNeed to match ",pkg_names,"\n"))
+    @assert(paths[:,1] == pkg_names,string("'paths.txt' has wrong number of packages, names, or order.\nNeed to match ",pkg_names,"\n"))
+    #
     commands = readdlm("settings/commands.txt",ASCIIString)
     tmp_cmds = Dict{ASCIIString,Array{ASCIIString,1}}()
     cmds = Dict{ASCIIString,Array{ASCIIString,1}}()
@@ -96,13 +101,8 @@ function get_packages()
         "sim-recon" => "xerces-c,cernlib,root,evio,ccdb,jana,hdds"]
     @osx_only mydeps["sim-recon"] = "xerces-c,root,evio,ccdb,jana,hdds"
     pkgs = Array(Package,0)
-    Npkgs = length(get_pkg_names())
-    if size(paths,1) != Npkgs || size(urls,1) != Npkgs || size(vers,1) != Npkgs
-        error("'vers.txt', 'urls.txt', or 'paths.txt' has incorrect number of lines: $(size(paths,1));
-        exactly $Npkgs lines are required, one for each listed package.\n") end
     for i=1:size(paths,1)
         name = paths[i,1]
-        if !(name in get_pkg_names()) error("unknown package name: $name") end
         path = paths[i,2]; path = replace(path,"[OS]",osrelease()); path = replace(path,"[VER]",vers[i,2])
         url = replace(urls[i,2],"[VER]",vers[i,2])
         if !isabspath(path) && path != "NA"
