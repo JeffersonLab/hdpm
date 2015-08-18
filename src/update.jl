@@ -1,7 +1,7 @@
 using Packages
 # update svn and git packages
-for pkg in get_packages()
-    if contains(url(pkg),"svn") && tobuild(pkg) 
+for pkg in get_packages(); if length(ARGS) > 0 if !(name(pkg) in ARGS) continue end end
+    if contains(url(pkg),"svn") && !contains(url(pkg),"tags") && !is_external(pkg)
         cd(path(pkg))
         rev = version(pkg)
         println(string("Updating ",name(pkg)," to svn revision $rev."))
@@ -11,13 +11,14 @@ for pkg in get_packages()
             run(`svn update`)
         end
     end
-    if contains(url(pkg),"git") && tobuild(pkg) 
+    if contains(url(pkg),"git") && !contains(url(pkg),"archive") && !is_external(pkg)
         cd(path(pkg))
         rev = version(pkg)
         println(string("Updating ",name(pkg)," to git revision $rev."))
         if rev!="latest"
-            run(`git checkout $rev`)
+            run(`git checkout -b $rev $rev`)
         else
+            run(`git checkout master`)
             run(`git pull`)
         end
     end

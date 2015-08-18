@@ -1,0 +1,10 @@
+# xerces-c
+# cernlib
+# root
+# amptools
+# geant4
+# evio
+# ccdb
+# jana
+hdds      "scons -u install"
+sim-recon "scons -u -j8 install"

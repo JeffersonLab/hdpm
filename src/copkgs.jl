@@ -1,13 +1,16 @@
 using Packages
 top = gettop()
-for pkg in get_packages()
-    @osx_only if name(pkg) == "cernlib" info("Mac OS X detected: skipping cernlib");continue end
-    if tobuild(pkg) && ispath(path(pkg)) info(path(pkg)," exists") end
-    if tobuild(pkg) && !ispath(path(pkg))
+deps = get_deps(ARGS) # add deps
+if length(deps) > 0 info("dependency list: ",string(deps)) end
+for pkg in get_packages(); if length(ARGS) > 0 if !(name(pkg) in ARGS) && !(name(pkg) in deps) continue end end
+    @osx_only if name(pkg) == "cernlib" info("Mac OS X detected: skipping cernlib"); continue end
+    if is_external(pkg) && name(pkg) in deps warn(name(pkg)," is dependency under user control, assumed to be set to valid external installation.") end
+    if !is_external(pkg) && ispath(path(pkg)) info(path(pkg)," exists") end
+    if !is_external(pkg) && !ispath(path(pkg))
         println()
         mk_cd(top)
         URL = url(pkg)
-        # checkout svn and git packages
+        # checkout/clone svn and git packages
         if contains(URL,"svn")
             rev = version(pkg)
             if rev!="latest" && !contains(URL,"tags")
@@ -33,8 +36,7 @@ for pkg in get_packages()
             end
         end
         if name(pkg) == "cernlib" && version(pkg) == "2005"
-            mkdir(path(pkg))
-            cd(path(pkg))
+            mk_cd(path(pkg))
             get_unpack_file(replace(URL,".2005.corr.2014.04.17","-2005-all-new")) # get the "all" file
             get_unpack_file(replace(URL,"corr","install")) # get the "install" file
             run(`curl -O $URL`) # get the "corr" file

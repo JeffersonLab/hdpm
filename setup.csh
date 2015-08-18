@@ -17,7 +17,7 @@ if ( -e ${JLPATH}/julia ) then
     endif
 endif
 set VER=0.3.11
-set JLPATH=`pwd`/pkgs/deps/julia-$VER/bin
+set JLPATH=`pwd`/pkgs/julia-$VER/bin
 if ( -e ${JLPATH}/julia ) then
     echo "julia-$VER directory already exists; nothing to download."
     echo $PATH | grep -q $JLPATH
@@ -30,8 +30,8 @@ if ( -e ${JLPATH}/julia ) then
 endif
 echo "Downloading julia-$VER."
 curl -OL https://julialang.s3.amazonaws.com/bin/linux/x64/0.3/julia-$VER-linux-x86_64.tar.gz
-mkdir -p pkgs/deps/julia-$VER
-tar -xzf julia-$VER-linux-x86_64.tar.gz -C pkgs/deps/julia-$VER --strip-components=1
+mkdir -p pkgs/julia-$VER
+tar -xzf julia-$VER-linux-x86_64.tar.gz -C pkgs/julia-$VER --strip-components=1
 rm -f julia-$VER-linux-x86_64.tar.gz
 echo "Putting julia in your PATH."
 setenv PATH ${JLPATH}:$PATH

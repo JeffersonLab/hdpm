@@ -1,52 +1,47 @@
 using Environs,Packages
-home = pwd()
-printenv() # save env variables in shell script
 # build packages
-for pkg in get_packages()
+home = pwd()
+printenv() # expose env variables and save them to env-setup file
+BMS_OSNAME = install_dirname()
+deps = get_deps(ARGS) # add deps
+if length(deps) > 0 info("dependency list: ",string(deps)) end
+first_success = ""
+for pkg in get_packages(); if length(ARGS) > 0 if !(name(pkg) in ARGS) && !(name(pkg) in deps) continue end end
+    @osx_only if name(pkg) == "cernlib" continue end
     path_to_success = joinpath(path(pkg),"success.hdpm")
-    if tobuild(pkg) && !ispath(path_to_success)
-        @osx_only if name(pkg) == "cernlib" info("Mac OS X detected: skipping cernlib");continue end
-        if !ispath(path(pkg)) println();error("path does not exist, ",path,"; Run 'hdpm co' first.") end
-        cd(path(pkg)); println(); info("building $(name(pkg))")
+    if name(pkg) in ["jana","hdds","sim-recon"] path_to_success = joinpath(path(pkg),BMS_OSNAME,"success.hdpm") end
+    if first_success == "" && ispath(path_to_success) first_success = name(pkg) end
+    if is_external(pkg) && name(pkg) in deps warn(name(pkg)," is dependency under user control, assumed to be set to valid external installation.") end
+    if !is_external(pkg) && !ispath(path_to_success)
+        if !ispath(path(pkg)) println();error(path(pkg)," does not exist;\n\tRun 'hdpm build'.") end
+        println();info("$(name(pkg)): checking dependencies")
+        check_deps(pkg)
+        info("building $(name(pkg))")
+        cd(path(pkg))
         tic() # start timer
-        if name(pkg) == "cernlib"
+        du = split(readchomp(`du -sh $(path(pkg))`))[1] # src code disk use
+        if name(pkg) in ["xerces-c","root","amptools","geant4","evio","ccdb","jana","hdds","sim-recon"]
+            if name(pkg) == "sim-recon" cd("src") end
+            if name(pkg) == "geant4" mk_cd("../$(name(pkg))_build") end
+            for cmd in cmds(pkg)
+                run(`sh -c $cmd`)
+            end
+            if name(pkg) == "geant4" cd("../");run(`rm -rf $(name(pkg))_build`) end
+        elseif name(pkg) == "cernlib"
             run(`cp -pr $home/patches $(path(pkg))`)
             run(`sh -c "patch < $(path(pkg))/patches/cernlib/Install_cernlib.patch"`)
             run(`./Install_cernlib`)
-        end
-        if name(pkg) == "root"
-            run(setenv(`sh -c "./configure --enable-roofit"`,putenv()))
-            run(setenv(`make -j $(nthreads(pkg))`,putenv()))
-        end
-        if name(pkg) == "xerces-c"
-            run(`sh -c "./configure --prefix=$(path(pkg))"`)
-            run(`make`); run(`make install`)
-        end
-        if name(pkg) == "geant4"
-            mk_cd("../$(name(pkg))_build")
-            run(`cmake -DCMAKE_INSTALL_PREFIX=$(path(pkg)) $(path(pkg))`)
-            run(`make -j $(nthreads(pkg))`)
-            run(`make install`)
-            cd("../"); run(`rm -rf $(name(pkg))_build`)
-        end
-        if name(pkg) == "amptools" run(setenv(`make`,putenv())) end
-        @osx_only if name(pkg) == "ccdb" run(setenv(`scons with-mysql=false`,putenv())) end
-        @linux_only if name(pkg) == "ccdb" run(setenv(`scons`,putenv())) end
-        if name(pkg) == "evio" run(`scons --prefix=$(path(pkg)) install`) end
-        if name(pkg) in ["jana","hdds","sim-recon"]
-            if ispath("src") cd("src") end
-            if name(pkg) == "sim-recon"
-                run(setenv(`scons -u -j$(nthreads(pkg)) install DEBUG=0`,putenv()))
-            else
-                run(setenv(`scons -u -j$(nthreads(pkg)) install`,putenv()))
-            end
         end # stop timer and write success file
-        cd(path(pkg)); success_file = open("success.hdpm","w")
-        println(success_file,string("# build time (seconds)\n",round(toc(),1),
-        "\n# disk use (Bytes), including src code\n",split(readchomp(`du -sh $(path(pkg))`))[1]))
+        du_f = split(readchomp(`du -sh $(path(pkg))`))[1]
+        success_file = open(path_to_success,"w")
+        println(success_file,string("$(name(pkg))-$(git_version(pkg))","\n$(readchomp(`date "+%Y-%m-%d_%H:%M:%S"`))","\n# build time (seconds)\n",int(toc()),
+        "\n# disk use, final minus initial\n","\"$(du_f)B - $(du)B\"","\n# compiled against\n",tagged_deps(pkg)))
         close(success_file)
-    elseif ispath(path_to_success)
-        d = readdlm(path_to_success)
-        info(string(name(pkg),": compile time = ",d[1]," seconds, disk usage = ",d[2],"B"))
+    elseif !is_external(pkg) && ispath(path_to_success)
+        d = readdlm(path_to_success); w = 20
+        if first_success == name(pkg) print("\n",Base.text_colors[:bold])
+            print(string(rpad("package",w," "),rpad("build time",w-6," "),rpad("disk use",w-3," "),"timestamp"),Base.text_colors[:bold]) end
+        if first_success == name(pkg) print("\n",Base.text_colors[:normal]) end
+        println(rpad(d[1],w," "),rpad(string(int(d[3])," s"),w-6," "),rpad(d[4],w-3," "),d[2])
     end
 end
