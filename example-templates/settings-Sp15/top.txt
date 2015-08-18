@@ -1,2 +1,2 @@
 # top   build-tag
-default build-Sp15
+default Sp15

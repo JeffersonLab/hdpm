@@ -92,7 +92,7 @@ function printenv()
         if sh == "sh" n = "bash"; set = "export"; eq = "="
         elseif sh == "csh" n = "tcsh"; set = "setenv"; eq = " "
         else error("unknown shell type") end
-        file = (id == "") ? open("$GLUEX_TOP/env-setup/env_halld.$sh","w") : open("$GLUEX_TOP/env-setup/env_halld_$id.$sh","w")
+        file = (id == "") ? open("$GLUEX_TOP/env-setup/hdenv.$sh","w") : open("$GLUEX_TOP/env-setup/hdenv-$id.$sh","w")
         println(file,"# $n\n#")
         println(file,string("$set GLUEX_TOP$eq",ENV["GLUEX_TOP"]))
         println(file,string("$set BMS_OSNAME$eq",ENV["BMS_OSNAME"]))

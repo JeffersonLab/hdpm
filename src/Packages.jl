@@ -64,7 +64,7 @@ function gettag()
     if custom_tag[1,2] != "default" tag = custom_tag[1,2] end
     tag
 end
-install_dirname() = (gettag() == "") ? osrelease() : gettag()
+install_dirname() = (gettag() == "") ? osrelease() : string("build-",gettag())
 getid() = readchomp("settings/id.txt")
 #
 get_pkg_names() = ["xerces-c","cernlib","root","amptools","geant4","evio","ccdb","jana","hdds","sim-recon"]

@@ -1,2 +1,2 @@
 # top   build-tag
-default build-F14
+default F14
