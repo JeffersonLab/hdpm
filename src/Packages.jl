@@ -215,7 +215,7 @@ function check_deps(pkg)
         "evio" => `evio2xml`,
         "ccdb" => `ccdb`,
         "jana" => `jana`,
-        "hdds" => `$LDD $(path(get_package("hdds")))/$(osrelease())/lib/libhdds.so` |> `grep libxerces-c`,
+        "hdds" => `$LDD $(path(get_package("hdds")))/$(install_dirname())/lib/libhdds.so` |> `grep libxerces-c`,
         "sim-recon" => `hd_root`]
     for dep in get_deps([name(pkg)])
         if !success(test_cmds[dep])

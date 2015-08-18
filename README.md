@@ -8,7 +8,7 @@ This is a set of tools for managing **top-level builds** of the Jefferson Lab Ha
 Builds are configured with text files which can serve as templates for future builds. Example templates are provided in the **"example-templates"** directory. Each subdirectory in the **"example-templates"** directory, with name **"settings-[id]"**, is a build-settings template. **"example-templates"** is copied to the **"templates"** directory when selecting a template for the first time. This directory is for storing user-defined templates. Create a new template by editing the text files located in the **"settings"** directory and copying them to a directory named **"templates/settings-[id]"**. The `hdpm save` command is available to make this a bit easier, and is described in the user interface section.
 
 1. **top.txt**
-   - **path** of the top-level build directory and **build tag** separated by a tab or space; Supply an absolute path in order to set the build directory to an arbitrary location; A relative path will be joined with the **"pkgs"** directory in the current working directory. The build tag is used as the name of the install-directory (instead of the usual *BMS_OSNAME*). Unique tags can be used to house side-by-side builds of the package with different dependencies or different source code, such as after switching branches in a Git repository. All packages built by `hdpm` have a file written to the install-directory as a record when the build finishes, named **"success.hdpm"**. It stores build statistics and dependencies.
+   - **path** of the top-level build directory and **build tag** separated by a tab or space; Supply an absolute path in order to set the build directory to an arbitrary location; A relative path will be joined with the **"pkgs"** directory in the current working directory. The build tag is used as the name of the install-directory (instead of the usual *BMS_OSNAME*). Unique tags can be used to house side-by-side builds of the package with different dependencies or different source code, such as after switching branches in a Git repository. All packages built by `hdpm` have a file named **"success.hdpm"** written to the install-directory as a record when the build finishes. It stores build statistics and dependencies.
    - alternatively, if you want to use the *defaults*, use **"default"** for the path and/or tag name; the *defaults* are a directory named **"pkgs"** in the current working directory and *BMS_OSNAME* as the installation directory name.
    - **note:** it is often convenient to make the *build tag* the same as the *template id*; however, this is not mandatory.
 2. **paths.txt**
@@ -38,9 +38,9 @@ A setup script is provided which will put the 64-bit Linux group installation of
 Julia scripts (located in the **"src"** directory) are used to prepare, manage, and execute top-level builds. For typical usage, the user should not need to modify these. The scripts are controlled through the `hdpm` command interface.
 
 * **hdpm**
-   - Unified interface for managing packages. For convenience, setup.(c)sh creates an alias named `hdpm`  (hdpm='julia src/hdpm.jl').
+   - Unified interface for managing packages.
    - **usage:** `hdpm <command> |<args>|`
-   - commands: `help`, `select`, `save`, `show`, `fetch`, `build`, `update`, `clean`, `clean-build`
+   - **cmds:** `help`, `select`, `save`, `show`, `fetch`, `build`, `update`, `clean`, `clean-build`
 * **hdpm help**
     - Display available commands or arguments for a particular command.
     - **usage:** `hdpm help [command]`
