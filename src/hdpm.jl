@@ -32,8 +32,10 @@ if length(ARGS) == 1 && ARGS[1] != "help"
         run(`julia src/mkpkgs.jl`)
     elseif ARGS[1] == "show"
         run(`julia src/show_settings.jl`)
+    elseif ARGS[1] == "select" || ARGS[1] == "save"
+        error("Requires one argument. Use 'hdpm help $(ARGS[1])' to see available arguments.\n")
     else
-        error("Unknown command. Use 'hdpm help' to see available commands.")
+        error("Unknown command. Use 'hdpm help' to see available commands.\n")
     end
 end
 if length(ARGS) == 2 && ARGS[1] == "help"
@@ -71,7 +73,7 @@ if length(ARGS) == 2 && ARGS[1] == "help"
         println("usage: hdpm clean-build |<pkgs>...|")
         println("pkgs: ",string(pkg_names))
     else
-        error("Unknown command. Use 'hdpm help' to see available commands.")
+        error("Unknown command. Use 'hdpm help' to see available commands.\n")
     end
 end
 if length(ARGS) == 2 && ARGS[1] != "help"
@@ -81,7 +83,7 @@ if length(ARGS) == 2 && ARGS[1] != "help"
         run(`julia src/mk_template.jl $(ARGS[2])`)
     elseif ARGS[1] == "build"
         if ARGS[2] in template_ids && ARGS[2] in pkg_names
-            error("template id cannot be the same as a package name. Please rename the template id!")
+            error("template id cannot be the same as a package name. Please rename the template id.\n")
         end
         if ARGS[2] in template_ids
             run(`julia src/select_template.jl $(ARGS[2])`)
@@ -91,10 +93,14 @@ if length(ARGS) == 2 && ARGS[1] != "help"
             run(`julia src/copkgs.jl $(ARGS[2])`)
             run(`julia src/mkpkgs.jl $(ARGS[2])`)
         else
-            error("Unknown argument. Use 'hdpm help $(ARGS[1])' to see available arguments.")
+            error("Unknown argument. Use 'hdpm help $(ARGS[1])' to see available arguments.\n")
         end
-    elseif ARGS[1] == "show" && ARGS[2] in pkg_cols
-        run(`julia src/show_settings.jl $(ARGS[2])`)
+    elseif ARGS[1] == "show"
+        if ARGS[2] in pkg_cols
+            run(`julia src/show_settings.jl $(ARGS[2])`)
+        else
+            error("Unknown argument. Use 'hdpm help $(ARGS[1])' to see available arguments.\n")
+        end
     elseif ARGS[1] == "fetch" && ARGS[2] in pkg_names
         run(`julia src/copkgs.jl $(ARGS[2])`)
     elseif ARGS[1] == "clean" && ARGS[2] in pkg_names
@@ -105,22 +111,22 @@ if length(ARGS) == 2 && ARGS[1] != "help"
     elseif ARGS[1] == "update" && ARGS[2] in pkg_names
         run(`julia src/update.jl $(ARGS[2])`)
     else
-        error("Unknown command. Use 'hdpm help' to see available commands.")
+        error("Unknown command. Use 'hdpm help' to see available commands.\n")
     end
 end
 if length(ARGS) == 3 && ARGS[1] == "show"
     if ARGS[2] in pkg_cols || ARGS[3] in pkg_cols
         run(`julia src/show_settings.jl $(ARGS[2]) $(ARGS[3])`)
     else
-        error("Unknown argument. Use 'hdpm help $(ARGS[1])' to see available arguments.")
+        error("Unknown argument. Use 'hdpm help $(ARGS[1])' to see available arguments.\n")
     end
 end
 if length(ARGS) >= 3 && (length(ARGS) <= length(pkg_names) + 1) && ARGS[1] != "show"
     trouble = false
     for i=2:length(ARGS)
-        if !(ARGS[i] in pkg_names) warn("unknown argument: ",ARGS[i]); trouble = true end
+        if !(ARGS[i] in pkg_names) warn("Unknown argument: ",ARGS[i]); trouble = true end
     end
-    if trouble error("unknown argument (typo?). Use 'hdpm help $(ARGS[1])' to see available arguments.") end
+    if trouble error("Unknown argument (typo?). Use 'hdpm help $(ARGS[1])' to see available arguments.\n") end
     #
     nargs = ``
     for i=2:length(ARGS)
@@ -139,8 +145,8 @@ if length(ARGS) >= 3 && (length(ARGS) <= length(pkg_names) + 1) && ARGS[1] != "s
         run(`julia src/clean.jl $nargs`)
         run(`julia src/mkpkgs.jl $nargs`)
     else
-        error("Unknown command. Use 'hdpm help' to see available commands.")
+        error("Unknown command. Use 'hdpm help' to see available commands.\n")
     end
 elseif length(ARGS) > length(pkg_names) + 1
-    error("Too many arguments. Use 'hdpm help $(ARGS[1])' to see available arguments.")
+    error("Too many arguments. Use 'hdpm help $(ARGS[1])' to see available arguments.\n")
 end

@@ -51,7 +51,7 @@ Julia scripts (located in the **"src"** directory) are used to prepare, manage, 
     - Save the current build settings as a new template for future builds.
     - **usage:** `hdpm save <new id>`
 * **hdpm show**
-   - Show the current build settings. 2 optional arguments specify which column of settings to show (**"name"**, **"version"**, **"url"**, **"path"**,**"deps"**, or **"cmds"**) and/or the integer number of spaces between columns. Use no arguments to show the first four columns of settings with the default spacing (2 spaces).
+   - Show the current build settings. 2 optional arguments specify which column of settings to show (**"version"**, **"url"**, **"path"**,**"deps"**, or **"cmds"**) and/or the integer number of spaces between columns. Use no arguments to show the first four columns of settings with the default spacing (2 spaces).
    - **usage:** `hdpm show [column name] [column spacing]`
 * **hdpm fetch**
    - Checkout/clone SVN and Git packages; Download others using **curl**.

@@ -45,6 +45,10 @@ function mk_cd(path)
 end
 #
 function gettop()
+    if !ispath("settings")
+        error("Please select a 'build template'.
+    \t Use 'hdpm select <id>'
+    \t ids: ",get_template_ids(),"\n") end
     top = string(pwd(),"/pkgs")
     custom_top = readdlm("settings/top.txt",ASCIIString)
     if size(custom_top,1) != 1 || size(custom_top,2) != 2 error("problem reading in custom top directory name; top.txt has wrong number of rows or columns.") end
@@ -65,11 +69,13 @@ function gettag()
     tag
 end
 install_dirname() = (gettag() == "") ? osrelease() : string("build-",gettag())
-getid() = readchomp("settings/id.txt")
-#
 get_pkg_names() = ["xerces-c","cernlib","root","amptools","geant4","evio","ccdb","jana","hdds","sim-recon"]
 #
 function get_packages()
+    if !ispath("settings")
+        error("Please select a 'build template'.
+    \t Use 'hdpm select <id>'
+    \t ids: ",get_template_ids(),"\n") end
     vers = readdlm("settings/vers.txt",ASCIIString)
     urls = readdlm("settings/urls.txt",ASCIIString)
     paths = readdlm("settings/paths.txt",ASCIIString)
@@ -159,23 +165,23 @@ function get_unpack_file(URL,PATH="")
     rm(file)
 end
 function show_settings(;col=:all,sep=2)
-    if !ispath("settings/")
-        error("no build settings to show. Please select a build settings template by running:\n\t'hdpm select <id>'")
-    end
-    if !(col in names(Package)) && col != :all
-        error("incorrect name: use one of the following ",[string(i) for i in names(Package)])
-    end
+    if !ispath("settings")
+        error("Please select a 'build template'.
+    \t Use 'hdpm select <id>'
+    \t ids: ",get_template_ids(),"\n") end
+    if sep <= 1 sep = 1; info("Using min. column spacing of ",string(sep)," spaces.") end
+    if sep >= 24 sep = 24; info("Using max. column spacing of ",string(sep)," spaces.") end
     print("\n",Base.text_colors[:bold])
     println("Current build settings",Base.text_colors[:bold])
     try
-        println("ID: ",getid())
+        println("ID: ",readchomp("settings/id.txt"))
     catch
         println("ID: ","id file not found; This will not affect build.")
     end
     println("TOP: ",gettop())
     println("TAG: ",gettag())
     #
-    w1 = 9 + sep; w2 = 87+sep
+    w1 = 9 + sep; w2 = 87 + sep
     print("\n",Base.text_colors[:bold])
     for n in names(Package)
         w = w1
@@ -219,7 +225,7 @@ function check_deps(pkg)
         "sim-recon" => `hd_root`]
     for dep in get_deps([name(pkg)])
         if !success(test_cmds[dep])
-            error("'$dep' does not appear to be installed. Please check paths if using external installations.
+            error("'$dep' does not appear to be installed. Please check path if using external installation.
             To build all dependencies, run 'hdpm build' with all packages enabled in 'commands.txt'.\n")
         end
     end

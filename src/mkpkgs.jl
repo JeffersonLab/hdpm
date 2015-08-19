@@ -16,7 +16,7 @@ for pkg in get_packages(); if length(ARGS) > 0 if !(name(pkg) in ARGS) && !(name
         if !ispath(path(pkg)) println();error(path(pkg)," does not exist;\n\tRun 'hdpm build'.") end
         println();info("$(name(pkg)): checking dependencies")
         check_deps(pkg)
-        info("building $(name(pkg))")
+        info("building $(name(pkg))-$(git_version(pkg))")
         cd(path(pkg))
         tic() # start timer
         du = split(readchomp(`du -sh $(path(pkg))`))[1] # src code disk use
