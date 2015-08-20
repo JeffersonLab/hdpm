@@ -3,6 +3,7 @@ module Packages
 home = pwd()
 export Package,name,version,url,path,cmds,is_external,get_packages,get_package,gettop,osrelease,gettag,select_template,show_settings
 export get_unpack_file,mk_cd,get_template_ids,get_pkg_names,get_deps,tagged_deps,git_version,check_deps,mk_template,install_dirname
+export xml_versions
 immutable Package
     name::ASCIIString
     version::ASCIIString
@@ -30,7 +31,7 @@ function get_template_ids()
     if !ispath("templates") run(`cp -pr example-templates templates`) end
     list = Array(ASCIIString,0)
     for dir in readdir("templates")
-        push!(list,split(dir,"-")[2])
+        push!(list,split(dir,"settings-")[2])
     end
     list
 end
@@ -44,11 +45,14 @@ function mk_cd(path)
     mkpath(path); cd(path)
 end
 #
-function gettop()
+function check_for_settings()
     if !ispath("settings")
         error("Please select a 'build template'.
-    \t Use 'hdpm select <id>'
-    \t ids: ",get_template_ids(),"\n") end
+        \t Use 'hdpm select <id>'
+        \t ids: ",get_template_ids(),"\n") end
+end
+function gettop()
+    check_for_settings()
     top = string(pwd(),"/pkgs")
     custom_top = readdlm("settings/top.txt",ASCIIString)
     if size(custom_top,1) != 1 || size(custom_top,2) != 2 error("problem reading in custom top directory name; top.txt has wrong number of rows or columns.") end
@@ -72,10 +76,7 @@ install_dirname() = (gettag() == "") ? osrelease() : string("build-",gettag())
 get_pkg_names() = ["xerces-c","cernlib","root","amptools","geant4","evio","ccdb","jana","hdds","sim-recon"]
 #
 function get_packages()
-    if !ispath("settings")
-        error("Please select a 'build template'.
-    \t Use 'hdpm select <id>'
-    \t ids: ",get_template_ids(),"\n") end
+    check_for_settings()
     vers = readdlm("settings/vers.txt",ASCIIString)
     urls = readdlm("settings/urls.txt",ASCIIString)
     paths = readdlm("settings/paths.txt",ASCIIString)
@@ -165,10 +166,7 @@ function get_unpack_file(URL,PATH="")
     rm(file)
 end
 function show_settings(;col=:all,sep=2)
-    if !ispath("settings")
-        error("Please select a 'build template'.
-    \t Use 'hdpm select <id>'
-    \t ids: ",get_template_ids(),"\n") end
+    check_for_settings()
     if sep <= 1 sep = 1; info("Using min. column spacing of ",string(sep)," spaces.") end
     if sep >= 24 sep = 24; info("Using max. column spacing of ",string(sep)," spaces.") end
     print("\n",Base.text_colors[:bold])
@@ -229,6 +227,30 @@ function check_deps(pkg)
             To build all dependencies, run 'hdpm build' with all packages enabled in 'commands.txt'.\n")
         end
     end
+end
+function xml_versions(path)
+    check_for_settings()
+    file = path
+    if contains(path,"https://") || contains(path,"http://")
+        println(); info("downloading $file")
+        file = basename(path)
+        run(`curl -OL $path`)
+    end
+    d = readdlm(file)
+    a = Dict{ASCIIString,ASCIIString}()
+    for i=1:size(d,1)
+        a[replace(replace(d[i,2],"name=",""),"\"","")] = replace(replace(replace(d[i,3],"version=",""),"/>",""),"\"","")
+    end
+    if !haskey(a,"amptools") a["amptools"] = "NA" end
+    if !haskey(a,"geant4") a["geant4"] = "NA" end
+    vers = readdlm("settings/vers.txt",ASCIIString)
+    output = open("settings/vers.txt","w")
+    for i=1:size(vers,1)
+        for (k,v) in a
+            if vers[i,1] == k println(output,rpad(k,10," "),v) end
+        end
+     end
+     close(output)
 end
 #
 end

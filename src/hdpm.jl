@@ -15,6 +15,7 @@ if length(ARGS) == 0 || (length(ARGS) == 1 && ARGS[1] == "help")
     \t update      Update selected Git/SVN packages
     \t clean       Completely remove build products of selected packages
     \t clean-build Clean build of selected packages
+    \t xml-vers    Copy JLab xml versions into 'settings/vers.txt'
 Use 'hdpm help <command>' to see available arguments.")
 end
 if length(ARGS) == 1 && ARGS[1] != "help"
@@ -72,6 +73,10 @@ if length(ARGS) == 2 && ARGS[1] == "help"
         println("Do a clean build of the selected packages")
         println("usage: hdpm clean-build |<pkgs>...|")
         println("pkgs: ",string(pkg_names))
+    elseif ARGS[2] == "xml-vers"
+        println("Copy JLab xml versions into 'settings/vers.txt'")
+        println("usage: hdpm xml-vers <url of xml file>")
+        println("usage: hdpm xml-vers <path of xml file>")
     else
         error("Unknown command. Use 'hdpm help' to see available commands.\n")
     end
@@ -110,6 +115,8 @@ if length(ARGS) == 2 && ARGS[1] != "help"
         run(`julia src/mkpkgs.jl $(ARGS[2])`)
     elseif ARGS[1] == "update" && ARGS[2] in pkg_names
         run(`julia src/update.jl $(ARGS[2])`)
+    elseif ARGS[1] == "xml-vers" && contains(ARGS[2],".xml")
+        xml_versions(ARGS[2])
     else
         error("Unknown command. Use 'hdpm help' to see available commands.\n")
     end
