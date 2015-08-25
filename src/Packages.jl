@@ -3,7 +3,7 @@ module Packages
 home = pwd()
 export Package,name,version,url,path,cmds,is_external,get_packages,get_package,gettop,osrelease,gettag,select_template,show_settings
 export get_unpack_file,mk_cd,get_template_ids,get_pkg_names,get_deps,tagged_deps,git_version,check_deps,mk_template,install_dirname
-export xml_versions
+export versions_from_xml
 immutable Package
     name::ASCIIString
     version::ASCIIString
@@ -20,25 +20,41 @@ cmds(a::Package) = a.cmds
 deps(a::Package) = a.deps
 is_external(a::Package) = length(cmds(a)) == 0
 #
-function select_template(id)
-    if !ispath("templates") run(`cp -pr example-templates templates`) end
+function select_template(id="master")
     run(`rm -rf settings`)
-    run(`cp -pr templates/settings-$id settings`)
+    if id == "master" run(`cp -pr templates/$id settings`)
+    else run(`cp -pr templates/settings-$id settings`) end
     println(open("settings/id.txt","w"),id)
 end
 #
 function get_template_ids()
-    if !ispath("templates") run(`cp -pr example-templates templates`) end
+    if !ispath("settings") run(`cp -pr templates/master settings`)
+    println(open("settings/id.txt","w"),"master") end
     list = Array(ASCIIString,0)
+    push!(list,"master")
     for dir in readdir("templates")
-        push!(list,split(dir,"settings-")[2])
+        if contains(dir,"settings") push!(list,split(dir,"settings-")[2]) end
     end
     list
 end
+function disable_cmds()
+    run(`mv settings/commands.txt settings/commands.txt.old`)
+    commands = open("settings/commands.txt","a+")
+    for line in readlines(open("settings/commands.txt.old"))
+        println(commands,string("#",chomp(line)))
+    end
+    close(commands)
+    rm("settings/commands.txt.old")
+end
 function mk_template(id)
+    if id == "master" error("not able to save template named 'master'. This id is reserved.\n") end
     if ispath("templates/settings-$id") warn("renaming template with same id as old-$id");run(`mv templates/settings-$id templates/settings-old-$id`) end
+    if id == "jlab" info("saving 'jlab' template: All build commands are disabled.") end
+    if id == "jlab" disable_cmds() end
+    write_settings()
+    run(`rm -f settings/*.txt~`)
     run(`cp -pr settings templates/settings-$id`)
-    run(`rm templates/settings-$id/id.txt`)
+    println(open("settings/id.txt","w"),id)
 end
 #
 function mk_cd(path)
@@ -74,18 +90,31 @@ function gettag()
 end
 install_dirname() = (gettag() == "") ? osrelease() : string("build-",gettag())
 get_pkg_names() = ["xerces-c","cernlib","root","amptools","geant4","evio","ccdb","jana","hdds","sim-recon"]
+jlab_top() = string("/group/halld/Software/builds/",osrelease())
+#
+function major_minor(ver)
+    for v in split(ver,"-")
+        if contains(v,".") return string(split(v,".")[1],".",split(v,".")[2]) end
+    end
+    "0.0"
+end
 #
 function get_packages()
     check_for_settings()
-    vers = readdlm("settings/vers.txt",ASCIIString)
+    vers = readdlm("settings/versions.txt",ASCIIString)
     urls = readdlm("settings/urls.txt",ASCIIString)
     paths = readdlm("settings/paths.txt",ASCIIString)
     pkg_names = get_pkg_names()
-    @assert(vers[:,1] == pkg_names,string("'vers.txt' has wrong number of packages, names, or order.\nNeed to match ",pkg_names,"\n"))
+    @assert(vers[:,1] == pkg_names,string("'versions.txt' has wrong number of packages, names, or order.\nNeed to match ",pkg_names,"\n"))
     @assert(urls[:,1] == pkg_names,string("'urls.txt' has wrong number of packages, names, or order.\nNeed to match ",pkg_names,"\n"))
     @assert(paths[:,1] == pkg_names,string("'paths.txt' has wrong number of packages, names, or order.\nNeed to match ",pkg_names,"\n"))
     #
-    commands = readdlm("settings/commands.txt",ASCIIString)
+    commands = [[] []]
+    try
+        commands = readdlm("settings/commands.txt",ASCIIString)
+    catch
+        info("No packages to build. Using external installations.")
+    end
     tmp_cmds = Dict{ASCIIString,Array{ASCIIString,1}}()
     cmds = Dict{ASCIIString,Array{ASCIIString,1}}()
     for name in get_pkg_names()
@@ -107,14 +136,22 @@ function get_packages()
         "hdds" => "xerces-c",
         "sim-recon" => "xerces-c,cernlib,root,evio,ccdb,jana,hdds"]
     @osx_only mydeps["sim-recon"] = "xerces-c,root,evio,ccdb,jana,hdds"
+    jsep = ["xerces-c"=>"-","cernlib"=>"","root"=>"_","amptools"=>"_","geant4"=>"-","evio"=>"-","ccdb"=>"_","jana"=>"_","hdds"=>"-","sim-recon"=>"-"]
     pkgs = Array(Package,0)
     for i=1:size(paths,1)
         name = paths[i,1]
-        path = paths[i,2]; path = replace(path,"[OS]",osrelease()); path = replace(path,"[VER]",vers[i,2])
-        url = replace(urls[i,2],"[VER]",vers[i,2])
+        path = paths[i,2]; path = replace(path,"[OS]",osrelease())
+        path = (vers[i,2] != "latest") ? replace(path,"[VER]",vers[i,2]) : replace(replace(path,"-[VER]",""),"_[VER]","")
+        url = urls[i,2]
+        if name == "evio"
+            evio_major_minor = major_minor(vers[i,2])
+            if !contains(url,evio_major_minor) url = replace(url,r"4.[0-9]",evio_major_minor) end
+        end
+        url = replace(url,"[VER]",vers[i,2])
         if !isabspath(path) && path != "NA"
             path = joinpath(gettop(),path)
         end
+        if vers[i,2] == "NA" url = "NA"; path = "NA" end
         core = ["xerces-c","root","evio","ccdb","jana","hdds","sim-recon"]
         if path == "NA" && name in core
             error("core packages cannot be disabled. Please replace 'NA' with a valid path in 'paths.txt'.
@@ -122,9 +159,42 @@ function get_packages()
         for cmd in tmp_cmds[name]; if path == "NA" continue end
             push!(cmds[name],replace(cmd,"[PATH]",path))
         end
+        if name == "ccdb" && length(cmds[name]) == 0 && ispath(jlab_top()) vers[i,2] = major_minor(vers[i,2]) end
+        jpath = joinpath(jlab_top(),name,string(name,jsep[name],vers[i,2]))
+        if length(cmds[name]) == 0 && ispath(jpath) path = jpath end
+        if name == "cernlib" && length(cmds[name]) == 0 && ispath(joinpath(jlab_top(),name)) path = joinpath(jlab_top(),name) end
+        if length(cmds[name]) > 0 && !contains(path,gettop()) path = joinpath(gettop(),basename(path)) end
+        if (name == "hdds" || name == "sim-recon") && length(cmds[name]) > 0
+            v_major_minor = major_minor(vers[i,2])
+            if (name == "hdds" && float(v_major_minor) <= 3.2) || (name == "sim-recon" && float(v_major_minor) <= 1.3)
+                url = "https://github.com/JeffersonLab/$name/archive/$name-$(vers[i,2]).tar.gz" end end
+        if length(cmds[name]) > 0 && vers[i,2] == "latest" && contains(url,"/archive/") && contains(url,"https://github.com/JeffersonLab/")
+            url = replace(url,url,"https://github.com/JeffersonLab/$name") end
+        if name == "jana" && length(cmds[name]) > 0 && vers[i,2] == "latest" url = "https://phys12svn.jlab.org/repos/JANA" end
         push!(pkgs,Package(name,vers[i,2],url,path,cmds[name],mydeps[name]))
     end
     pkgs
+end
+function write_settings()
+    mkdir("settings-tmp")
+    run(`cp -p settings/top.txt settings-tmp`); run(`cp -p settings/commands.txt settings-tmp`)
+    v = open("settings-tmp/versions.txt","a+")
+    u = open("settings-tmp/urls.txt","a+")
+    p = open("settings-tmp/paths.txt","a+")
+    w = 10
+    for pkg in get_packages()
+        println(v,rpad(name(pkg),w," "),version(pkg))
+        if version(pkg) != "NA"
+            PATH = contains(path(pkg),gettop()) ? replace(basename(path(pkg)),version(pkg),"[VER]") : replace(replace(path(pkg),osrelease(),"[OS]"),version(pkg),"[VER]")
+            println(u,rpad(name(pkg),w," "),replace(url(pkg),version(pkg),"[VER]"))
+            println(p,rpad(name(pkg),w," "),PATH)
+        else
+            println(u,rpad(name(pkg),w," "),"NA")
+            println(p,rpad(name(pkg),w," "),"NA")
+        end
+    end
+    close(v); close(u); close(p)
+    run(`rm -rf settings`); run(`mv settings-tmp settings`)
 end
 function get_package(a::ASCIIString)
     cd(home)
@@ -178,22 +248,26 @@ function show_settings(;col=:all,sep=2)
     end
     println("TOP: ",gettop())
     println("TAG: ",gettag())
-    #
-    w1 = 9 + sep; w2 = 87 + sep
-    print("\n",Base.text_colors[:bold])
-    for n in names(Package)
-        w = w1
-	if (n == :deps || n == :cmds) && col == :all continue end
-        if n in [:name,col] || col == :all
-            if col == :all && n == :url w = w2 end
-            print(rpad(n,w," "),Base.text_colors[:bold])
+    sizes = [:name=>0,:version=>0,:url=>0]
+    for pkg in get_packages()
+        for s in [:name,:version,:url]
+            sizes[s] = max(sizes[s],length(pkg.(s)))
         end
+    end
+    w1 = sizes[:name] + sep; w2 = sizes[:version] + sep; w3 = sizes[:url] + sep
+    print("\n",Base.text_colors[:bold])
+    for k in [:name,:version,:url,:path]; if col != :all && !(k in [:name,col]) continue end
+        if k != :path print(rpad(k,sizes[k]+sep," "),Base.text_colors[:bold])
+        else print(k,Base.text_colors[:bold]) end
+    end
+    for k in [:cmds,:deps]; if col == :all || k != col continue end
+        print(k,Base.text_colors[:bold])
     end
     print("\n",Base.text_colors[:normal])
     for pkg in get_packages()
         p = replace(path(pkg),string(gettop(),"/"),"")
         if col==:all
-            println(rpad(name(pkg),w1," "),rpad(git_version(pkg),w1," "),rpad(url(pkg),w2," "),p)
+            println(rpad(name(pkg),w1," "),rpad(git_version(pkg),w2," "),rpad(url(pkg),w3," "),p)
         elseif col==:version
             println(rpad(name(pkg),w1," "),git_version(pkg))
         elseif col==:url
@@ -212,6 +286,7 @@ end
 function check_deps(pkg)
     @linux_only begin LDD = `ldd`; OE = `so` end
     @osx_only begin LDD = `otool -L`; OE = `dylib` end
+    install_dir = is_external(get_package("hdds")) ? osrelease() : install_dirname()
     test_cmds = [
         "xerces-c" => `$LDD $(path(get_package("xerces-c")))/lib/libxerces-c.$OE` |> `grep libcurl`,
         "cernlib" => `ls -lh $(path(get_package("cernlib")))/$(version(get_package("cernlib")))/lib/libgeant321.a`,
@@ -219,7 +294,7 @@ function check_deps(pkg)
         "evio" => `evio2xml`,
         "ccdb" => `ccdb`,
         "jana" => `jana`,
-        "hdds" => `$LDD $(path(get_package("hdds")))/$(install_dirname())/lib/libhdds.so` |> `grep libxerces-c`,
+        "hdds" => `$LDD $(path(get_package("hdds")))/$install_dir/lib/libhdds.so` |> `grep libxerces-c`,
         "sim-recon" => `hd_root`]
     for dep in get_deps([name(pkg)])
         if !success(test_cmds[dep])
@@ -228,29 +303,37 @@ function check_deps(pkg)
         end
     end
 end
-function xml_versions(path)
+function versions_from_xml(path="https://halldweb.jlab.org/dist/version.xml")
     check_for_settings()
-    file = path
+    file = path; wasurl = false
     if contains(path,"https://") || contains(path,"http://")
+        wasurl = true
         println(); info("downloading $file")
         file = basename(path)
         run(`curl -OL $path`)
     end
+    println()
+    if !ispath(jlab_top()) info("Browse version xml files at https://halldweb.jlab.org/dist") end
+    if ispath(jlab_top()) info("Browse version xml files at /group/halld/www/halldweb/html/dist
+Problems? Try ",joinpath(jlab_top(),"version.xml")) end
+    if !ispath(file) error(file," does not exist!\n") end
+    if !contains(file,".xml") error(file," does not appear to be an xml file!\n") end
     d = readdlm(file)
     a = Dict{ASCIIString,ASCIIString}()
     for i=1:size(d,1)
         a[replace(replace(d[i,2],"name=",""),"\"","")] = replace(replace(replace(d[i,3],"version=",""),"/>",""),"\"","")
     end
-    if !haskey(a,"amptools") a["amptools"] = "NA" end
-    if !haskey(a,"geant4") a["geant4"] = "NA" end
-    vers = readdlm("settings/vers.txt",ASCIIString)
-    output = open("settings/vers.txt","w")
+    a["amptools"] = "NA"; a["geant4"] = "NA"
+    a["ccdb"] = is_external(get_package("ccdb")) ? a["ccdb"] : replace(a["ccdb"],a["ccdb"],string(a["ccdb"],".00"))
+    vers = readdlm("settings/versions.txt",ASCIIString)
+    output = open("settings/versions.txt","w")
     for i=1:size(vers,1)
         for (k,v) in a
             if vers[i,1] == k println(output,rpad(k,10," "),v) end
         end
      end
      close(output)
+     if wasurl rm(file) end
 end
 #
 end

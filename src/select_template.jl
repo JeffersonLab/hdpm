@@ -1,7 +1,9 @@
 using Packages
 # select build settings template
-if length(ARGS) == 1
+if length(ARGS) == 0
+    select_template()
+elseif length(ARGS) == 1
     select_template(ARGS[1])
 else
-    error("requires 1 argument specifying the id of the build settings template.")
+    error("too many arguments. Run 'hdpm help select' to see available arguments.")
 end

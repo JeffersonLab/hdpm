@@ -6,5 +6,5 @@ geant4    geant4-[VER]
 evio      evio-[VER]
 ccdb      ccdb-[VER]
 jana      jana-[VER]
-hdds      hdds
-sim-recon sim-recon
+hdds      hdds-[VER]
+sim-recon sim-recon-[VER]

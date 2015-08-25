@@ -15,11 +15,13 @@ if length(ARGS) == 0 || (length(ARGS) == 1 && ARGS[1] == "help")
     \t update      Update selected Git/SVN packages
     \t clean       Completely remove build products of selected packages
     \t clean-build Clean build of selected packages
-    \t xml-vers    Copy JLab xml versions into 'settings/vers.txt'
+    \t v-xml       Replace versions with versions from a version XML file
 Use 'hdpm help <command>' to see available arguments.")
 end
 if length(ARGS) == 1 && ARGS[1] != "help"
-    if ARGS[1] == "fetch"
+    if ARGS[1] == "select"
+        run(`julia src/select_template.jl`)
+    elseif ARGS[1] == "fetch"
         run(`julia src/copkgs.jl`)
     elseif ARGS[1] == "build"
         run(`julia src/copkgs.jl`)
@@ -33,6 +35,8 @@ if length(ARGS) == 1 && ARGS[1] != "help"
         run(`julia src/mkpkgs.jl`)
     elseif ARGS[1] == "show"
         run(`julia src/show_settings.jl`)
+    elseif ARGS[1] == "v-xml"
+        run(`julia src/versions_from_xml.jl`)
     elseif ARGS[1] == "select" || ARGS[1] == "save"
         error("Requires one argument. Use 'hdpm help $(ARGS[1])' to see available arguments.\n")
     else
@@ -42,7 +46,7 @@ end
 if length(ARGS) == 2 && ARGS[1] == "help"
     if ARGS[2] == "select"
         println("Select the desired build template")
-        println("usage: hdpm select <template id>")
+        println("usage: hdpm select |<template id>|")
         println("ids: ",string(template_ids))
     elseif ARGS[2] == "save"
         println("Save the current settings as a new build template")
@@ -59,6 +63,7 @@ if length(ARGS) == 2 && ARGS[1] == "help"
         println("Build the selected packages (fetch if needed)")
         println("usage: hdpm build |<template id>|")
         println("ids: ",string(template_ids))
+        println("usage: hdpm build |<xml file url or path>|")
         println("usage: hdpm build |<pkgs>...|")
         println("pkgs: ",string(pkg_names))
     elseif ARGS[2] == "update"
@@ -73,17 +78,18 @@ if length(ARGS) == 2 && ARGS[1] == "help"
         println("Do a clean build of the selected packages")
         println("usage: hdpm clean-build |<pkgs>...|")
         println("pkgs: ",string(pkg_names))
-    elseif ARGS[2] == "xml-vers"
-        println("Copy JLab xml versions into 'settings/vers.txt'")
-        println("usage: hdpm xml-vers <url of xml file>")
-        println("usage: hdpm xml-vers <path of xml file>")
+    elseif ARGS[2] == "v-xml"
+        println("Replace versions with versions from a version XML file")
+        println("usage: hdpm v-xml |<url or path>|")
     else
         error("Unknown command. Use 'hdpm help' to see available commands.\n")
     end
 end
 if length(ARGS) == 2 && ARGS[1] != "help"
-    if ARGS[1] == "select" && ARGS[2] in template_ids
-        run(`julia src/select_template.jl $(ARGS[2])`)
+    if ARGS[1] == "select"
+        if ARGS[2] in template_ids
+            run(`julia src/select_template.jl $(ARGS[2])`)
+        else error("Unknown argument. Use 'hdpm help $(ARGS[1])' to see available arguments.\n") end
     elseif ARGS[1] == "save"
         run(`julia src/mk_template.jl $(ARGS[2])`)
     elseif ARGS[1] == "build"
@@ -97,6 +103,11 @@ if length(ARGS) == 2 && ARGS[1] != "help"
         elseif ARGS[2] in pkg_names
             run(`julia src/copkgs.jl $(ARGS[2])`)
             run(`julia src/mkpkgs.jl $(ARGS[2])`)
+        elseif contains(ARGS[2],".xml")
+            run(`julia src/select_template.jl`)
+            run(`julia src/versions_from_xml.jl $(ARGS[2])`)
+            run(`julia src/copkgs.jl`)
+            run(`julia src/mkpkgs.jl`)
         else
             error("Unknown argument. Use 'hdpm help $(ARGS[1])' to see available arguments.\n")
         end
@@ -115,8 +126,8 @@ if length(ARGS) == 2 && ARGS[1] != "help"
         run(`julia src/mkpkgs.jl $(ARGS[2])`)
     elseif ARGS[1] == "update" && ARGS[2] in pkg_names
         run(`julia src/update.jl $(ARGS[2])`)
-    elseif ARGS[1] == "xml-vers" && contains(ARGS[2],".xml")
-        xml_versions(ARGS[2])
+    elseif ARGS[1] == "v-xml"
+        run(`julia src/versions_from_xml.jl $(ARGS[2])`)
     else
         error("Unknown command. Use 'hdpm help' to see available commands.\n")
     end
