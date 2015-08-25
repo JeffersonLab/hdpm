@@ -1,20 +1,35 @@
---- Install_cernlib	2015-03-27 10:00:28.286564347 -0400
-+++ Install_cernlib.patched.new	2015-03-27 09:59:55.379728099 -0400
+--- Install_cernlib	2015-06-04 15:41:37.501631915 -0400
++++ Install_cernlib.patched	2015-06-04 16:46:06.540286428 -0400
 @@ -1,4 +1,4 @@
 -#!/bin/sh
 +#!/bin/bash
- 
+
  echo "===================="
  echo "CERNLIB installation"
-@@ -14,6 +14,11 @@
- 
+@@ -14,6 +14,18 @@
+
  ./Install_cernlib_src
- 
+
 +# patch kstring.h
 +
 +pushd 2005/src/packlib/kuip/kuip
 +patch < $CERN/patches/cernlib/kstring.h.patch
 +popd
- 
++
++# patch imake files
++
++pushd 2005/src/config
++patch < $CERN/patches/cernlib/Imake.cf.patch
++patch < $CERN/patches/cernlib/linux.cf.patch
++popd
+
  # Define the cernlib version
- 
+
+@@ -31,6 +43,7 @@
+ FC=" "
+ [ "$GCCVSN" = "3" ]&&FC=g77
+ [ "$GCCVSN" = "4" ]&&FC=gfortran
++[ "$GCCVSN" = "5" ]&&FC=gfortran
+ if [ "$GCCVSN" = " " ]; then
+   echo " "
+   echo "====================================="

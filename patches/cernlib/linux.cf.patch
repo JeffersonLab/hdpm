@@ -1,0 +1,15 @@
+--- linux.cf	2014-04-16 12:47:22.000000000 -0400
++++ linux.cf.patched	2015-06-04 16:16:31.295688703 -0400
+@@ -244,6 +244,12 @@
+ #   define CernlibSystem	        -DCERNLIB_LINUX -DCERNLIB_UNIX -DCERNLIB_LNX -DCERNLIB_QMGLIBC -DCERNLIB_GFORTRAN -DCERNLIB_GCC4
+ #   define CERNLIB_GCC4
+ #   define CERNLIB_GFORTRAN
++#  elif defined(GCC5)
++#   define FortranCmd		gfortran
++#   define DefaultFCOptions	-fno-automatic -fno-second-underscore
++#   define CernlibSystem	        -DCERNLIB_LINUX -DCERNLIB_UNIX -DCERNLIB_LNX -DCERNLIB_QMGLIBC -DCERNLIB_GFORTRAN -DCERNLIB_GCC4
++#   define CERNLIB_GCC4
++#   define CERNLIB_GFORTRAN
+ #  else
+ #   define FortranCmd		g77
+ #   define DefaultFCOptions	-fno-automatic -fno-second-underscore -fugly-complex
