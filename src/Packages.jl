@@ -24,12 +24,12 @@ function select_template(id="master")
     run(`rm -rf settings`)
     if id == "master" run(`cp -pr templates/$id settings`)
     else run(`cp -pr templates/settings-$id settings`) end
-    println(open("settings/id.txt","w"),id)
+    fid = open("settings/id.txt","w"); println(fid,id); close(fid)
 end
 #
 function get_template_ids()
     if !ispath("settings") run(`cp -pr templates/master settings`)
-    println(open("settings/id.txt","w"),"master") end
+        fid = open("settings/id.txt","w"); println(fid,"master"); close(fid) end
     list = Array(ASCIIString,0)
     push!(list,"master")
     for dir in readdir("templates")
