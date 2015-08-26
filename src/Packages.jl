@@ -20,16 +20,20 @@ cmds(a::Package) = a.cmds
 deps(a::Package) = a.deps
 is_external(a::Package) = length(cmds(a)) == 0
 #
+function write_id(id)
+    fid = open("settings/id.txt","w"); println(fid,id); close(fid)
+end
+#
 function select_template(id="master")
     run(`rm -rf settings`)
     if id == "master" run(`cp -pr templates/$id settings`)
     else run(`cp -pr templates/settings-$id settings`) end
-    fid = open("settings/id.txt","w"); println(fid,id); close(fid)
+    write_id(id)
 end
 #
 function get_template_ids()
     if !ispath("settings") run(`cp -pr templates/master settings`)
-        fid = open("settings/id.txt","w"); println(fid,"master"); close(fid) end
+        write_id("master") end
     list = Array(ASCIIString,0)
     push!(list,"master")
     for dir in readdir("templates")
@@ -39,11 +43,11 @@ function get_template_ids()
 end
 function disable_cmds()
     run(`mv settings/commands.txt settings/commands.txt.old`)
-    commands = open("settings/commands.txt","a+")
-    for line in readlines(open("settings/commands.txt.old"))
-        println(commands,string("#",chomp(line)))
+    file = ["cmds-old"=>open("settings/commands.txt.old"),"cmds"=>open("settings/commands.txt","w")]
+    for line in readlines(file["cmds-old"])
+        println(file["cmds"],string("#",chomp(line)))
     end
-    close(commands)
+    for (k,v) in file close(v) end
     rm("settings/commands.txt.old")
 end
 function mk_template(id)
@@ -54,7 +58,7 @@ function mk_template(id)
     write_settings()
     run(`rm -f settings/*.txt~`)
     run(`cp -pr settings templates/settings-$id`)
-    println(open("settings/id.txt","w"),id)
+    write_id(id)
 end
 #
 function mk_cd(path)
@@ -70,7 +74,8 @@ end
 function gettop()
     check_for_settings()
     top = string(pwd(),"/pkgs")
-    custom_top = readdlm("settings/top.txt",ASCIIString)
+    file = open("settings/top.txt")
+    custom_top = readdlm(file,ASCIIString); close(file)
     if size(custom_top,1) != 1 || size(custom_top,2) != 2 error("problem reading in custom top directory name; top.txt has wrong number of rows or columns.") end
     if custom_top[1,1] != "default"
         top = custom_top[1,1]
@@ -83,7 +88,8 @@ osrelease() = readchomp(`perl src/osrelease.pl`)
 #
 function gettag()
     tag = ""
-    custom_tag = readdlm("settings/top.txt",ASCIIString)
+    file = open("settings/top.txt")
+    custom_tag = readdlm(file,ASCIIString); close(file)
     if size(custom_tag,1) != 1 || size(custom_tag,2) != 2 error("problem reading in custom tag name; top.txt has wrong number of rows or columns.") end
     if custom_tag[1,2] != "default" tag = custom_tag[1,2] end
     tag
@@ -98,12 +104,12 @@ function major_minor(ver)
     end
     "0.0"
 end
-#
 function get_packages()
     check_for_settings()
-    vers = readdlm("settings/versions.txt",ASCIIString)
-    urls = readdlm("settings/urls.txt",ASCIIString)
-    paths = readdlm("settings/paths.txt",ASCIIString)
+    file = ["vers"=>open("settings/versions.txt"),"urls"=>open("settings/urls.txt"),"paths"=>open("settings/paths.txt"),"cmds"=>open("settings/commands.txt")]
+    vers = readdlm(file["vers"],ASCIIString)
+    urls = readdlm(file["urls"],ASCIIString)
+    paths = readdlm(file["paths"],ASCIIString)
     pkg_names = get_pkg_names()
     @assert(vers[:,1] == pkg_names,string("'versions.txt' has wrong number of packages, names, or order.\nNeed to match ",pkg_names,"\n"))
     @assert(urls[:,1] == pkg_names,string("'urls.txt' has wrong number of packages, names, or order.\nNeed to match ",pkg_names,"\n"))
@@ -111,10 +117,11 @@ function get_packages()
     #
     commands = [[] []]
     try
-        commands = readdlm("settings/commands.txt",ASCIIString)
+        commands = readdlm(file["cmds"],ASCIIString)
     catch
         info("No packages to build. Using external installations.")
     end
+    for (k,v) in file close(v) end
     tmp_cmds = Dict{ASCIIString,Array{ASCIIString,1}}()
     cmds = Dict{ASCIIString,Array{ASCIIString,1}}()
     for name in get_pkg_names()
@@ -178,22 +185,20 @@ end
 function write_settings()
     mkdir("settings-tmp")
     run(`cp -p settings/top.txt settings-tmp`); run(`cp -p settings/commands.txt settings-tmp`)
-    v = open("settings-tmp/versions.txt","a+")
-    u = open("settings-tmp/urls.txt","a+")
-    p = open("settings-tmp/paths.txt","a+")
+    file = ["vers"=>open("settings-tmp/versions.txt","w"),"urls"=>open("settings-tmp/urls.txt","w"),"paths"=>open("settings-tmp/paths.txt","w")]
     w = 10
     for pkg in get_packages()
-        println(v,rpad(name(pkg),w," "),version(pkg))
+        println(file["vers"],rpad(name(pkg),w," "),version(pkg))
         if version(pkg) != "NA"
             PATH = contains(path(pkg),gettop()) ? replace(basename(path(pkg)),version(pkg),"[VER]") : replace(replace(path(pkg),osrelease(),"[OS]"),version(pkg),"[VER]")
-            println(u,rpad(name(pkg),w," "),replace(url(pkg),version(pkg),"[VER]"))
-            println(p,rpad(name(pkg),w," "),PATH)
+            println(file["urls"],rpad(name(pkg),w," "),replace(url(pkg),version(pkg),"[VER]"))
+            println(file["paths"],rpad(name(pkg),w," "),PATH)
         else
-            println(u,rpad(name(pkg),w," "),"NA")
-            println(p,rpad(name(pkg),w," "),"NA")
+            println(file["urls"],rpad(name(pkg),w," "),"NA")
+            println(file["paths"],rpad(name(pkg),w," "),"NA")
         end
     end
-    close(v); close(u); close(p)
+    for (k,v) in file close(v) end
     run(`rm -rf settings`); run(`mv settings-tmp settings`)
 end
 function get_package(a::ASCIIString)
@@ -318,14 +323,16 @@ function versions_from_xml(path="https://halldweb.jlab.org/dist/version.xml")
 Problems? Try ",joinpath(jlab_top(),"version.xml")) end
     if !ispath(file) error(file," does not exist!\n") end
     if !contains(file,".xml") error(file," does not appear to be an xml file!\n") end
-    d = readdlm(file)
+    ver_xml = open(file)
+    d = readdlm(ver_xml); close(ver_xml)
     a = Dict{ASCIIString,ASCIIString}()
     for i=1:size(d,1)
         a[replace(replace(d[i,2],"name=",""),"\"","")] = replace(replace(replace(d[i,3],"version=",""),"/>",""),"\"","")
     end
     a["amptools"] = "NA"; a["geant4"] = "NA"
     a["ccdb"] = is_external(get_package("ccdb")) ? a["ccdb"] : replace(a["ccdb"],a["ccdb"],string(a["ccdb"],".00"))
-    vers = readdlm("settings/versions.txt",ASCIIString)
+    input = open("settings/versions.txt")
+    vers = readdlm(input,ASCIIString); close(input)
     output = open("settings/versions.txt","w")
     for i=1:size(vers,1)
         for (k,v) in a
