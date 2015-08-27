@@ -2,7 +2,10 @@ module Environs
 # set environment variables
 export getenv,printenv
 using Packages
+const home_hdpm = pwd()
 function getenv()
+    dir = pwd()
+    cd(home_hdpm)
     GLUEX_TOP = gettop()
     home = Dict{ASCIIString,ASCIIString}()
     vers = Dict{ASCIIString,ASCIIString}()
@@ -82,6 +85,7 @@ function getenv()
     for (k,v) in env
         if v == "NA" pop!(env,k) end
     end
+    cd(dir)
     env
 end
 function printenv()
