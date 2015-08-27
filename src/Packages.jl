@@ -74,8 +74,7 @@ end
 function gettop()
     check_for_settings()
     top = string(pwd(),"/pkgs")
-    file = open("settings/top.txt")
-    custom_top = readdlm(file,ASCIIString); close(file)
+    custom_top = readdlm("settings/top.txt",ASCIIString,use_mmap=false)
     if size(custom_top,1) != 1 || size(custom_top,2) != 2 error("problem reading in custom top directory name; top.txt has wrong number of rows or columns.") end
     if custom_top[1,1] != "default"
         top = custom_top[1,1]
@@ -88,8 +87,7 @@ osrelease() = readchomp(`perl src/osrelease.pl`)
 #
 function gettag()
     tag = ""
-    file = open("settings/top.txt")
-    custom_tag = readdlm(file,ASCIIString); close(file)
+    custom_tag = readdlm("settings/top.txt",ASCIIString,use_mmap=false)
     if size(custom_tag,1) != 1 || size(custom_tag,2) != 2 error("problem reading in custom tag name; top.txt has wrong number of rows or columns.") end
     if custom_tag[1,2] != "default" tag = custom_tag[1,2] end
     tag
@@ -106,10 +104,9 @@ function major_minor(ver)
 end
 function get_packages()
     check_for_settings()
-    file = ["vers"=>open("settings/versions.txt"),"urls"=>open("settings/urls.txt"),"paths"=>open("settings/paths.txt"),"cmds"=>open("settings/commands.txt")]
-    vers = readdlm(file["vers"],ASCIIString)
-    urls = readdlm(file["urls"],ASCIIString)
-    paths = readdlm(file["paths"],ASCIIString)
+    vers = readdlm("settings/versions.txt",ASCIIString,use_mmap=false)
+    urls = readdlm("settings/urls.txt",ASCIIString,use_mmap=false)
+    paths = readdlm("settings/paths.txt",ASCIIString,use_mmap=false)
     pkg_names = get_pkg_names()
     @assert(vers[:,1] == pkg_names,string("'versions.txt' has wrong number of packages, names, or order.\nNeed to match ",pkg_names,"\n"))
     @assert(urls[:,1] == pkg_names,string("'urls.txt' has wrong number of packages, names, or order.\nNeed to match ",pkg_names,"\n"))
@@ -117,11 +114,10 @@ function get_packages()
     #
     commands = [[] []]
     try
-        commands = readdlm(file["cmds"],ASCIIString)
+        commands = readdlm("settings/commands.txt",ASCIIString,use_mmap=false)
     catch
         info("No packages to build. Using external installations.")
     end
-    for (k,v) in file close(v) end
     tmp_cmds = Dict{ASCIIString,Array{ASCIIString,1}}()
     cmds = Dict{ASCIIString,Array{ASCIIString,1}}()
     for name in get_pkg_names()
@@ -293,9 +289,9 @@ function check_deps(pkg)
     @osx_only begin LDD = `otool -L`; OE = `dylib` end
     install_dir = is_external(get_package("hdds")) ? osrelease() : install_dirname()
     test_cmds = [
-        "xerces-c" => `$LDD $(path(get_package("xerces-c")))/lib/libxerces-c.$OE` |> `grep libcurl`,
+        "xerces-c" => `$LDD $(path(get_package("xerces-c")))/lib/libxerces-c.$OE`,
         "cernlib" => `ls -lh $(path(get_package("cernlib")))/$(version(get_package("cernlib")))/lib/libgeant321.a`,
-        "root" => `root -q -l`,
+        "root" => `root -b -q -l`,
         "evio" => `evio2xml`,
         "ccdb" => `ccdb`,
         "jana" => `jana`,
@@ -323,16 +319,14 @@ function versions_from_xml(path="https://halldweb.jlab.org/dist/version.xml")
 Problems? Try ",joinpath(jlab_top(),"version.xml")) end
     if !ispath(file) error(file," does not exist!\n") end
     if !contains(file,".xml") error(file," does not appear to be an xml file!\n") end
-    ver_xml = open(file)
-    d = readdlm(ver_xml); close(ver_xml)
+    d = readdlm(file,use_mmap=false)
     a = Dict{ASCIIString,ASCIIString}()
     for i=1:size(d,1)
         a[replace(replace(d[i,2],"name=",""),"\"","")] = replace(replace(replace(d[i,3],"version=",""),"/>",""),"\"","")
     end
     a["amptools"] = "NA"; a["geant4"] = "NA"
     a["ccdb"] = is_external(get_package("ccdb")) ? a["ccdb"] : replace(a["ccdb"],a["ccdb"],string(a["ccdb"],".00"))
-    input = open("settings/versions.txt")
-    vers = readdlm(input,ASCIIString); close(input)
+    vers = readdlm("settings/versions.txt",ASCIIString,use_mmap=false)
     output = open("settings/versions.txt","w")
     for i=1:size(vers,1)
         for (k,v) in a
