@@ -98,9 +98,9 @@ jlab_top() = string("/group/halld/Software/builds/",osrelease())
 #
 function major_minor(ver)
     for v in split(ver,"-")
-        if contains(v,".") return string(split(v,".")[1],".",split(v,".")[2]) end
+        if contains(v,".") return split(v,".")[1],split(v,".")[2] end
     end
-    "0.0"
+    "100","100"
 end
 function get_packages()
     check_for_settings()
@@ -147,7 +147,7 @@ function get_packages()
         path = (vers[i,2] != "latest") ? replace(path,"[VER]",vers[i,2]) : replace(replace(path,"-[VER]",""),"_[VER]","")
         url = urls[i,2]
         if name == "evio"
-            evio_major_minor = major_minor(vers[i,2])
+            evio_major_minor = join(major_minor(vers[i,2]),".")
             if !contains(url,evio_major_minor) url = replace(url,r"4.[0-9]",evio_major_minor) end
         end
         url = replace(url,"[VER]",vers[i,2])
@@ -162,17 +162,17 @@ function get_packages()
         for cmd in tmp_cmds[name]; if path == "NA" continue end
             push!(cmds[name],replace(cmd,"[PATH]",path))
         end
-        if name == "ccdb" && length(cmds[name]) == 0 && ispath(jlab_top()) vers[i,2] = major_minor(vers[i,2]) end
+        if name == "ccdb" && length(cmds[name]) == 0 && ispath(jlab_top()) vers[i,2] = join(major_minor(vers[i,2]),".") end
         jpath = joinpath(jlab_top(),name,string(name,jsep[name],vers[i,2]))
         if length(cmds[name]) == 0 && ispath(jpath) path = jpath end
         if name == "cernlib" && length(cmds[name]) == 0 && ispath(joinpath(jlab_top(),name)) path = joinpath(jlab_top(),name) end
         if length(cmds[name]) > 0 && !contains(path,gettop()) path = joinpath(gettop(),basename(path)) end
         if (name == "hdds" || name == "sim-recon") && length(cmds[name]) > 0
-            v_major_minor = major_minor(vers[i,2])
-            if (name == "hdds" && float(v_major_minor) <= 3.2) || (name == "sim-recon" && float(v_major_minor) <= 1.3)
+            vmm = major_minor(vers[i,2])
+            if (name == "hdds" && int(vmm[1]) <= 3 && int(vmm[2]) <= 2) || (name == "sim-recon" && int(vmm[1]) <= 1 && int(vmm[2]) <= 3)
                 url = "https://github.com/JeffersonLab/$name/archive/$name-$(vers[i,2]).tar.gz" end end
-        if length(cmds[name]) > 0 && vers[i,2] == "latest" && contains(url,"/archive/") && contains(url,"https://github.com/JeffersonLab/")
-            url = replace(url,url,"https://github.com/JeffersonLab/$name") end
+        if length(cmds[name]) > 0 && vers[i,2] == "latest" && contains(url,"https://github.com/JeffersonLab/$name/archive/")
+            url = "https://github.com/JeffersonLab/$name" end
         if name == "jana" && length(cmds[name]) > 0 && vers[i,2] == "latest" url = "https://phys12svn.jlab.org/repos/JANA" end
         push!(pkgs,Package(name,vers[i,2],url,path,cmds[name],mydeps[name]))
     end
