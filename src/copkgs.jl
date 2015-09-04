@@ -39,7 +39,7 @@ for pkg in get_packages(); if length(ARGS) > 0 if !(name(pkg) in ARGS) && !(name
             mk_cd(path(pkg))
             get_unpack_file(replace(URL,".2005.corr.2014.04.17","-2005-all-new")) # get the "all" file
             get_unpack_file(replace(URL,"corr","install")) # get the "install" file
-            run(`curl -O $URL`) # get the "corr" file
+            run(`curl -OL $URL`) # get the "corr" file
             run(`mv -f $(basename(URL)) cernlib.2005.corr.tgz`)
         end
     end
