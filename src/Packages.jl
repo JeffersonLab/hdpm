@@ -100,7 +100,7 @@ function major_minor(ver)
     for v in split(ver,"-")
         if contains(v,".") return split(v,".")[1],split(v,".")[2] end
     end
-    "100","100"
+    "0","0"
 end
 function get_packages()
     check_for_settings()
@@ -167,10 +167,15 @@ function get_packages()
         if length(cmds[name]) == 0 && ispath(jpath) path = jpath end
         if name == "cernlib" && length(cmds[name]) == 0 && ispath(joinpath(jlab_top(),name)) path = joinpath(jlab_top(),name) end
         if length(cmds[name]) > 0 && !contains(path,gettop()) path = joinpath(gettop(),basename(path)) end
-        if (name == "hdds" || name == "sim-recon") && length(cmds[name]) > 0
+        if (name == "hdds" || name == "sim-recon") && length(cmds[name]) > 0 && vers[i,2] != "latest"
             vmm = major_minor(vers[i,2])
-            if (name == "hdds" && int(vmm[1]) <= 3 && int(vmm[2]) <= 2) || (name == "sim-recon" && int(vmm[1]) <= 1 && int(vmm[2]) <= 3)
-                url = "https://github.com/JeffersonLab/$name/archive/$name-$(vers[i,2]).tar.gz" end end
+            url_alt = "https://github.com/JeffersonLab/$name/archive/$name-$(vers[i,2]).tar.gz"
+            if name == "hdds"
+                if int(vmm[1]) <= 3 && int(vmm[2]) <= 2 || int(vmm[1]) <= 2 url = url_alt end
+            elseif name == "sim-recon"
+                if int(vmm[1]) <= 1 && int(vmm[2]) <= 3 || int(vmm[1]) == 0 || contains(vers[i,2],"dc") url = url_alt end
+            end
+        end
         if length(cmds[name]) > 0 && vers[i,2] == "latest" && contains(url,"https://github.com/JeffersonLab/$name/archive/")
             url = "https://github.com/JeffersonLab/$name" end
         if name == "jana" && length(cmds[name]) > 0 && vers[i,2] == "latest" url = "https://phys12svn.jlab.org/repos/JANA" end
@@ -332,6 +337,7 @@ Problems? Try ",joinpath(jlab_top(),"version.xml")) end
         for (k,v) in a
             if vers[i,1] == k println(output,rpad(k,10," "),v) end
         end
+        if !haskey(a,"evio") && vers[i,1] == "evio" println(output,rpad("evio",10," "),vers[i,2]) end
      end
      close(output)
      if wasurl rm(file) end
