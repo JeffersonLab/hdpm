@@ -1,0 +1,18 @@
+# docker build -t hdbase:ubuntu14 -f Dockerfile-base .
+FROM ubuntu:14.04
+MAINTAINER Nathan Sparks <nsparks@jlab.org>
+RUN apt-get update && apt-get install -y curl git dpkg-dev make g++ gcc binutils \
+    libx11-dev libxpm-dev libxft-dev libxext-dev libfftw3-dev python-dev cmake \
+    scons subversion gfortran xutils-dev libxt-dev liblapack-dev libblas-dev \
+    libmotif-dev expect libgl1-mesa-dev libmysqlclient-dev sqlite3 clang-3.5 \
+    libsqlite3-dev tcsh libbz2-dev libxml-simple-perl libxml-writer-perl \
+    libfile-slurp-perl emacs tar file && apt-get clean \
+    && ln -s /usr/bin/make /usr/bin/gmake \
+    && ln -s /usr/lib/liblapack.a /usr/lib/liblapack3.a \
+    && cd /usr/include \
+    && for file in ft2build.h config freetype.h fttypes.h ftsystem.h ftimage.h \
+        fterrors.h ftmoderr.h fterrdef.h; \
+    do ln -s freetype2/$file .; done \
+    && mkdir -p /home/work/data
+ENV CC=/usr/bin/clang-3.5 CXX=/usr/bin/clang++-3.5
+WORKDIR /home/work
