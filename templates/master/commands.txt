@@ -12,4 +12,4 @@ evio      "scons --prefix=[PATH] install"
 ccdb      scons
 jana      "scons -u -j8 install"
 hdds      "scons -u install"
-sim-recon "scons -u -j8 install"
+sim-recon "scons -u -j8 install DEBUG=0"
