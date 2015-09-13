@@ -12,7 +12,5 @@ RUN apt-get update && apt-get install -y curl git dpkg-dev make g++ gcc binutils
     && cd /usr/include \
     && for file in ft2build.h config freetype.h fttypes.h ftsystem.h ftimage.h \
         fterrors.h ftmoderr.h fterrdef.h; \
-    do ln -s freetype2/$file .; done \
-    && mkdir -p /home/work/data
-ENV CC=/usr/bin/clang-3.5 CXX=/usr/bin/clang++-3.5
-WORKDIR /home/work
+    do ln -s freetype2/$file .; done
+CMD cd /home && /bin/bash

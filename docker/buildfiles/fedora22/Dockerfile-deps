@@ -1,7 +1,14 @@
 # docker build -t nathansparks/sim-recon-deps:fedora22 -f Dockerfile-deps .
 FROM hdbase:fedora22
 MAINTAINER Nathan Sparks <nsparks@jlab.org>
-RUN git clone https://github.com/JeffersonLab/hdpm
-WORKDIR /home/work/hdpm
+RUN mkdir -p /home/hdpm && groupadd -r hdpm -g 573 && useradd -u 1000 \
+    -r -g hdpm -d /home/hdpm -s /sbin/nologin -c "Docker image user" hdpm \
+    && git clone https://github.com/JeffersonLab/hdpm /home/hdpm \
+    && mkdir -p /home/hdpm/docker/data \
+    && chown -R hdpm:hdpm /home/hdpm
+USER hdpm
+WORKDIR /home/hdpm
 #ADD settings settings
+ENV CC=/usr/bin/clang CXX=/usr/bin/clang++
 RUN /bin/bash -c "source setup.sh && julia src/hdpm.jl build cernlib evio jana"
+CMD /bin/bash

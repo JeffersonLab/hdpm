@@ -8,7 +8,5 @@ RUN dnf upgrade -y && dnf install -y git make gcc gcc-c++ \
     fftw-devel bzip2-devel python-devel blas-static lapack-static \
     && dnf clean all \
     && ln -s /usr/lib64/liblapack.a /usr/lib64/liblapack3.a \
-    && ln -s /usr/include/freetype2/freetype /usr/include/freetype \
-    && mkdir -p /home/work/data
-ENV CC=/usr/bin/clang CXX=/usr/bin/clang++
-WORKDIR /home/work
+    && ln -s /usr/include/freetype2/freetype /usr/include/freetype
+CMD cd /home && /bin/bash

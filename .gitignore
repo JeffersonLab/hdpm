@@ -1,3 +1,7 @@
 templates/settings-*
 settings/
 pkgs/
+docker/data/
+work/
+.*
+!.gitignore
