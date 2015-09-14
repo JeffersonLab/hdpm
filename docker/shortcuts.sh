@@ -6,5 +6,5 @@ alias docker-run="docker run -it --rm"
 DATA_DIR=/path/to/data/directory
 CCDB_USER=$USER
 dock() { docker run -it -v $DATA_DIR:/home/hdpm/docker/data sim-recon \
-    /bin/sh -c "source /home/hdpm/pkgs/env-setup/hdenv.sh &&
+    /bin/bash -c "source /home/hdpm/pkgs/env-setup/hdenv.sh &&
     export CCDB_USER=$CCDB_USER && $1"; }
