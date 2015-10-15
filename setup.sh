@@ -17,7 +17,7 @@ then
         echo "You already have julia in your PATH."; echo "Good to go!"; return
     fi
 fi
-VER=0.3.11
+VER=0.4.0
 JLPATH=`pwd`/pkgs/julia-$VER/bin
 if test -f $JLPATH/julia
 then
@@ -31,7 +31,7 @@ then
     fi
 fi
 echo "Downloading julia-$VER."
-curl -OL https://julialang.s3.amazonaws.com/bin/linux/x64/0.3/julia-$VER-linux-x86_64.tar.gz
+curl -OL https://julialang.s3.amazonaws.com/bin/linux/x64/0.4/julia-$VER-linux-x86_64.tar.gz
 mkdir -p pkgs/julia-$VER
 tar -xzf julia-$VER-linux-x86_64.tar.gz -C pkgs/julia-$VER --strip-components=1
 rm -f julia-$VER-linux-x86_64.tar.gz

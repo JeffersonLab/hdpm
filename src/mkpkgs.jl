@@ -34,7 +34,7 @@ for pkg in get_packages(); if length(ARGS) > 0 if !(name(pkg) in ARGS) && !(name
         end # stop timer and write success file
         du_f = split(readchomp(`du -sh $(path(pkg))`))[1]
         success_file = open(path_to_success,"w")
-        println(success_file,string("$(name(pkg))-$(git_version(pkg))","\n$(readchomp(`date "+%Y-%m-%d_%H:%M:%S"`))","\n# build time (seconds)\n",int(toc()),
+        println(success_file,string("$(name(pkg))-$(git_version(pkg))","\n$(readchomp(`date "+%Y-%m-%d_%H:%M:%S"`))","\n# build time (seconds)\n",round(Int,toc()),
         "\n# disk use, final minus initial\n","\"$(du_f)B - $(du)B\"","\n# compiled against\n",tagged_deps(pkg)))
         close(success_file)
     elseif !is_external(pkg) && ispath(path_to_success)
@@ -42,6 +42,6 @@ for pkg in get_packages(); if length(ARGS) > 0 if !(name(pkg) in ARGS) && !(name
         if first_success == name(pkg) print("\n",Base.text_colors[:bold])
             print(string(rpad("package",w," "),rpad("build time",w-6," "),rpad("disk use",w-3," "),"timestamp"),Base.text_colors[:bold]) end
         if first_success == name(pkg) print("\n",Base.text_colors[:normal]) end
-        println(rpad(d[1],w," "),rpad(string(int(d[3])," s"),w-6," "),rpad(d[4],w-3," "),d[2])
+        println(rpad(d[1],w," "),rpad(string(Int(d[3])," s"),w-6," "),rpad(d[4],w-3," "),d[2])
     end
 end

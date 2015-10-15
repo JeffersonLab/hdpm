@@ -43,7 +43,7 @@ function get_template_ids()
 end
 function disable_cmds()
     run(`mv settings/commands.txt settings/commands.txt.old`)
-    file = ["cmds-old"=>open("settings/commands.txt.old"),"cmds"=>open("settings/commands.txt","w")]
+    file = Dict("cmds-old"=>open("settings/commands.txt.old"),"cmds"=>open("settings/commands.txt","w"))
     for line in readlines(file["cmds-old"])
         println(file["cmds"],string("#",chomp(line)))
     end
@@ -127,7 +127,7 @@ function get_packages()
     for i=1:size(commands,1)
         push!(tmp_cmds[commands[i,1]],commands[i,2])
     end
-    mydeps = [
+    mydeps = Dict(
         "xerces-c" => "",
         "cernlib" => "",
         "root" => "",
@@ -137,9 +137,9 @@ function get_packages()
         "ccdb" => "",
         "jana" => "xerces-c,root,ccdb",
         "hdds" => "xerces-c",
-        "sim-recon" => "xerces-c,cernlib,root,evio,ccdb,jana,hdds"]
+        "sim-recon" => "xerces-c,cernlib,root,evio,ccdb,jana,hdds")
     @osx_only mydeps["sim-recon"] = "xerces-c,root,evio,ccdb,jana,hdds"
-    jsep = ["xerces-c"=>"-","cernlib"=>"","root"=>"_","amptools"=>"_","geant4"=>"-","evio"=>"-","ccdb"=>"_","jana"=>"_","hdds"=>"-","sim-recon"=>"-"]
+    jsep = Dict("xerces-c"=>"-","cernlib"=>"","root"=>"_","amptools"=>"_","geant4"=>"-","evio"=>"-","ccdb"=>"_","jana"=>"_","hdds"=>"-","sim-recon"=>"-")
     pkgs = Array(Package,0)
     for i=1:size(paths,1)
         name = paths[i,1]
@@ -186,7 +186,7 @@ end
 function write_settings()
     mkdir("settings-tmp")
     run(`cp -p settings/top.txt settings-tmp`); run(`cp -p settings/commands.txt settings-tmp`)
-    file = ["vers"=>open("settings-tmp/versions.txt","w"),"urls"=>open("settings-tmp/urls.txt","w"),"paths"=>open("settings-tmp/paths.txt","w")]
+    file = Dict("vers"=>open("settings-tmp/versions.txt","w"),"urls"=>open("settings-tmp/urls.txt","w"),"paths"=>open("settings-tmp/paths.txt","w"))
     w = 10
     for pkg in get_packages()
         println(file["vers"],rpad(name(pkg),w," "),version(pkg))
@@ -234,7 +234,7 @@ function get_unpack_file(URL,PATH="")
     file = basename(URL); info("downloading $file")
     run(`curl -OL $URL`)
     if PATH != ""
-        mkpath(PATH); if readchomp(`tar tf $file`|>`head`)[1] != '.' ncomp = 1 else ncomp = 2 end
+        mkpath(PATH); if readchomp(pipeline(`tar tf $file`,`head`))[1] != '.' ncomp = 1 else ncomp = 2 end
         run(`tar xf $file -C $PATH --strip-components=$ncomp`)
     else
         run(`tar xf $file`)
@@ -254,7 +254,7 @@ function show_settings(;col=:all,sep=2)
     end
     println("TOP: ",gettop())
     println("TAG: ",gettag())
-    sizes = [:name=>0,:version=>0,:url=>0]
+    sizes = Dict(:name=>0,:version=>0,:url=>0)
     for pkg in get_packages()
         for s in [:name,:version,:url]
             sizes[s] = max(sizes[s],length(pkg.(s)))
@@ -293,15 +293,15 @@ function check_deps(pkg)
     @linux_only begin LDD = `ldd`; OE = `so` end
     @osx_only begin LDD = `otool -L`; OE = `dylib` end
     install_dir = is_external(get_package("hdds")) ? osrelease() : install_dirname()
-    test_cmds = [
+    test_cmds = Dict(
         "xerces-c" => `$LDD $(path(get_package("xerces-c")))/lib/libxerces-c.$OE`,
         "cernlib" => `ls -lh $(path(get_package("cernlib")))/$(version(get_package("cernlib")))/lib/libgeant321.a`,
         "root" => `root -b -q -l`,
         "evio" => `evio2xml`,
         "ccdb" => `ccdb`,
         "jana" => `jana`,
-        "hdds" => `$LDD $(path(get_package("hdds")))/$install_dir/lib/libhdds.so` |> `grep libxerces-c`,
-        "sim-recon" => `hd_root`]
+        "hdds" => pipeline(`$LDD $(path(get_package("hdds")))/$install_dir/lib/libhdds.so`,`grep libxerces-c`),
+        "sim-recon" => `hd_root`)
     for dep in get_deps([name(pkg)])
         if !success(test_cmds[dep])
             error("'$dep' does not appear to be installed. Please check path if using external installation.

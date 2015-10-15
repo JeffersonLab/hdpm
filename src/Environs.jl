@@ -13,19 +13,27 @@ function getenv()
         home[name(pkg)] = path(pkg)
         vers[name(pkg)] = version(pkg)
     end
-    if int(vers["cernlib"]) != 2005 && int(vers["cernlib"]) != 2006 println();warn("using an old CERN_LEVEL (not 2005 or 2006)") end
+    if parse(Int,vers["cernlib"]) != 2005 && parse(Int,vers["cernlib"]) != 2006 println();warn("using an old CERN_LEVEL (not 2005 or 2006)") end
     BMS_OSNAME = install_dirname()
     if is_external(get_package("hdds")) || is_external(get_package("sim-recon")) BMS_OSNAME = osrelease() end
     JANA_HOME = is_external(get_package("jana")) ? string(home["jana"],"/$(osrelease())") : string(home["jana"],"/$BMS_OSNAME")
     @osx_only begin home["cernlib"] = "NA";vers["cernlib"] = "NA";println();info("Mac OS X detected: disabling cernlib") end
-    home_python = "NA"
-    if contains(osrelease(),"CentOS6") && ispath("/apps/python/PRO")
-        home_python = "/apps/python/PRO"
+    PYTHON_HOME = "NA"
+    if contains(osrelease(),"CentOS6") && ispath("/opt/rh/python27/root/usr")
+        PYTHON_HOME = "/opt/rh/python27/root/usr"
     end
+    if contains(osrelease(),"CentOS6") && ispath("/apps/python/PRO")
+        PYTHON_HOME = "/apps/python/PRO"
+    end
+    JANA_RESOURCE_DIR = "NA"
+    if ispath("/u/group/halld/www/halldweb/html/resources")
+        JANA_RESOURCE_DIR = "/u/group/halld/www/halldweb/html/resources"
+    end
+    if haskey(ENV,"JANA_RESOURCE_DIR") JANA_RESOURCE_DIR = ENV["JANA_RESOURCE_DIR"] end
     CCDB_CONNECTION = "mysql://ccdb_user@hallddb.jlab.org/ccdb"
     if haskey(ENV,"USER") USER = ENV["USER"]
     else USER = readchomp(`whoami`) end
-    env = [
+    env = Dict(
              "GLUEX_TOP" => "$GLUEX_TOP",
              "BMS_OSNAME" => "$BMS_OSNAME",
              "CERN" => home["cernlib"],
@@ -41,7 +49,9 @@ function getenv()
              "JANA_HOME" => "$JANA_HOME",
              "JANA_CALIB_URL" => "$CCDB_CONNECTION",
              "JANA_GEOMETRY_URL" => string("xmlfile://",home["hdds"],"/main_HDDS.xml"),
-             "HALLD_HOME" => home["sim-recon"]]
+             "HALLD_HOME" => home["sim-recon"],
+             "JANA_RESOURCE_DIR" => "$JANA_RESOURCE_DIR",
+             "PYTHON_HOME" => "$PYTHON_HOME")
     #
     function add_to_path(path,new_path)
         if !contains(path,new_path) && !contains(new_path,"/NA/")
@@ -62,7 +72,7 @@ function getenv()
     else env["JANA_PLUGIN_PATH"] = ENV["JANA_PLUGIN_PATH"] end
     # do PATH
     paths = [joinpath(env["CERN"],env["CERN_LEVEL"]),env["ROOTSYS"],env["XERCESCROOT"],env["EVIOROOT"],env["CCDB_HOME"],env["HDDS_HOME"],env["JANA_HOME"],joinpath(env["HALLD_HOME"],env["BMS_OSNAME"])]
-    if home_python != "NA" push!(paths,home_python) end
+    if PYTHON_HOME == "/apps/python/PRO" push!(paths,PYTHON_HOME) end
     for p in paths
         env["PATH"] = add_to_path(env["PATH"],string(p,"/bin"))
     end
@@ -90,7 +100,7 @@ function getenv()
 end
 function printenv()
     function myprint(sh,env) # print env-setup scripts for tcsh and bash shells
-        myoptenv = ["JANA_CALIB_CONTEXT" => "\"variation=mc\""]
+        myoptenv = Dict("JANA_CALIB_CONTEXT" => "\"variation=mc\"")
         mkpath("$(env["GLUEX_TOP"])/env-setup")
         id = gettag()
         if sh == "sh" n = "bash"; set = "export"; eq = "="

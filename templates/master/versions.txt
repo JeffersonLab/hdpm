@@ -1,9 +1,9 @@
 xerces-c  3.1.2
 cernlib   2005
-root      5.34.32
+root      5.34.34
 amptools  0.9.1
 geant4    10.01.p02
-evio      4.4.5
+evio      4.4.6
 ccdb      1.05.00
 jana      0.7.3
 hdds      latest

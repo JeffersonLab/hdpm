@@ -4,16 +4,16 @@ if length(ARGS) == 0
     show_settings()
 elseif length(ARGS) == 1
     try
-        show_settings(sep=int(ARGS[1]))
+        show_settings(sep=parse(Int,ARGS[1]))
     catch
         show_settings(col=symbol(ARGS[1]))
     end
 elseif length(ARGS) == 2
     try
-        show_settings(col=symbol(ARGS[1]),sep=int(ARGS[2]))
+        show_settings(col=symbol(ARGS[1]),sep=parse(Int,ARGS[2]))
     catch
         try
-            show_settings(col=symbol(ARGS[2]),sep=int(ARGS[1]))
+            show_settings(col=symbol(ARGS[2]),sep=parse(Int,ARGS[1]))
         catch
             error("if 2 arguments are given, 1 arg. must be an integer specifying the minimum spacing between columns, the other the column name")
         end
