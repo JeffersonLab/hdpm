@@ -39,7 +39,7 @@ function getenv()
              "CERN" => home["cernlib"],
              "CERN_LEVEL" => vers["cernlib"],
              "ROOTSYS" => home["root"],
-             "AMPTOOLS" => home["amptools"],
+             "AMPTOOLS" => joinpath(home["amptools"],"AmpTools"),
              "XERCESCROOT" => home["xerces-c"],
              "EVIOROOT" => string(home["evio"],"/",readchomp(`uname -s`),"-",readchomp(`uname -m`)),
              "CCDB_HOME" => home["ccdb"],

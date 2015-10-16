@@ -29,11 +29,7 @@ for pkg in get_packages(); if length(ARGS) > 0 if !(name(pkg) in ARGS) && !(name
         end
         # download/unpack other packages
         if name(pkg) != "cernlib" && (contains(URL,".tar.gz") || contains(URL,".tgz"))
-            if name(pkg) == "amptools"
-                get_unpack_file(URL,dirname(path(pkg)))
-            else
-                get_unpack_file(URL,path(pkg))
-            end
+            get_unpack_file(URL,path(pkg))
         end
         if name(pkg) == "cernlib" && version(pkg) == "2005"
             mk_cd(path(pkg))
