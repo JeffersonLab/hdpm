@@ -19,20 +19,14 @@ function getenv()
     JANA_HOME = is_external(get_package("jana")) ? string(home["jana"],"/$(osrelease())") : string(home["jana"],"/$BMS_OSNAME")
     @osx_only begin home["cernlib"] = "NA";vers["cernlib"] = "NA";println();info("Mac OS X detected: disabling cernlib") end
     PYTHON_HOME = "NA"
-    if contains(osrelease(),"CentOS6") && ispath("/opt/rh/python27/root/usr")
-        PYTHON_HOME = "/opt/rh/python27/root/usr"
-    end
-    if contains(osrelease(),"CentOS6") && ispath("/apps/python/PRO")
+    if ispath("/apps/python/PRO/bin/python2.7")
         PYTHON_HOME = "/apps/python/PRO"
     end
     JANA_RESOURCE_DIR = "NA"
     if ispath("/u/group/halld/www/halldweb/html/resources")
         JANA_RESOURCE_DIR = "/u/group/halld/www/halldweb/html/resources"
     end
-    if haskey(ENV,"JANA_RESOURCE_DIR") JANA_RESOURCE_DIR = ENV["JANA_RESOURCE_DIR"] end
     CCDB_CONNECTION = "mysql://ccdb_user@hallddb.jlab.org/ccdb"
-    if haskey(ENV,"USER") USER = ENV["USER"]
-    else USER = readchomp(`whoami`) end
     env = Dict(
              "GLUEX_TOP" => "$GLUEX_TOP",
              "BMS_OSNAME" => "$BMS_OSNAME",
@@ -44,14 +38,13 @@ function getenv()
              "EVIOROOT" => string(home["evio"],"/",readchomp(`uname -s`),"-",readchomp(`uname -m`)),
              "CCDB_HOME" => home["ccdb"],
              "CCDB_CONNECTION" => "$CCDB_CONNECTION",
-             "CCDB_USER" => "$USER",
+             "CCDB_USER" => "\$USER",
              "HDDS_HOME" => home["hdds"],
              "JANA_HOME" => "$JANA_HOME",
              "JANA_CALIB_URL" => "$CCDB_CONNECTION",
              "JANA_GEOMETRY_URL" => string("xmlfile://",home["hdds"],"/main_HDDS.xml"),
              "HALLD_HOME" => home["sim-recon"],
-             "JANA_RESOURCE_DIR" => "$JANA_RESOURCE_DIR",
-             "PYTHON_HOME" => "$PYTHON_HOME")
+             "JANA_RESOURCE_DIR" => "$JANA_RESOURCE_DIR")
     #
     function add_to_path(path,new_path)
         if !contains(path,new_path) && !contains(new_path,"/NA/")
@@ -72,7 +65,7 @@ function getenv()
     else env["JANA_PLUGIN_PATH"] = ENV["JANA_PLUGIN_PATH"] end
     # do PATH
     paths = [joinpath(env["CERN"],env["CERN_LEVEL"]),env["ROOTSYS"],env["XERCESCROOT"],env["EVIOROOT"],env["CCDB_HOME"],env["HDDS_HOME"],env["JANA_HOME"],joinpath(env["HALLD_HOME"],env["BMS_OSNAME"])]
-    if PYTHON_HOME == "/apps/python/PRO" push!(paths,PYTHON_HOME) end
+    if PYTHON_HOME != "NA" push!(paths,PYTHON_HOME) end
     for p in paths
         env["PATH"] = add_to_path(env["PATH"],string(p,"/bin"))
     end
@@ -107,7 +100,7 @@ function printenv()
         elseif sh == "csh" n = "tcsh"; set = "setenv"; eq = " "
         else error("unknown shell type") end
         file = (id == "") ? open("$(env["GLUEX_TOP"])/env-setup/hdenv.$sh","w") : open("$(env["GLUEX_TOP"])/env-setup/hdenv-$id.$sh","w")
-        println(file,"# $n\n#")
+        println(file,"# $n")
         println(file,string("$set GLUEX_TOP$eq",env["GLUEX_TOP"]))
         println(file,string("$set BMS_OSNAME$eq",env["BMS_OSNAME"]))
         for (k,v) in env; if k == "GLUEX_TOP" || k == "BMS_OSNAME" || contains(k,"PATH") continue end
@@ -117,6 +110,7 @@ function printenv()
         for (k,v) in myoptenv
             println(file,"#$set $k$(eq)$v")
         end
+        if !haskey(env,"JANA_RESOURCE_DIR") println(file,"#$set JANA_RESOURCE_DIR$(eq)/path/to/resources") end
         @linux_only ldlp = "LD_LIBRARY_PATH"
         @osx_only ldlp = "DYLD_LIBRARY_PATH"
         for path_name in ["PATH",ldlp,"PYTHONPATH","JANA_PLUGIN_PATH"]
@@ -124,7 +118,9 @@ function printenv()
             for (k,v) in env; if k == "GLUEX_TOP" || k == "CCDB_USER" || contains(k,"PATH") continue end
                 path = replace(path,v,string("\$",k))
             end
+            if haskey(ENV,path_name) path = replace(path,ENV[path_name],string("\$",path_name)) end
             path = replace(path,env["GLUEX_TOP"],"\$GLUEX_TOP")
+            if haskey(ENV,path_name) println(file,"\n$set $path_name$(eq)$(replace(ENV[path_name],env["GLUEX_TOP"],"\$GLUEX_TOP"))") end
             println(file,"\n$set $path_name$(eq)$path")
         end
         close(file)
