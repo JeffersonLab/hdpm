@@ -1,5 +1,4 @@
-# docker build -t nathansparks/sim-recon-deps:fedora22 -f Dockerfile-deps .
-FROM hdbase:fedora22
+FROM hdbase:f22
 MAINTAINER Nathan Sparks <nsparks@jlab.org>
 RUN mkdir -p /home/hdpm && groupadd -r hdpm -g 573 && useradd -u 1000 \
     -r -g hdpm -d /home/hdpm -s /sbin/nologin -c "Docker image user" hdpm \

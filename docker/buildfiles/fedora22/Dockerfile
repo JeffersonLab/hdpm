@@ -1,4 +1,3 @@
-# docker build -t sim-recon:fedora22 .
 FROM nathansparks/sim-recon-deps:fedora22
 MAINTAINER Nathan Sparks <nsparks@jlab.org>
 RUN /bin/bash -c "source setup.sh && julia src/hdpm.jl build sim-recon"
