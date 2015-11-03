@@ -3,7 +3,7 @@ module Packages
 home = pwd()
 export Package,name,version,url,path,cmds,is_external,get_packages,get_package,gettop,osrelease,gettag,select_template,show_settings
 export get_unpack_file,mk_cd,get_template_ids,get_pkg_names,get_deps,tagged_deps,git_version,check_deps,mk_template,install_dirname
-export versions_from_xml
+export versions_from_xml,rm_regex,input
 immutable Package
     name::ASCIIString
     version::ASCIIString
@@ -50,13 +50,20 @@ function disable_cmds()
     for (k,v) in file close(v) end
     rm("settings/commands.txt.old")
 end
+function rm_regex(regex,path=pwd())
+    if ispath(path)
+        for item in filter(regex,readdir(path))
+            run(`rm -rf $path/$item`)
+        end
+    end
+end
 function mk_template(id)
     if id == "master" error("not able to save template named 'master'. This id is reserved.\n") end
     if ispath("templates/settings-$id") warn("renaming template with same id as old-$id");run(`mv templates/settings-$id templates/settings-old-$id`) end
     if id == "jlab" info("saving 'jlab' template: All build commands are disabled.") end
     if id == "jlab" disable_cmds() end
     write_settings()
-    run(`rm -f settings/*.txt~`)
+    rm_regex(r".+\.txt~$","settings")
     run(`cp -pr settings templates/settings-$id`)
     write_id(id)
 end
@@ -64,7 +71,9 @@ end
 function mk_cd(path)
     mkpath(path); cd(path)
 end
-#
+function input(prompt)
+    print(prompt); chomp(readline())
+end
 function check_for_settings()
     if !ispath("settings")
         error("Please select a 'build template'.

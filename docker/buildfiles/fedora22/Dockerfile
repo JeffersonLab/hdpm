@@ -1,5 +1,6 @@
 FROM nathansparks/sim-recon-deps:fedora22
 MAINTAINER Nathan Sparks <nsparks@jlab.org>
-RUN /bin/bash -c "source setup.sh && julia src/hdpm.jl build sim-recon"
+RUN /bin/bash -c "source setup.sh && julia src/hdpm.jl build sim-recon \
+    && julia src/distclean.jl yes"
 WORKDIR /home/hdpm/docker/data
 CMD cd /home/hdpm && source pkgs/env-setup/hdenv.sh && /bin/bash

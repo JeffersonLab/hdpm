@@ -16,6 +16,7 @@ if length(ARGS) == 0 || (length(ARGS) == 1 && ARGS[1] == "help")
     \t clean       Completely remove build products of selected packages
     \t clean-build Clean build of selected packages
     \t v-xml       Replace versions with versions from a version XML file
+    \t fetch-dist  Fetch binary distribution of sim-recon and its deps
 Use 'hdpm help <command>' to see available arguments.")
 end
 if length(ARGS) == 1 && ARGS[1] != "help"
@@ -37,7 +38,7 @@ if length(ARGS) == 1 && ARGS[1] != "help"
         run(`julia src/show_settings.jl`)
     elseif ARGS[1] == "v-xml"
         run(`julia src/versions_from_xml.jl`)
-    elseif ARGS[1] == "select" || ARGS[1] == "save"
+    elseif ARGS[1] == "select" || ARGS[1] == "save" || ARGS[1] == "fetch-dist"
         error("Requires one argument. Use 'hdpm help $(ARGS[1])' to see available arguments.\n")
     else
         error("Unknown command. Use 'hdpm help' to see available commands.\n")
@@ -81,6 +82,9 @@ if length(ARGS) == 2 && ARGS[1] == "help"
     elseif ARGS[2] == "v-xml"
         println("Replace versions with versions from a version XML file")
         println("usage: hdpm v-xml |<url or path>|")
+    elseif ARGS[2] == "fetch-dist"
+        println("Fetch binary distribution of sim-recon and its deps")
+        println("usage: hdpm fetch-dist |<url>|")
     else
         error("Unknown command. Use 'hdpm help' to see available commands.\n")
     end
@@ -128,6 +132,8 @@ if length(ARGS) == 2 && ARGS[1] != "help"
         run(`julia src/update.jl $(ARGS[2])`)
     elseif ARGS[1] == "v-xml"
         run(`julia src/versions_from_xml.jl $(ARGS[2])`)
+    elseif ARGS[1] == "fetch-dist"
+        run(`julia src/fetch_dist.jl $(ARGS[2])`)
     else
         error("Unknown command. Use 'hdpm help' to see available commands.\n")
     end
@@ -144,7 +150,7 @@ if length(ARGS) >= 3 && (length(ARGS) <= length(pkg_names) + 1) && ARGS[1] != "s
     for i=2:length(ARGS)
         if !(ARGS[i] in pkg_names) warn("Unknown argument: ",ARGS[i]); trouble = true end
     end
-    if trouble error("Unknown argument (typo?). Use 'hdpm help $(ARGS[1])' to see available arguments.\n") end
+    if trouble error("Unknown argument(s) (typo?). Use 'hdpm help $(ARGS[1])' to see available arguments.\n") end
     #
     nargs = ``
     for i=2:length(ARGS)
