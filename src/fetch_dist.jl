@@ -38,7 +38,7 @@ function update_env_script(fname)
     f = open(fname,"r")
     data = readall(f); close(f)
     p = dirname(dirname(fname)); set = contains(fname,".sh") ? "export" : "setenv"
-    tobe_replaced = ["/home/hdpm/pkgs",r"\$GLUEX_TOP/julia-.+/bin:","/opt/rh/python27"]
+    tobe_replaced = ["/home/hdpm/pkgs",r"\$GLUEX_TOP/julia-.{5,7}/bin:","/opt/rh/python27"]
     replacement = [p,"","\$GLUEX_TOP/opt/rh/python27"]
     for i=1:length(tobe_replaced)
       data = replace(data,tobe_replaced[i],replacement[i])
