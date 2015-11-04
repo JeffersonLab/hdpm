@@ -7,10 +7,12 @@ if safe_to_proceed
     top = gettop()
     cwd = pwd(); cd(joinpath(top,"sim-recon"))
     info("Asserting that working directory of sim-recon is clean ...")
-    assert(readall(`git status`) == "On branch master\nYour branch is up-to-date with 'origin/master'.\nnothing to commit, working directory clean\n"); cd(cwd)
+    assert(contains(readall(`git status`),"working directory clean")); cd(cwd)
     rm_regex(r"^julia-.+",top)
     BMS_OSNAME = install_dirname()
-    for pkg in get_packages(); if length(ARGS) > 0 if !(name(pkg) in ARGS) continue end end
+    for pkg in get_packages()
+        if length(ARGS) > 0 && !(length(ARGS) == 1 && ARGS[1] == "yes")
+            if !(name(pkg) in ARGS) continue end end
         if !is_external(pkg) && ispath(path(pkg))
             cd(path(pkg))
             run(`rm -rf src`); run(`rm -rf .$BMS_OSNAME`)

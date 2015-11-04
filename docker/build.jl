@@ -1,21 +1,31 @@
 # build sim-recon in Docker containers
-short_tags = ["c6","c7","u14","f22"]
-i=0
-info("Available OS tags: ",short_tags)
-info("Build stages: ",["base","deps","sim-recon"])
+dtags = Dict("c6"=>"centos6","c7"=>"centos7","u14"=>"ubuntu14","f22"=>"fedora22")
+bstages = ["base","deps","sim-recon"]
+info("Available OS tags: ",keys(dtags))
+info("Build stages: ",bstages)
 for arg in ARGS
-    if !(arg in vcat(short_tags,["base","deps","sim-recon"]))
+    if !(arg in keys(dtags)) && !(arg in bstages)
         error("Improper argument ",arg,": Must be in OS tags or build stages")
     end end
-for tag in ["centos6","centos7","ubuntu14","fedora22"]; if length(ARGS) > 0 if !(short_tags[i+1] in ARGS) continue end end
-    i+=1
-    dir="buildfiles/$tag"
-    for stage in ["base","deps","sim-recon"]; if length(ARGS) > 0 if !(stage in ARGS) continue end end
+function get_list(c,args)
+    list = ASCIIString[]
+    if length(args) > 0
+        for item in c
+            if item in args push!(list,item) end end
+        if length(list) == 0 list = c end
+    else list = c end
+    list
+end
+tags = get_list(keys(dtags),ARGS)
+stages = get_list(bstages,ARGS)
+for tag in tags
+    dir="buildfiles/$(dtags[tag])"
+    for stage in stages
         if stage in ["base","deps"] name = string("hd",stage); dfile = string("Dockerfile-",stage)
         else name = stage; dfile = "Dockerfile" end
-        try run(`docker rmi $name:$(short_tags[i])`)
+        try run(`docker rmi $name:$tag`)
         catch info("Image not available to remove (ignore previous 2 errors)") end
-        f = open(joinpath(pwd(),".log-$name-$(short_tags[i])"),"w")
-        write(f,readall(`docker build --no-cache -t $name:$(short_tags[i]) -f $dir/$dfile $dir`)); close(f)
+        f = open(joinpath(pwd(),".log-$name-$tag"),"w")
+        write(f,readall(`docker build --no-cache -t $name:$tag -f $dir/$dfile $dir`)); close(f)
     end
 end
