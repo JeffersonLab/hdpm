@@ -74,8 +74,9 @@ Julia scripts (located in the **"src"** directory) are used to prepare, manage, 
    - Replace the current versions with versions from a version XML file. If no argument is given https://halldweb.jlab.org/dist/version.xml will be used.
    - **usage:** `hdpm v-xml [url or path]`
 * **hdpm fetch-dist**
-   - Download a binary distribution of sim-recon and its dependencies and unpack them into the **"[top]/.dist"** directory. The available distribution files can be browsed at https://halldweb.jlab.org/dist.
-   - **usage:** `hdpm fetch-dist [url]`
+   - Download a binary distribution of sim-recon and its dependencies and unpack them into the **"[top]/.dist"** directory. The available distribution files can be browsed at https://halldweb.jlab.org/dist. The file corresponding to the latest available commit will be fetched if no argument is given.
+   - **usage:** `hdpm fetch-dist [url or path]`
+   - **usage:** `hdpm fetch-dist [commit]`
 
 ## Julia modules
 The package management scripts depend on these Julia modules. For typical usage, the user should not need to modify these.

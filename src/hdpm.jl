@@ -38,7 +38,9 @@ if length(ARGS) == 1 && ARGS[1] != "help"
         run(`julia src/show_settings.jl`)
     elseif ARGS[1] == "v-xml"
         run(`julia src/versions_from_xml.jl`)
-    elseif ARGS[1] == "select" || ARGS[1] == "save" || ARGS[1] == "fetch-dist"
+    elseif ARGS[1] == "fetch-dist"
+        run(`julia src/fetch_dist.jl`)
+    elseif ARGS[1] == "select" || ARGS[1] == "save"
         error("Requires one argument. Use 'hdpm help $(ARGS[1])' to see available arguments.\n")
     else
         error("Unknown command. Use 'hdpm help' to see available commands.\n")
@@ -84,7 +86,8 @@ if length(ARGS) == 2 && ARGS[1] == "help"
         println("usage: hdpm v-xml |<url or path>|")
     elseif ARGS[2] == "fetch-dist"
         println("Fetch binary distribution of sim-recon and its deps")
-        println("usage: hdpm fetch-dist |<url>|")
+        println("usage: hdpm fetch-dist |<url or path>|")
+        println("usage: hdpm fetch-dist |<commit>|")
     else
         error("Unknown command. Use 'hdpm help' to see available commands.\n")
     end

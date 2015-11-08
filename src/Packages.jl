@@ -241,7 +241,8 @@ function tagged_deps(a)
 end
 function get_unpack_file(URL,PATH="")
     file = basename(URL); info("downloading $file")
-    run(`curl -OL $URL`)
+    if contains(URL,"https://") || contains(URL,"http://") run(`curl -OL $URL`)
+    else run(`cp -p $URL .`) end
     if PATH != ""
         mkpath(PATH); if readchomp(pipeline(`tar tf $file`,`head`))[1] != '.' ncomp = 1 else ncomp = 2 end
         run(`tar xf $file -C $PATH --strip-components=$ncomp`)
