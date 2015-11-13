@@ -18,7 +18,7 @@ function get_latest_URL(str)
         r = search(line,r"href=\".{25,50}\"")
         if start(r) == 0 continue end
         file = line[start(r)+6:last(r)-1]
-        if contains(file,os_tag) && (str != "deps" ? contains(file,str):!contains(file,str))
+        if contains(file,string("-",os_tag,".t")) && (str != "deps" ? contains(file,str):!contains(file,str))
             r = search(line,r"(\d{4})-(\d{2})-(\d{2})")
             s = split(line[r],"-")
             y = parse(Int,s[1]); mo = parse(Int,s[2]); d = parse(Int,s[3])
@@ -55,10 +55,16 @@ commit = parts[3]; id_deps = parts[4]; tag = split(parts[end],".")[1]
 if tag != os_tag warn("$URL is for $tag distribution, but you are on $os_tag") end
 url_deps = replace(URL,commit,"deps")
 update_deps = false; update = false
-if !ispath(PATH) || (ispath("$PATH/.id-deps-$tag") && id_deps != readchomp("$PATH/.id-deps-$tag"))
+if !ispath(PATH) update_deps = true
+else
+    deps = ["xerces-c","cernlib","root","evio","ccdb","jana"]
+    update_deps = !reduce(&,map(x -> contains(join(readdir(PATH)),x),deps))
+end
+if !ispath(joinpath(PATH,"sim-recon")) || !ispath(joinpath(PATH,"hdds")) update = true end
+if update_deps || (ispath("$PATH/.id-deps-$tag") && id_deps != readchomp("$PATH/.id-deps-$tag"))
     run(`rm -rf $PATH`); update_deps = true; update = true
     mk_cd(PATH); get_unpack_file(url_deps,PATH); get_unpack_file(URL,PATH)
-elseif commit != split(split(filter(r"^version_sim-recon-",readdir(PATH))[1],"-")[3],"_")[1]
+elseif update || commit != split(split(filter(r"^version_sim-recon-",readdir(PATH))[1],"-")[3],"_")[1]
     run(`rm -rf $PATH/sim-recon`); run(`rm -rf $PATH/hdds`)
     mk_cd(PATH); get_unpack_file(URL,PATH); update = true
 else info("Already up-to-date, at commit=$commit") end
@@ -86,3 +92,6 @@ if update_deps
     update_env_script(joinpath(PATH,"env-setup","hdenv.csh"))
 end
 info("Environment setup: source $(joinpath(PATH,"env-setup","hdenv.(c)sh"))")
+# check consistency between commit hash records
+os_dir = readchomp(`ls $PATH/sim-recon`)
+assert(commit==split(split(readall("$PATH/sim-recon/$os_dir/success.hdpm"))[1],"-")[3])
