@@ -11,21 +11,21 @@ then
     echo "You appear to be on the JLab CUE; Will try to use group installation of julia."
     echo $PATH | grep -q $JLPATH
     if test $? -ne 0; then
-	echo "Putting julia in your PATH."
-	export PATH=$JLPATH:$PATH; echo "Good to go!"; return
+        echo "Putting julia in your PATH."
+        export PATH=$JLPATH:$PATH; echo "Good to go!"; return
     else
         echo "You already have julia in your PATH."; echo "Good to go!"; return
     fi
 fi
-VER=0.4.0
+VER=0.4.1
 JLPATH=`pwd`/pkgs/julia-$VER/bin
 if test -f $JLPATH/julia
 then
     echo "julia-$VER directory already exists; nothing to download."
     echo $PATH | grep -q $JLPATH
     if test $? -ne 0; then
-	echo "Putting julia in your PATH."
-	export PATH=$JLPATH:$PATH; echo "Good to go!"; return
+        echo "Putting julia in your PATH."
+        export PATH=$JLPATH:$PATH; echo "Good to go!"; return
     else
         echo "You already have julia in your PATH."; echo "Good to go!"; return
     fi

@@ -5,14 +5,14 @@ echo "Mac OS X (10.7+): Hall-D Package Manager setup"
 echo "Run the 'hdpm' command in the current working directory."
 alias hdpm 'julia src/hdpm.jl'
 setenv JULIA_LOAD_PATH `pwd`/src
-set VER=0.4.0
+set VER=0.4.1
 set JLPATH=`pwd`/pkgs/julia-$VER/bin
 if ( -e ${JLPATH}/julia ) then
     echo "julia-$VER directory already exists; nothing to download."
     echo $PATH | grep -q $JLPATH
     if ( $? != 0 ) then
-	echo "Putting julia in your PATH."
-	setenv PATH ${JLPATH}:$PATH; goto end
+        echo "Putting julia in your PATH."
+        setenv PATH ${JLPATH}:$PATH; goto end
     else
         echo "You already have julia in your PATH."; goto end
     endif

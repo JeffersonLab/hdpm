@@ -10,20 +10,20 @@ if ( -e ${JLPATH}/julia ) then
     echo "You appear to be on the JLab CUE; Will try to use group installation of julia."
     echo $PATH | grep -q $JLPATH
     if ( $? != 0 ) then
-	echo "Putting julia in your PATH."
-	setenv PATH ${JLPATH}:$PATH; goto end
+        echo "Putting julia in your PATH."
+        setenv PATH ${JLPATH}:$PATH; goto end
     else
         echo "You already have julia in your PATH."; goto end
     endif
 endif
-set VER=0.4.0
+set VER=0.4.1
 set JLPATH=`pwd`/pkgs/julia-$VER/bin
 if ( -e ${JLPATH}/julia ) then
     echo "julia-$VER directory already exists; nothing to download."
     echo $PATH | grep -q $JLPATH
     if ( $? != 0 ) then
-	echo "Putting julia in your PATH."
-	setenv PATH ${JLPATH}:$PATH; goto end
+        echo "Putting julia in your PATH."
+        setenv PATH ${JLPATH}:$PATH; goto end
     else
         echo "You already have julia in your PATH."; goto end
     endif
