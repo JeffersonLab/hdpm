@@ -180,9 +180,9 @@ function get_packages()
             vmm = major_minor(vers[i,2])
             url_alt = "https://github.com/JeffersonLab/$name/archive/$name-$(vers[i,2]).tar.gz"
             if name == "hdds"
-                if int(vmm[1]) <= 3 && int(vmm[2]) <= 2 || int(vmm[1]) <= 2 url = url_alt end
+                if parse(Int,vmm[1]) <= 3 && parse(Int,vmm[2]) <= 2 || parse(Int,vmm[1]) <= 2 url = url_alt end
             elseif name == "sim-recon"
-                if int(vmm[1]) <= 1 && int(vmm[2]) <= 3 || int(vmm[1]) == 0 || contains(vers[i,2],"dc") url = url_alt end
+                if parse(Int,vmm[1]) <= 1 && parse(Int,vmm[2]) <= 3 || parse(Int,vmm[1]) == 0 || contains(vers[i,2],"dc") url = url_alt end
             end
         end
         if length(cmds[name]) > 0 && vers[i,2] == "latest" && contains(url,"https://github.com/JeffersonLab/$name/archive/")

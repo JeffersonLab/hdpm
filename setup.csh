@@ -16,7 +16,7 @@ if ( -e ${JLPATH}/julia ) then
         echo "You already have julia in your PATH."; goto end
     endif
 endif
-set VER=0.4.1
+set VER=0.4.2
 set JLPATH=`pwd`/pkgs/julia-$VER/bin
 if ( -e ${JLPATH}/julia ) then
     echo "julia-$VER directory already exists; nothing to download."
