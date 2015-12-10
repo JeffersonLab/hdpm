@@ -105,11 +105,15 @@ install_dirname() = (gettag() == "") ? osrelease() : string("build-",gettag())
 get_pkg_names() = ["xerces-c","cernlib","root","amptools","geant4","evio","ccdb","jana","hdds","sim-recon"]
 jlab_top() = string("/group/halld/Software/builds/",osrelease())
 #
-function major_minor(ver)
+function major_minor_subminor(ver)
     for v in split(ver,"-")
-        if contains(v,".") return split(v,".")[1],split(v,".")[2] end
+        if contains(v,".") return split(v,".")[1],split(v,".")[2],split(v,".")[3] end
     end
-    "0","0"
+    "0","0","0"
+end
+function major_minor(ver)
+    vmms = major_minor_subminor(ver)
+    vmms[1],vmms[2]
 end
 function get_packages()
     check_for_settings()
@@ -183,6 +187,12 @@ function get_packages()
                 if parse(Int,vmm[1]) <= 3 && parse(Int,vmm[2]) <= 2 || parse(Int,vmm[1]) <= 2 url = url_alt end
             elseif name == "sim-recon"
                 if parse(Int,vmm[1]) <= 1 && parse(Int,vmm[2]) <= 3 || parse(Int,vmm[1]) == 0 || contains(vers[i,2],"dc") url = url_alt end
+            end
+        end
+        if (name == "ccdb") && length(cmds[name]) > 0 && vers[i,2] != "latest"
+            vmms = major_minor_subminor(vers[i,2])
+            if parse(Int,vmms[1]) <= 1 && parse(Int,vmms[2]) <= 6 && parse(Int,vmms[3]) == 0
+                url = "https://github.com/JeffersonLab/$name/archive/v$(vers[i,2]).tar.gz"
             end
         end
         if length(cmds[name]) > 0 && vers[i,2] == "latest" && contains(url,"https://github.com/JeffersonLab/$name/archive/")
