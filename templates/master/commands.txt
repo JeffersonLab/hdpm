@@ -4,7 +4,8 @@ xerces-c  "make install"
 cernlib   NA
 root      "./configure --enable-roofit"
 root      "make -j 8"
-amptools  make
+amptools  "cd AmpTools && make && cd ../"
+amptools  "cd AmpPlotter && make"
 geant4    "cmake -DCMAKE_INSTALL_PREFIX=[PATH] [PATH]"
 geant4    "make -j 8"
 geant4    "make install"
