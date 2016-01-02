@@ -4,7 +4,7 @@ template_ids = get_template_ids()
 pkg_names = get_pkg_names()
 pkg_cols = ["version", "url", "path", "deps", "cmds"]
 if length(ARGS) == 0 || (length(ARGS) == 1 && ARGS[1] == "help")
-    println("usage: hdpm <command> [<args>]
+    hz("="); println("usage: hdpm <command> [<args>]
     commands:
     \t help        Show available commands
     \t select      Select a 'build template' from the 'templates' directory
@@ -17,7 +17,8 @@ if length(ARGS) == 0 || (length(ARGS) == 1 && ARGS[1] == "help")
     \t clean-build Clean build of selected packages
     \t v-xml       Replace versions with versions from a version XML file
     \t fetch-dist  Fetch binary distribution of sim-recon and its deps
-Use 'hdpm help <command>' to see available arguments.")
+--------------------------------------------------------------------------
+Use 'hdpm help <command>' to see available arguments."); hz("=")
 end
 if length(ARGS) == 1 && ARGS[1] != "help"
     if ARGS[1] == "select"
@@ -47,47 +48,60 @@ if length(ARGS) == 1 && ARGS[1] != "help"
     end
 end
 if length(ARGS) == 2 && ARGS[1] == "help"
-    if ARGS[2] == "select"
-        println("Select the desired build template")
+    if ARGS[2] == "select" hz("=")
+        println("Select the desired build template"); hz("-")
+        println("usage: hdpm select (select the master template)"); hz("-")
         println("usage: hdpm select |<template id>|")
-        println("ids: ",string(template_ids))
-    elseif ARGS[2] == "save"
+        println("ids:   ",join(template_ids,", ")); hz("=")
+    elseif ARGS[2] == "save" hz("=")
         println("Save the current settings as a new build template")
+        println("Generate base templates for 'jlab'/'dist' template ids"); hz("-")
         println("usage: hdpm save <new template id>")
-    elseif ARGS[2] == "show"
-        println("Show the current build settings")
-        println("usage: hdpm show |<column>| |<column spacing>|")
-        println("columns: version, url, path, deps, cmds")
-    elseif ARGS[2] == "fetch"
-        println("Checkout/download/clone the selected packages")
+        println("       hdpm save jlab (create JLab base template)")
+        println("       hdpm save dist (make hdpm-dist base template)"); hz("=")
+    elseif ARGS[2] == "show" hz("=")
+        println("Show the current build settings"); hz("-")
+        println("usage:   hdpm show (show version, url, and path settings)"); hz("-")
+        println("usage:   hdpm show |<column>| |<column spacing>|")
+        println("columns: version, url, path, deps, cmds"); hz("=")
+    elseif ARGS[2] == "fetch" hz("=")
+        println("Checkout/download/clone the selected packages"); hz("-")
+        println("usage: hdpm fetch (fetch all enabled packages)"); hz("-")
         println("usage: hdpm fetch |<pkgs>...|")
-        println("pkgs: ",string(pkg_names))
-    elseif ARGS[2] == "build"
+        println("pkgs:  ",join(pkg_names,",")); hz("=")
+    elseif ARGS[2] == "build" hz("=")
         println("Build the selected packages (fetch if needed)")
-        println("usage: hdpm build |<template id>|")
-        println("ids: ",string(template_ids))
-        println("usage: hdpm build |<xml file url or path>|")
+        println("Display build information if a package is already built"); hz("-")
+        println("usage: hdpm build (build all enabled packages)"); hz("-")
         println("usage: hdpm build |<pkgs>...|")
-        println("pkgs: ",string(pkg_names))
-    elseif ARGS[2] == "update"
-        println("Update selected Git/SVN packages")
+        println("pkgs:  ",join(pkg_names,",")); hz("-")
+        println("usage: hdpm build |<template id>|")
+        println("ids:   ",join(template_ids,", ")); hz("-")
+        println("usage: hdpm build |<xml file url or path>|"); hz("=")
+    elseif ARGS[2] == "update" hz("=")
+        println("Update selected Git/SVN packages"); hz("-")
+        println("usage: hdpm update (update all enabled repository packages)"); hz("-")
         println("usage: hdpm update |<pkgs>...|")
-        println("pkgs: ",string(pkg_names))
-    elseif ARGS[2] == "clean"
-        println("Remove build products of the selected packages")
+        println("pkgs:  ",join(pkg_names,",")); hz("=")
+    elseif ARGS[2] == "clean" hz("=")
+        println("Remove build products of the selected packages"); hz("-")
+        println("usage: hdpm clean (clean all enabled packages)"); hz("-")
         println("usage: hdpm clean |<pkgs>...|")
-        println("pkgs: ",string(pkg_names))
-    elseif ARGS[2] == "clean-build"
-        println("Do a clean build of the selected packages")
+        println("pkgs:  ccdb, jana, hdds, sim-recon"); hz("=")
+    elseif ARGS[2] == "clean-build" hz("=")
+        println("Do a clean build of the selected packages"); hz("-")
+        println("usage: hdpm clean-build (clean-build of all enabled packages)"); hz("-")
         println("usage: hdpm clean-build |<pkgs>...|")
-        println("pkgs: ",string(pkg_names))
-    elseif ARGS[2] == "v-xml"
-        println("Replace versions with versions from a version XML file")
-        println("usage: hdpm v-xml |<url or path>|")
-    elseif ARGS[2] == "fetch-dist"
-        println("Fetch binary distribution of sim-recon and its deps")
-        println("usage: hdpm fetch-dist |<url or path>|")
-        println("usage: hdpm fetch-dist |<commit>|")
+        println("pkgs:  ccdb, jana, hdds, sim-recon"); hz("=")
+    elseif ARGS[2] == "v-xml" hz("=")
+        println("Replace versions with versions from a version XML file"); hz("-")
+        println("usage: hdpm v-xml (w/ https://halldweb.jlab.org/dist/version.xml)"); hz("-")
+        println("usage: hdpm v-xml |<url or path>|"); hz("=")
+    elseif ARGS[2] == "fetch-dist" hz("=")
+        println("Fetch binary distribution of sim-recon and its deps"); hz("-")
+        println("usage: hdpm fetch-dist (fetch latest binary distribution)"); hz("-")
+        println("usage: hdpm fetch-dist |<url or path>|"); hz("-")
+        println("usage: hdpm fetch-dist |<commit>|"); hz("=")
     else
         error("Unknown command. Use 'hdpm help' to see available commands.\n")
     end
@@ -119,7 +133,7 @@ if length(ARGS) == 2 && ARGS[1] != "help"
             error("Unknown argument. Use 'hdpm help $(ARGS[1])' to see available arguments.\n")
         end
     elseif ARGS[1] == "show"
-        if ARGS[2] in pkg_cols
+        if ARGS[2] in pkg_cols || isinteger(parse(Int,ARGS[2]))
             run(`julia src/show_settings.jl $(ARGS[2])`)
         else
             error("Unknown argument. Use 'hdpm help $(ARGS[1])' to see available arguments.\n")
@@ -147,6 +161,9 @@ if length(ARGS) == 3 && ARGS[1] == "show"
     else
         error("Unknown argument. Use 'hdpm help $(ARGS[1])' to see available arguments.\n")
     end
+end
+if length(ARGS) > 3 && ARGS[1] == "show"
+    error("Too many arguments. Use 'hdpm help $(ARGS[1])' to see available arguments.\n")
 end
 if length(ARGS) >= 3 && (length(ARGS) <= length(pkg_names) + 1) && ARGS[1] != "show"
     trouble = false

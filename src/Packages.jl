@@ -3,7 +3,7 @@ module Packages
 home = pwd()
 export Package,name,version,url,path,cmds,is_external,get_packages,get_package,gettop,osrelease,gettag,select_template,show_settings
 export get_unpack_file,mk_cd,get_template_ids,get_pkg_names,get_deps,tagged_deps,git_version,check_deps,mk_template,install_dirname
-export versions_from_xml,rm_regex,input
+export versions_from_xml,rm_regex,input,hz
 immutable Package
     name::ASCIIString
     version::ASCIIString
@@ -60,9 +60,8 @@ end
 function mk_template(id)
     if id == "master" error("not able to save template named 'master'. This id is reserved.\n") end
     if ispath("templates/settings-$id") warn("renaming template with same id as old-$id");run(`mv templates/settings-$id templates/settings-old-$id`) end
-    if id == "jlab" info("saving 'jlab' template: All build commands are disabled.") end
-    if id == "dist" info("saving 'dist' template: All build commands are disabled.") end
-    if id == "jlab" || id == "dist" disable_cmds() end
+    if id == "jlab" || id == "dist" disable_cmds()
+        info("saving '$id' template: All build commands are disabled.") end
     write_settings(id)
     rm_regex(r".+\.txt~$","settings")
     run(`cp -pr settings templates/settings-$id`)
@@ -104,6 +103,7 @@ function gettag()
 end
 install_dirname() = (gettag() == "") ? osrelease() : string("build-",gettag())
 get_pkg_names() = ["xerces-c","cernlib","root","amptools","geant4","evio","ccdb","jana","hdds","sim-recon"]
+hz(a::ASCIIString) = println(repeat(a,74))
 jlab_top() = string("/group/halld/Software/builds/",osrelease())
 #
 function major_minor(ver)
@@ -172,17 +172,17 @@ function get_packages(id="")
         for cmd in tmp_cmds[name]; if path == "NA" continue end
             push!(cmds[name],replace(cmd,"[PATH]",path))
         end
-	if id == "jlab"
-	    assert(length(cmds[name]) == 0)
+        if id == "jlab"
+            assert(length(cmds[name]) == 0)
             jpath = joinpath(jlab_top(),name,string(name,jsep[name],vers[i,2]))
             if ispath(jpath) path = jpath end
             if name == "cernlib" && ispath(joinpath(jlab_top(),name)) path = joinpath(jlab_top(),name) end
-	end
-	if id == "dist"
-	    assert(length(cmds[name]) == 0)
+        end
+        if id == "dist"
+            assert(length(cmds[name]) == 0)
             dpath = joinpath(gettop(),".dist",basename(path))
             if ispath(dpath) path = dpath end
-	end
+        end
         if length(cmds[name]) > 0 path = joinpath(gettop(),basename(path)) end
         if (name == "hdds" || name == "sim-recon") && vers[i,2] != "latest"
             vmm = major_minor(vers[i,2])
@@ -195,7 +195,7 @@ function get_packages(id="")
         end
         if vers[i,2] == "latest" && contains(url,"https://github.com/JeffersonLab/$name/archive/")
             url = "https://github.com/JeffersonLab/$name" end
-	if name == "jana" && vers[i,2] == "latest" url = "https://phys12svn.jlab.org/repos/JANA" end
+        if name == "jana" && vers[i,2] == "latest" url = "https://phys12svn.jlab.org/repos/JANA" end
         push!(pkgs,Package(name,vers[i,2],url,path,cmds[name],mydeps[name]))
     end
     pkgs
@@ -263,15 +263,16 @@ function show_settings(;col=:all,sep=2)
     check_for_settings()
     if sep <= 1 sep = 1; info("Using min. column spacing of ",string(sep)," spaces.") end
     if sep >= 24 sep = 24; info("Using max. column spacing of ",string(sep)," spaces.") end
-    print("\n",Base.text_colors[:bold])
+    hz("=")
+    print("",Base.text_colors[:bold])
     println("Current build settings",Base.text_colors[:bold])
     try
-        println("ID: ",readchomp("settings/id.txt"))
+        println("ID:  ",readchomp("settings/id.txt"))
     catch
-        println("ID: ","id file not found; This will not affect build.")
+        println("ID:  ","id file not found; This will not affect build.")
     end
     println("TOP: ",gettop())
-    println("TAG: ",gettag())
+    println("TAG: ",gettag()); hz("-")
     sizes = Dict(:name=>0,:version=>0,:url=>0)
     for pkg in get_packages()
         for s in [:name,:version,:url]
@@ -279,7 +280,7 @@ function show_settings(;col=:all,sep=2)
         end
     end
     w1 = sizes[:name] + sep; w2 = sizes[:version] + sep; w3 = sizes[:url] + sep
-    print("\n",Base.text_colors[:bold])
+    print("",Base.text_colors[:bold])
     for k in [:name,:version,:url,:path]; if col != :all && !(k in [:name,col]) continue end
         if k != :path print(rpad(k,sizes[k]+sep," "),Base.text_colors[:bold])
         else print(k,Base.text_colors[:bold]) end
@@ -287,7 +288,7 @@ function show_settings(;col=:all,sep=2)
     for k in [:cmds,:deps]; if col == :all || k != col continue end
         print(k,Base.text_colors[:bold])
     end
-    print("\n",Base.text_colors[:normal])
+    print("\n",Base.text_colors[:normal]); hz("-")
     for pkg in get_packages()
         p = replace(path(pkg),string(gettop(),"/"),"")
         if col==:all
@@ -306,6 +307,7 @@ function show_settings(;col=:all,sep=2)
             end
         end
     end
+    hz("=")
 end
 function check_deps(pkg)
     @linux_only begin LDD = `ldd`; OE = `so` end
