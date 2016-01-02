@@ -61,8 +61,9 @@ function mk_template(id)
     if id == "master" error("not able to save template named 'master'. This id is reserved.\n") end
     if ispath("templates/settings-$id") warn("renaming template with same id as old-$id");run(`mv templates/settings-$id templates/settings-old-$id`) end
     if id == "jlab" info("saving 'jlab' template: All build commands are disabled.") end
-    if id == "jlab" disable_cmds() end
-    write_settings()
+    if id == "dist" info("saving 'dist' template: All build commands are disabled.") end
+    if id == "jlab" || id == "dist" disable_cmds() end
+    write_settings(id)
     rm_regex(r".+\.txt~$","settings")
     run(`cp -pr settings templates/settings-$id`)
     write_id(id)
@@ -111,7 +112,7 @@ function major_minor(ver)
     end
     "0","0"
 end
-function get_packages()
+function get_packages(id="")
     check_for_settings()
     vers = readdlm("settings/versions.txt",ASCIIString,use_mmap=false)
     urls = readdlm("settings/urls.txt",ASCIIString,use_mmap=false)
@@ -171,12 +172,19 @@ function get_packages()
         for cmd in tmp_cmds[name]; if path == "NA" continue end
             push!(cmds[name],replace(cmd,"[PATH]",path))
         end
-        if name == "ccdb" && length(cmds[name]) == 0 && ispath(jlab_top()) vers[i,2] = join(major_minor(vers[i,2]),".") end
-        jpath = joinpath(jlab_top(),name,string(name,jsep[name],vers[i,2]))
-        if length(cmds[name]) == 0 && ispath(jpath) path = jpath end
-        if name == "cernlib" && length(cmds[name]) == 0 && ispath(joinpath(jlab_top(),name)) path = joinpath(jlab_top(),name) end
-        if length(cmds[name]) > 0 && !contains(path,gettop()) path = joinpath(gettop(),basename(path)) end
-        if (name == "hdds" || name == "sim-recon") && length(cmds[name]) > 0 && vers[i,2] != "latest"
+	if id == "jlab"
+	    assert(length(cmds[name]) == 0)
+            jpath = joinpath(jlab_top(),name,string(name,jsep[name],vers[i,2]))
+            if ispath(jpath) path = jpath end
+            if name == "cernlib" && ispath(joinpath(jlab_top(),name)) path = joinpath(jlab_top(),name) end
+	end
+	if id == "dist"
+	    assert(length(cmds[name]) == 0)
+            dpath = joinpath(gettop(),".dist",basename(path))
+            if ispath(dpath) path = dpath end
+	end
+        if length(cmds[name]) > 0 path = joinpath(gettop(),basename(path)) end
+        if (name == "hdds" || name == "sim-recon") && vers[i,2] != "latest"
             vmm = major_minor(vers[i,2])
             url_alt = "https://github.com/JeffersonLab/$name/archive/$name-$(vers[i,2]).tar.gz"
             if name == "hdds"
@@ -185,22 +193,22 @@ function get_packages()
                 if parse(Int,vmm[1]) <= 1 && parse(Int,vmm[2]) <= 3 || parse(Int,vmm[1]) == 0 || contains(vers[i,2],"dc") url = url_alt end
             end
         end
-        if length(cmds[name]) > 0 && vers[i,2] == "latest" && contains(url,"https://github.com/JeffersonLab/$name/archive/")
+        if vers[i,2] == "latest" && contains(url,"https://github.com/JeffersonLab/$name/archive/")
             url = "https://github.com/JeffersonLab/$name" end
-        if name == "jana" && length(cmds[name]) > 0 && vers[i,2] == "latest" url = "https://phys12svn.jlab.org/repos/JANA" end
+	if name == "jana" && vers[i,2] == "latest" url = "https://phys12svn.jlab.org/repos/JANA" end
         push!(pkgs,Package(name,vers[i,2],url,path,cmds[name],mydeps[name]))
     end
     pkgs
 end
-function write_settings()
+function write_settings(id)
     mkdir("settings-tmp")
     run(`cp -p settings/top.txt settings-tmp`); run(`cp -p settings/commands.txt settings-tmp`)
     file = Dict("vers"=>open("settings-tmp/versions.txt","w"),"urls"=>open("settings-tmp/urls.txt","w"),"paths"=>open("settings-tmp/paths.txt","w"))
     w = 10
-    for pkg in get_packages()
+    for pkg in get_packages(id)
         println(file["vers"],rpad(name(pkg),w," "),version(pkg))
         if version(pkg) != "NA"
-            PATH = contains(path(pkg),gettop()) ? replace(basename(path(pkg)),version(pkg),"[VER]") : replace(replace(path(pkg),osrelease(),"[OS]"),version(pkg),"[VER]")
+            PATH = contains(path(pkg),gettop()) && !contains(path(pkg),".dist") ? replace(basename(path(pkg)),version(pkg),"[VER]") : replace(replace(path(pkg),osrelease(),"[OS]"),version(pkg),"[VER]")
             println(file["urls"],rpad(name(pkg),w," "),replace(url(pkg),version(pkg),"[VER]"))
             println(file["paths"],rpad(name(pkg),w," "),PATH)
         else
@@ -340,7 +348,6 @@ Problems? Try ",joinpath(jlab_top(),"version.xml")) end
         a[replace(replace(d[i,2],"name=",""),"\"","")] = replace(replace(replace(d[i,3],"version=",""),"/>",""),"\"","")
     end
     a["amptools"] = "NA"; a["geant4"] = "NA"
-    a["ccdb"] = is_external(get_package("ccdb")) ? a["ccdb"] : replace(a["ccdb"],a["ccdb"],string(a["ccdb"],".00"))
     vers = readdlm("settings/versions.txt",ASCIIString,use_mmap=false)
     output = open("settings/versions.txt","w")
     for i=1:size(vers,1)
