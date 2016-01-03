@@ -1,8 +1,8 @@
 # build sim-recon in Docker containers
 dtags = Dict("c6"=>"centos6","c7"=>"centos7","u14"=>"ubuntu14","f22"=>"fedora22")
 bstages = ["base","deps","sim-recon"]
-info("Available OS tags: ",keys(dtags))
-info("Build stages: ",bstages)
+info("Available OS tags: ",join(keys(dtags),", "))
+info("Build stages: ",join(bstages,", "))
 for arg in ARGS
     if !(arg in keys(dtags)) && !(arg in bstages)
         error("Improper argument ",arg,": Must be in OS tags or build stages")

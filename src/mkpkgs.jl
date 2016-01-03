@@ -4,13 +4,13 @@ home = pwd()
 printenv() # expose env variables and save them to env-setup file
 BMS_OSNAME = install_dirname()
 deps = get_deps(ARGS) # add deps
-if length(deps) > 0 info("dependency list: ",string(deps)) end
+if length(deps) > 0 info("dependency list: ",join(deps,", ")) end
 first_success = ""
 for pkg in get_packages(); if length(ARGS) > 0 if !(name(pkg) in ARGS) && !(name(pkg) in deps) continue end end
     @osx_only if name(pkg) == "cernlib" continue end
     path_to_success = joinpath(path(pkg),"success.hdpm")
     if name(pkg) in ["jana","hdds","sim-recon"] path_to_success = joinpath(path(pkg),BMS_OSNAME,"success.hdpm") end
-    if first_success == "" && ispath(path_to_success) first_success = name(pkg) end
+    if first_success == "" && ispath(path_to_success) && !is_external(pkg) first_success = name(pkg) end
     if is_external(pkg) && name(pkg) in deps warn(name(pkg)," must be set to valid external installation.") end
     if !is_external(pkg) && !ispath(path_to_success)
         if !ispath(path(pkg)) println();error(path(pkg)," does not exist;\n\tRun 'hdpm build'.") end
@@ -39,9 +39,11 @@ for pkg in get_packages(); if length(ARGS) > 0 if !(name(pkg) in ARGS) && !(name
         close(success_file)
     elseif !is_external(pkg) && ispath(path_to_success)
         d = readdlm(path_to_success,use_mmap=false); w = 20
-        if first_success == name(pkg) print("\n",Base.text_colors[:bold])
-            print(string(rpad("package",w," "),rpad("build time",w-6," "),rpad("disk use",w-3," "),"timestamp"),Base.text_colors[:bold]) end
-        if first_success == name(pkg) print("\n",Base.text_colors[:normal]) end
-        println(rpad(d[1],w," "),rpad(string(Int(d[3])," s"),w-6," "),rpad(d[4],w-3," "),d[2])
+        if first_success == name(pkg)
+            print(Base.text_colors[:bold]); hz("-")
+            print(string(rpad("package",w," "),rpad("build time",w-6," "),rpad("disk use",w-3," "),"timestamp\n"))
+            hz("-"); print(Base.text_colors[:normal])
+        end
+        println(rpad(d[1],w," "),rpad(string(d[3]," s"),w-6," "),rpad(d[4],w-3," "),d[2])
     end
 end

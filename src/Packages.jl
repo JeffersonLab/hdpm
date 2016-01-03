@@ -264,7 +264,7 @@ function show_settings(;col=:all,sep=2)
     if sep <= 1 sep = 1; info("Using min. column spacing of ",string(sep)," spaces.") end
     if sep >= 24 sep = 24; info("Using max. column spacing of ",string(sep)," spaces.") end
     hz("="); print(Base.text_colors[:bold])
-    println("Current build settings",Base.text_colors[:bold])
+    println("Current build settings")
     try
         println("ID:  ",readchomp("settings/id.txt"))
     catch
@@ -279,13 +279,12 @@ function show_settings(;col=:all,sep=2)
         end
     end
     w1 = sizes[:name] + sep; w2 = sizes[:version] + sep
-    print(Base.text_colors[:bold])
     for k in [:name,:version,:path]; if col != :all && !(k in [:name,col]) continue end
-        if k != :path print(rpad(k,sizes[k]+sep," "),Base.text_colors[:bold])
-        else print(k,Base.text_colors[:bold]) end
+        if k != :path print(rpad(k,sizes[k]+sep," "))
+        else print(k) end
     end
     for k in [:url,:cmds,:deps]; if col == :all || k != col continue end
-        print(k,Base.text_colors[:bold])
+        print(k)
     end
     println(); hz("-"); print(Base.text_colors[:normal])
     for pkg in get_packages()
@@ -299,7 +298,7 @@ function show_settings(;col=:all,sep=2)
         elseif col==:path
             println(rpad(name(pkg),w1," "),p)
         elseif col==:deps
-            println(rpad(name(pkg),w1," "),deps(pkg))
+            println(rpad(name(pkg),w1," "),replace(deps(pkg),",",", "))
         elseif col==:cmds
             for cmd in cmds(pkg)
                 println(rpad(name(pkg),w1," "),replace(cmd,string(gettop(),"/"),""))
