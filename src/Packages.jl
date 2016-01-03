@@ -103,7 +103,7 @@ function gettag()
 end
 install_dirname() = (gettag() == "") ? osrelease() : string("build-",gettag())
 get_pkg_names() = ["xerces-c","cernlib","root","amptools","geant4","evio","ccdb","jana","hdds","sim-recon"]
-hz(a::ASCIIString) = println(repeat(a,74))
+hz(a::ASCIIString) = println(repeat(a,80))
 jlab_top() = string("/group/halld/Software/builds/",osrelease())
 #
 function major_minor(ver)
@@ -263,8 +263,7 @@ function show_settings(;col=:all,sep=2)
     check_for_settings()
     if sep <= 1 sep = 1; info("Using min. column spacing of ",string(sep)," spaces.") end
     if sep >= 24 sep = 24; info("Using max. column spacing of ",string(sep)," spaces.") end
-    hz("=")
-    print("",Base.text_colors[:bold])
+    hz("="); print(Base.text_colors[:bold])
     println("Current build settings",Base.text_colors[:bold])
     try
         println("ID:  ",readchomp("settings/id.txt"))
@@ -273,26 +272,26 @@ function show_settings(;col=:all,sep=2)
     end
     println("TOP: ",gettop())
     println("TAG: ",gettag()); hz("-")
-    sizes = Dict(:name=>0,:version=>0,:url=>0)
+    sizes = Dict(:name=>0,:version=>0)
     for pkg in get_packages()
-        for s in [:name,:version,:url]
+        for s in [:name,:version]
             sizes[s] = max(sizes[s],length(pkg.(s)))
         end
     end
-    w1 = sizes[:name] + sep; w2 = sizes[:version] + sep; w3 = sizes[:url] + sep
-    print("",Base.text_colors[:bold])
-    for k in [:name,:version,:url,:path]; if col != :all && !(k in [:name,col]) continue end
+    w1 = sizes[:name] + sep; w2 = sizes[:version] + sep
+    print(Base.text_colors[:bold])
+    for k in [:name,:version,:path]; if col != :all && !(k in [:name,col]) continue end
         if k != :path print(rpad(k,sizes[k]+sep," "),Base.text_colors[:bold])
         else print(k,Base.text_colors[:bold]) end
     end
-    for k in [:cmds,:deps]; if col == :all || k != col continue end
+    for k in [:url,:cmds,:deps]; if col == :all || k != col continue end
         print(k,Base.text_colors[:bold])
     end
-    print("\n",Base.text_colors[:normal]); hz("-")
+    println(); hz("-"); print(Base.text_colors[:normal])
     for pkg in get_packages()
         p = replace(path(pkg),string(gettop(),"/"),"")
         if col==:all
-            println(rpad(name(pkg),w1," "),rpad(git_version(pkg),w2," "),rpad(url(pkg),w3," "),p)
+            println(rpad(name(pkg),w1," "),rpad(git_version(pkg),w2," "),p)
         elseif col==:version
             println(rpad(name(pkg),w1," "),git_version(pkg))
         elseif col==:url
