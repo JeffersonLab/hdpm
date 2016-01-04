@@ -4,8 +4,7 @@ deps = get_deps(ARGS) # add deps
 if length(deps) > 0 info("dependency list: ",join(deps,", ")) end
 for pkg in get_packages(); if length(ARGS) > 0 if !(name(pkg) in ARGS) && !(name(pkg) in deps) continue end end
     @osx_only if name(pkg) == "cernlib" info("Mac OS X detected: skipping cernlib"); continue end
-    if is_external(pkg) && name(pkg) in deps warn(name(pkg)," is dependency under user control, assumed to be set to valid external installation.") end
-    if !is_external(pkg) && ispath(path(pkg)) info(path(pkg)," exists") end
+    if ispath(path(pkg)) info(path(pkg)," exists") end
     if !is_external(pkg) && !ispath(path(pkg))
         println()
         mk_cd(top)

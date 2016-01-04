@@ -17,7 +17,7 @@ function getenv()
     BMS_OSNAME = install_dirname()
     if is_external(get_package("hdds")) || is_external(get_package("sim-recon")) BMS_OSNAME = osrelease() end
     JANA_HOME = is_external(get_package("jana")) ? string(home["jana"],"/$(osrelease())") : string(home["jana"],"/$BMS_OSNAME")
-    @osx_only begin home["cernlib"] = "NA";vers["cernlib"] = "NA";println();info("Mac OS X detected: disabling cernlib") end
+    @osx_only begin home["cernlib"] = "NA";vers["cernlib"] = "NA" end
     PYTHON_HOME = "NA"
     if ispath("/apps/python/PRO/bin/python2.7")
         PYTHON_HOME = "/apps/python/PRO"

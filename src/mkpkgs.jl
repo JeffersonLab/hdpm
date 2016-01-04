@@ -4,16 +4,14 @@ home = pwd()
 printenv() # expose env variables and save them to env-setup file
 BMS_OSNAME = install_dirname()
 deps = get_deps(ARGS) # add deps
-if length(deps) > 0 info("dependency list: ",join(deps,", ")) end
 first_success = ""
 for pkg in get_packages(); if length(ARGS) > 0 if !(name(pkg) in ARGS) && !(name(pkg) in deps) continue end end
     @osx_only if name(pkg) == "cernlib" continue end
     path_to_success = joinpath(path(pkg),"success.hdpm")
     if name(pkg) in ["jana","hdds","sim-recon"] path_to_success = joinpath(path(pkg),BMS_OSNAME,"success.hdpm") end
     if first_success == "" && ispath(path_to_success) && !is_external(pkg) first_success = name(pkg) end
-    if is_external(pkg) && name(pkg) in deps warn(name(pkg)," must be set to valid external installation.") end
     if !is_external(pkg) && !ispath(path_to_success)
-        if !ispath(path(pkg)) println();error(path(pkg)," does not exist;\n\tRun 'hdpm build'.") end
+        @assert(ispath(path(pkg)),"$(path(pkg)) does not exist")
         println();info("$(name(pkg)): checking dependencies")
         check_deps(pkg)
         info("building $(name(pkg))-$(git_version(pkg))")

@@ -322,8 +322,8 @@ function check_deps(pkg)
         "sim-recon" => `hd_root`)
     for dep in get_deps([name(pkg)])
         if !success(test_cmds[dep])
-            error("'$dep' does not appear to be installed. Please check path if using external installation.
-            To build all dependencies, run 'hdpm build' with all packages enabled in 'commands.txt'.\n")
+            error("$dep does not appear to be installed. Please check path
+            if using external installation, or test it manually.\n")
         end
     end
 end
