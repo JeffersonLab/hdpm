@@ -8,9 +8,9 @@ elseif contains(os,"Fedora22") os_tag = "f22"
 else warn("Unsupported operating system"); os_tag = os end
 PATH = joinpath(gettop(),".dist")
 info("Browse binary-distribution tarfiles at https://halldweb.jlab.org/dist")
-info("Path on JLab CUE: /group/halld/www/halldweb/html/dist")
-info("Filename format: sim-recon-[commit]-[id_deps]-[os_tag].tar.gz")
-info("Available OS tags: c6 (CentOS6), c7 (CentOS7), u14 (Ubuntu14), f22 (Fedora22)")
+info("Path on JLab CUE:   /group/halld/www/halldweb/html/dist")
+info("Filename format:    sim-recon-<commit>-<id_deps>-<os_tag>.tar.gz")
+info("Available OS tags:  c6 (CentOS6), c7 (CentOS7), u14 (Ubuntu14), f22 (Fedora22)")
 if length(ARGS) > 1 error("Too many arguments; Use 'hdpm help fetch-dist' to see available arguments.") end
 function get_latest_URL(str)
     latest_file = ""; latest_dt = DateTime()
@@ -30,7 +30,7 @@ function get_latest_URL(str)
     end
     if latest_file == "" error("File not found at https://halldweb.jlab.org/dist for $os_tag OS tag.") end
     URL = string("https://halldweb.jlab.org/dist/",latest_file)
-    info("Latest file: $URL"); info("Timestamp: $latest_dt")
+    info("Latest file:        $URL"); info("Timestamp:          $latest_dt")
     URL
 end
 if length(ARGS) == 1
@@ -91,7 +91,7 @@ if update_deps
     update_env_script(joinpath(PATH,"env-setup","hdenv.sh"))
     update_env_script(joinpath(PATH,"env-setup","hdenv.csh"))
 end
-info("Environment setup: source $(joinpath(PATH,"env-setup","hdenv.(c)sh"))")
+info("Environment setup:\n\tsource $(joinpath(PATH,"env-setup","hdenv.(c)sh"))")
 # check consistency between commit hash records
 os_dir = readchomp(`ls $PATH/sim-recon`)
 assert(commit==split(split(readall("$PATH/sim-recon/$os_dir/success.hdpm"))[1],"-")[3])

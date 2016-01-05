@@ -58,10 +58,18 @@ function rm_regex(regex,path=pwd())
     end
 end
 function mk_template(id)
-    if id == "master" error("not able to save template named 'master'. This id is reserved.\n") end
-    if ispath("templates/settings-$id") warn("renaming template with same id as old-$id");run(`mv templates/settings-$id templates/settings-old-$id`) end
+    if id == "master" error("'master' id is reserved. Use another name.\n") end
+    if ispath("templates/settings-$id") ts = readchomp(`date "+%Y-%m-%d_%H:%M:%S"`)
+        info("Renaming older template with same id to '$id-$ts'.")
+        run(`mv templates/settings-$id templates/settings-$id-$ts`) end
+    if id == "dist"
+        top = gettop()
+        if !ispath("$top/.dist") error("'$top/.dist' does not exist. Use 'hdpm fetch-dist' to fetch the latest distribution.\n")
+        elseif ispath("$top/.dist/settings") run(`cp -p settings/top.txt top.txt.tmp`)
+            run(`rm -rf settings`); run(`cp -pr $top/.dist/settings settings`); run(`mv top.txt.tmp settings/top.txt`) end
+    end
     if id == "jlab" || id == "dist" disable_cmds()
-        info("saving '$id' template: All build commands are disabled.") end
+        info("Saving '$id' template. All build commands are disabled.") end
     write_settings(id)
     rm_regex(r".+\.txt~$","settings")
     run(`cp -pr settings templates/settings-$id`)
@@ -77,14 +85,14 @@ end
 function check_for_settings()
     if !ispath("settings")
         error("Please select a 'build template'.
-        \t Use 'hdpm select <id>'
-        \t ids: ",get_template_ids(),"\n") end
+        \t Use 'hdpm select <id>'.
+        \t ids: ",join(get_template_ids(),", "),"\n") end
 end
 function gettop()
     check_for_settings()
     top = string(pwd(),"/pkgs")
     custom_top = readdlm("settings/top.txt",ASCIIString,use_mmap=false)
-    if size(custom_top,1) != 1 || size(custom_top,2) != 2 error("problem reading in custom top directory name; top.txt has wrong number of rows or columns.") end
+    if size(custom_top,1) != 1 || size(custom_top,2) != 2 error("'top.txt' has wrong number of rows or columns.") end
     if custom_top[1,1] != "default"
         top = custom_top[1,1]
         if !isabspath(top) top = string(pwd(),"/pkgs/",top) end
@@ -97,7 +105,7 @@ osrelease() = readchomp(`perl src/osrelease.pl`)
 function gettag()
     tag = ""
     custom_tag = readdlm("settings/top.txt",ASCIIString,use_mmap=false)
-    if size(custom_tag,1) != 1 || size(custom_tag,2) != 2 error("problem reading in custom tag name; top.txt has wrong number of rows or columns.") end
+    if size(custom_tag,1) != 1 || size(custom_tag,2) != 2 error("'top.txt' has wrong number of rows or columns.") end
     if custom_tag[1,2] != "default" tag = custom_tag[1,2] end
     tag
 end
@@ -118,15 +126,15 @@ function get_packages(id="")
     urls = readdlm("settings/urls.txt",ASCIIString,use_mmap=false)
     paths = readdlm("settings/paths.txt",ASCIIString,use_mmap=false)
     pkg_names = get_pkg_names()
-    @assert(vers[:,1] == pkg_names,string("'versions.txt' has wrong number of packages, names, or order.\nNeed to match ",pkg_names,"\n"))
-    @assert(urls[:,1] == pkg_names,string("'urls.txt' has wrong number of packages, names, or order.\nNeed to match ",pkg_names,"\n"))
-    @assert(paths[:,1] == pkg_names,string("'paths.txt' has wrong number of packages, names, or order.\nNeed to match ",pkg_names,"\n"))
+    @assert(vers[:,1] == pkg_names,string("'versions.txt' has wrong number of packages, names, or order.\nNeeds to match: ",join(pkg_names,", "),".\n"))
+    @assert(urls[:,1] == pkg_names,string("'urls.txt' has wrong number of packages, names, or order.\nNeeds to match: ",join(pkg_names,", "),".\n"))
+    @assert(paths[:,1] == pkg_names,string("'paths.txt' has wrong number of packages, names, or order.\nNeeds to match: ",join(pkg_names,", "),".\n"))
     #
     commands = [[] []]
     try
         commands = readdlm("settings/commands.txt",ASCIIString,use_mmap=false)
     catch
-        info("No packages to build. Using external installations.")
+        info("All builds are disabled.")
     end
     tmp_cmds = Dict{ASCIIString,Array{ASCIIString,1}}()
     cmds = Dict{ASCIIString,Array{ASCIIString,1}}()
@@ -167,8 +175,8 @@ function get_packages(id="")
         if vers[i,2] == "NA" url = "NA"; path = "NA" end
         core = ["xerces-c","root","evio","ccdb","jana","hdds","sim-recon"]
         if path == "NA" && name in core
-            error("core packages cannot be disabled. Please replace 'NA' with a valid path in 'paths.txt'.
-            core: ",core,"\n") end
+            error("Core packages cannot be disabled. Replace 'NA' with a valid path in 'paths.txt'.
+            core: ",join(core,", "),"\n") end
         for cmd in tmp_cmds[name]; if path == "NA" continue end
             push!(cmds[name],replace(cmd,"[PATH]",path))
         end
@@ -208,7 +216,7 @@ function write_settings(id)
     for pkg in get_packages(id)
         println(file["vers"],rpad(name(pkg),w," "),version(pkg))
         if version(pkg) != "NA"
-            PATH = contains(path(pkg),gettop()) && !contains(path(pkg),".dist") ? replace(basename(path(pkg)),version(pkg),"[VER]") : replace(replace(path(pkg),osrelease(),"[OS]"),version(pkg),"[VER]")
+            PATH = contains(path(pkg),gettop()) && !contains(path(pkg),"/.dist/") ? replace(basename(path(pkg)),version(pkg),"[VER]") : replace(replace(path(pkg),osrelease(),"[OS]"),version(pkg),"[VER]")
             println(file["urls"],rpad(name(pkg),w," "),replace(url(pkg),version(pkg),"[VER]"))
             println(file["paths"],rpad(name(pkg),w," "),PATH)
         else
@@ -248,7 +256,7 @@ function tagged_deps(a)
     string("\"",join(mydeps,","),"\"")
 end
 function get_unpack_file(URL,PATH="")
-    file = basename(URL); info("downloading $file")
+    file = basename(URL); info("Downloading $file")
     if contains(URL,"https://") || contains(URL,"http://") run(`curl -OL $URL`)
     else run(`cp -p $URL .`) end
     if PATH != ""
@@ -332,7 +340,7 @@ function versions_from_xml(path="https://halldweb.jlab.org/dist/version.xml")
     file = path; wasurl = false
     if contains(path,"https://") || contains(path,"http://")
         wasurl = true
-        println(); info("downloading $file")
+        println(); info("Downloading $file")
         file = basename(path)
         run(`curl -OL $path`)
     end

@@ -17,7 +17,7 @@ if length(ARGS) == 0 || (length(ARGS) == 1 && ARGS[1] == "help")
     \t clean-build Clean build of selected packages
     \t v-xml       Replace versions with versions from a version XML file
     \t fetch-dist  Fetch binary distribution of sim-recon and its deps
---------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 Use 'hdpm help <command>' to see available arguments."); hz("=")
 end
 if length(ARGS) == 1 && ARGS[1] != "help"
@@ -41,10 +41,10 @@ if length(ARGS) == 1 && ARGS[1] != "help"
         run(`julia src/versions_from_xml.jl`)
     elseif ARGS[1] == "fetch-dist"
         run(`julia src/fetch_dist.jl`)
-    elseif ARGS[1] == "select" || ARGS[1] == "save"
-        error("Requires one argument. Use 'hdpm help $(ARGS[1])' to see available arguments.\n")
+    elseif ARGS[1] == "save"
+        error("'hdpm save' requires one argument. Use 'hdpm help $(ARGS[1])' to see available arguments.\n")
     else
-        error("Unknown command. Use 'hdpm help' to see available commands.\n")
+        error("'$(ARGS[1])' is not a hdpm command. Use 'hdpm help' to see available commands.\n")
     end
 end
 if length(ARGS) == 2 && ARGS[1] == "help"
@@ -104,20 +104,22 @@ if length(ARGS) == 2 && ARGS[1] == "help"
         println("usage: hdpm fetch-dist\n\t(fetch latest binary distribution)"); hz("-")
         println("usage: hdpm fetch-dist [<commit>]"); hz("-")
         println("usage: hdpm fetch-dist [<tarfile-url> | <tarfile-path>]"); hz("=")
+    elseif ARGS[2] == "help" hz("=")
+        println("Show available commands"); hz("-"); println("usage: hdpm help"); hz("=")
     else
-        error("Unknown command. Use 'hdpm help' to see available commands.\n")
+        error("'$(ARGS[2])' is not a hdpm command. Use 'hdpm help' to see available commands.\n")
     end
 end
 if length(ARGS) == 2 && ARGS[1] != "help"
     if ARGS[1] == "select"
         if ARGS[2] in template_ids
             run(`julia src/select_template.jl $(ARGS[2])`)
-        else error("Unknown argument. Use 'hdpm help $(ARGS[1])' to see available arguments.\n") end
+        else error("'$(ARGS[2])' is not a valid template id. Use 'hdpm help $(ARGS[1])' to see available template ids.\n") end
     elseif ARGS[1] == "save"
         run(`julia src/mk_template.jl $(ARGS[2])`)
     elseif ARGS[1] == "build"
         if ARGS[2] in template_ids && ARGS[2] in pkg_names
-            error("template id cannot be the same as a package name. Please rename the template id.\n")
+            error("'$(ARGS[2])' template id has the same name as a package. Rename this template id.\n")
         end
         if ARGS[2] in template_ids
             run(`julia src/select_template.jl $(ARGS[2])`)
@@ -132,13 +134,13 @@ if length(ARGS) == 2 && ARGS[1] != "help"
             run(`julia src/copkgs.jl`)
             run(`julia src/mkpkgs.jl`)
         else
-            error("Unknown argument. Use 'hdpm help $(ARGS[1])' to see available arguments.\n")
+            error("'$(ARGS[2])' is not a valid argument. Use 'hdpm help $(ARGS[1])' to see available arguments.\n")
         end
     elseif ARGS[1] == "show"
         if ARGS[2] in pkg_cols || isinteger(parse(Int,ARGS[2]))
             run(`julia src/show_settings.jl $(ARGS[2])`)
         else
-            error("Unknown argument. Use 'hdpm help $(ARGS[1])' to see available arguments.\n")
+            error("'$(ARGS[2])' is not a valid argument. Use 'hdpm help $(ARGS[1])' to see available arguments.\n")
         end
     elseif ARGS[1] == "fetch" && ARGS[2] in pkg_names
         run(`julia src/copkgs.jl $(ARGS[2])`)
@@ -154,14 +156,14 @@ if length(ARGS) == 2 && ARGS[1] != "help"
     elseif ARGS[1] == "fetch-dist"
         run(`julia src/fetch_dist.jl $(ARGS[2])`)
     else
-        error("Unknown command. Use 'hdpm help' to see available commands.\n")
+        error("'$(ARGS[1])' is not a hdpm command. Use 'hdpm help' to see available commands.\n")
     end
 end
 if length(ARGS) == 3 && ARGS[1] == "show"
     if ARGS[2] in pkg_cols || ARGS[3] in pkg_cols
         run(`julia src/show_settings.jl $(ARGS[2]) $(ARGS[3])`)
     else
-        error("Unknown argument. Use 'hdpm help $(ARGS[1])' to see available arguments.\n")
+        error("'$(ARGS[2])' or '$(ARGS[3])' is not a valid argument. Use 'hdpm help $(ARGS[1])' to see available arguments.\n")
     end
 end
 if length(ARGS) > 3 && ARGS[1] == "show"
@@ -191,7 +193,7 @@ if length(ARGS) >= 3 && (length(ARGS) <= length(pkg_names) + 1) && ARGS[1] != "s
         run(`julia src/clean.jl $nargs`)
         run(`julia src/mkpkgs.jl $nargs`)
     else
-        error("Unknown command. Use 'hdpm help' to see available commands.\n")
+        error("'$(ARGS[1])' is not a hdpm command. Use 'hdpm help' to see available commands.\n")
     end
 elseif length(ARGS) > length(pkg_names) + 1
     error("Too many arguments. Use 'hdpm help $(ARGS[1])' to see available arguments.\n")

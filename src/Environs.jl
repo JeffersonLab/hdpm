@@ -17,6 +17,7 @@ function getenv()
     BMS_OSNAME = install_dirname()
     if is_external(get_package("hdds")) || is_external(get_package("sim-recon")) BMS_OSNAME = osrelease() end
     JANA_HOME = is_external(get_package("jana")) ? string(home["jana"],"/$(osrelease())") : string(home["jana"],"/$BMS_OSNAME")
+    if contains(osrelease(),"RHEL") && contains(JANA_HOME,"/.dist/") JANA_HOME = replace(JANA_HOME,"RHEL","CentOS") end
     @osx_only begin home["cernlib"] = "NA";vers["cernlib"] = "NA" end
     PYTHON_HOME = "NA"
     if ispath("/apps/python/PRO/bin/python2.7")
