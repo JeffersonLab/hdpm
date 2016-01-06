@@ -5,4 +5,11 @@
 `xerces-c`, `cernlib`, `root`, `amptools`, `geant4`, `evio`, `ccdb`, `jana`, `hdds`, `sim-recon`
 
 ## Documentation
-For documentation on how to setup and use `hdpm` visit the wiki at https://github.com/JeffersonLab/hdpm/wiki.
+For documentation on how to setup and use `hdpm`, visit the wiki at https://github.com/JeffersonLab/hdpm/wiki.
+
+## Tested platforms
+- CentOS/RHEL 6
+- CentOS/RHEL 7
+- Mac OS X 10.10+
+- Ubuntu 14
+- Fedora 22
