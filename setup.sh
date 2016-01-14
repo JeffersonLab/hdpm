@@ -17,7 +17,7 @@ then
         echo "You already have julia in your PATH."; echo "Good to go!"; return
     fi
 fi
-VER=0.4.2
+VER=0.4.3
 JLPATH=`pwd`/pkgs/julia-$VER/bin
 if test -f $JLPATH/julia
 then

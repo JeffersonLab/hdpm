@@ -5,7 +5,7 @@ echo "Mac OS X (10.7+): Hall-D Package Manager setup"
 echo "Run the 'hdpm' command in the current working directory."
 alias hdpm='julia src/hdpm.jl'
 export JULIA_LOAD_PATH=`pwd`/src
-VER=0.4.2
+VER=0.4.3
 JLPATH=`pwd`/pkgs/julia-$VER/bin
 if test -f $JLPATH/julia
 then
