@@ -7,7 +7,6 @@ RUN mkdir -p /home/hdpm && groupadd -r hdpm -g 573 && useradd -u 1000 \
     && chown -R hdpm:hdpm /home/hdpm
 USER hdpm
 WORKDIR /home/hdpm
-#ADD settings settings
 ENV CC=/usr/bin/clang CXX=/usr/bin/clang++
-RUN /bin/bash -c "source setup.sh && julia src/hdpm.jl build cernlib evio jana"
+RUN /bin/bash -c "source setup.sh && julia src/hdpm.jl build cernlib amptools evio jana"
 CMD /bin/bash
