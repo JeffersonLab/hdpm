@@ -1,16 +1,18 @@
 using Packages
 # download and unpack binaries
+info("Browse binary-distribution tarfiles at https://halldweb.jlab.org/dist")
+info("Path on JLab CUE:   /group/halld/www/halldweb/html/dist")
+info("Filename format:    sim-recon-<commit>-<id_deps>-<os_tag>.tar.gz")
+info("Available OS tags:  c6 (CentOS6), c7 (CentOS7), u14 (Ubuntu14),
+                          f22 (Fedora22), osx (OSX10.11)")
 os = osrelease()
 if contains(os,"CentOS6") || contains(os,"RHEL6") os_tag = "c6"
 elseif contains(os,"CentOS7") || contains(os,"RHEL7") os_tag = "c7"
 elseif contains(os,"Ubuntu14") os_tag = "u14"
 elseif contains(os,"Fedora22") os_tag = "f22"
-else warn("Unsupported operating system"); os_tag = os end
+elseif contains(os,"Darwin_macosx10.11") os_tag = "osx"
+else error("Unsupported operating system: $os"); os_tag = os end
 PATH = joinpath(gettop(),".dist")
-info("Browse binary-distribution tarfiles at https://halldweb.jlab.org/dist")
-info("Path on JLab CUE:   /group/halld/www/halldweb/html/dist")
-info("Filename format:    sim-recon-<commit>-<id_deps>-<os_tag>.tar.gz")
-info("Available OS tags:  c6 (CentOS6), c7 (CentOS7), u14 (Ubuntu14), f22 (Fedora22)")
 if length(ARGS) > 1 error("Too many arguments; Use 'hdpm help fetch-dist' to see available arguments.") end
 function get_latest_URL(str)
     latest_file = ""; latest_dt = DateTime()
@@ -57,7 +59,8 @@ url_deps = replace(URL,commit,"deps")
 update_deps = false; update = false
 if !ispath(PATH) update_deps = true
 else
-    deps = ["xerces-c","cernlib","root","evio","ccdb","jana"]
+    @linux_only deps = ["xerces-c","cernlib","root","evio","ccdb","jana"]
+    @osx_only deps = ["xerces-c","root","evio","ccdb","jana"]
     update_deps = !reduce(&,map(x -> contains(join(readdir(PATH)),x),deps))
 end
 if !ispath(joinpath(PATH,"sim-recon")) || !ispath(joinpath(PATH,"hdds")) update = true end
@@ -75,8 +78,10 @@ function update_env_script(fname)
     f = open(fname,"r")
     data = readall(f); close(f)
     p = dirname(dirname(fname)); set = contains(fname,".sh") ? "export" : "setenv"
-    tobe_replaced = ["/home/hdpm/pkgs",r"\$GLUEX_TOP/julia-.{5,7}/bin:","/opt/rh/python27"]
-    replacement = [p,"","\$GLUEX_TOP/opt/rh/python27"]
+    top_i = contains(fname,".sh") ? r"GLUEX_TOP=.+" : r"GLUEX_TOP .+"
+    top_f = contains(fname,".sh") ? "GLUEX_TOP=$p" : "GLUEX_TOP $p"
+    tobe_replaced = [top_i,r"\$GLUEX_TOP/julia-.{5,7}/bin:","/opt/rh/python27"]
+    replacement = [top_f,"","\$GLUEX_TOP/opt/rh/python27"]
     for i=1:length(tobe_replaced)
         data = replace(data,tobe_replaced[i],replacement[i])
     end
