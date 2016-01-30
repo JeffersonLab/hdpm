@@ -1,15 +1,15 @@
 # pack for distribution
 tag=osx
+top=../pkgs/osx
 target=`pwd`/.pkgs
 name=sim-recon
 id_deps=`cat .id-deps-$tag`
 mkdir -p .pkgs; cd .pkgs
 cwd=`pwd`
-cp -pr ../../pkgs $tag
+cp -pr ../$top $tag
 mkdir $name-$tag; cd $name-$tag
 cp -pr ../../../settings .; mv ../$tag/* .; rm -rf ../$tag
 cp -p ../../.id-deps-$tag . #; cp -p ../../.log-sim-recon-$tag sim-recon/
-rm -rf julia-*
 commit=$(echo $(grep -i sim-recon sim-recon/*/success.hdpm) | sed -E 's/sim-recon-//g')
 mkdir $cwd/$name-$tag-tmp
 mv hdds $cwd/$name-$tag-tmp; mv sim-recon $cwd/$name-$tag-tmp
