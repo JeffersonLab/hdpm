@@ -26,7 +26,7 @@ end
 #
 function select_template(id="master")
     run(`rm -rf settings`)
-    if id == "master" run(`cp -pr templates/$id settings`)
+    if id in ["master","home-dev","jlab-dev"] run(`cp -pr templates/$id settings`)
     else run(`cp -pr templates/settings-$id settings`) end
     write_id(id)
 end
@@ -35,7 +35,7 @@ function get_template_ids()
     if !ispath("settings") run(`cp -pr templates/master settings`)
         write_id("master") end
     list = Array(ASCIIString,0)
-    push!(list,"master")
+    push!(list,"master","home-dev","jlab-dev")
     for dir in readdir("templates")
         if contains(dir,"settings") push!(list,split(dir,"settings-")[2]) end
     end
@@ -58,7 +58,7 @@ function rm_regex(regex,path=pwd())
     end
 end
 function mk_template(id)
-    if id == "master" error("'master' id is reserved. Use another name.\n") end
+    if id in ["master","home-dev","jlab-dev"] error("'$id' id is reserved. Use another name.\n") end
     if ispath("templates/settings-$id") ts = readchomp(`date "+%Y-%m-%d_%H:%M:%S"`)
         info("Renaming older template with same id to '$id-$ts'.")
         run(`mv templates/settings-$id templates/settings-$id-$ts`) end
@@ -217,6 +217,7 @@ function write_settings(id)
         println(file["vers"],rpad(name(pkg),w," "),version(pkg))
         if version(pkg) != "NA"
             PATH = contains(path(pkg),gettop()) && !contains(path(pkg),"/.dist/") ? replace(basename(path(pkg)),version(pkg),"[VER]") : replace(replace(path(pkg),osrelease(),"[OS]"),version(pkg),"[VER]")
+            if contains(PATH,"/.dist/") PATH = joinpath(".dist",basename(PATH)) end
             println(file["urls"],rpad(name(pkg),w," "),replace(url(pkg),version(pkg),"[VER]"))
             println(file["paths"],rpad(name(pkg),w," "),PATH)
         else

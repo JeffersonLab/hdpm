@@ -1,0 +1,10 @@
+xerces-c  .dist/xerces-c-[VER]
+cernlib   .dist/cernlib
+root      .dist/root-[VER]
+amptools  .dist/amptools-[VER]
+geant4    NA
+evio      .dist/evio-[VER]
+ccdb      .dist/ccdb-[VER]
+jana      .dist/jana-[VER]
+hdds      hdds
+sim-recon sim-recon

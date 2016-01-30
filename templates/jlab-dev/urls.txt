@@ -1,0 +1,10 @@
+xerces-c  http://archive.apache.org/dist/xerces/c/3/sources/xerces-c-[VER].tar.gz
+cernlib   http://www-zeuthen.desy.de/linear_collider/cernlib/new/cernlib.[VER].corr.2014.04.17.tgz
+root      https://root.cern.ch/download/root_v[VER].source.tar.gz
+amptools  NA
+geant4    NA
+evio      https://coda.jlab.org/drupal/system/files/coda/evio/evio-4.3/evio-[VER].tgz
+ccdb      https://github.com/JeffersonLab/ccdb/archive/v[VER].tar.gz
+jana      https://www.jlab.org/JANA/releases/jana_[VER].tgz
+hdds      https://github.com/JeffersonLab/hdds
+sim-recon https://github.com/JeffersonLab/sim-recon
