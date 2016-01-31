@@ -49,7 +49,7 @@ function getenv()
              "JANA_RESOURCE_DIR" => "$JANA_RESOURCE_DIR")
     #
     function add_to_path(path,new_path)
-        if !contains(path,new_path) && !contains(new_path,"/NA/")
+        if !contains(path,new_path) && !contains(new_path,"/NA/") && !startswith(new_path,"/usr/local/")
             return (path == "") ? new_path : string(new_path,":",path)
         end
         path
