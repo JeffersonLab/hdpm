@@ -20,15 +20,16 @@ if length(ARGS) == 0 || (length(ARGS) == 1 && ARGS[1] == "help")
 --------------------------------------------------------------------------------
 Use 'hdpm help <command>' to see available arguments."); hz("=")
 end
-if ARGS[1] == "build" && (readchomp("settings/id.txt") == "home-dev" || "home-dev" in ARGS); mkpath(gettop())
-    info("home-dev mode: searching for precompiled dependencies")
-    if !ispath(joinpath(gettop(),".dist")) && ispath(joinpath(gettop(),"../.dist"))
-        if input("Do you want to satisfy dependencies by creating a link to '../.dist' (yes/no)? 
-") == "yes"
-            run(`ln -s $(joinpath(gettop(),"../.dist")) $(joinpath(gettop(),".dist"))`)
+const id = readchomp("settings/id.txt")
+if length(ARGS) > 0 && ARGS[1] == "build" && (id == "home-dev" || "home-dev" in ARGS); mkpath(gettop())
+    info("home-dev mode: checking for precompiled dependencies")
+    if id == "home-dev" && !ispath(joinpath(gettop(),".dist")) && ispath(joinpath(pwd(),"pkgs",".dist"))
+        if input("Do you want to satisfy dependencies by creating a link to 'pkgs/.dist' (yes/no)? ") == "yes"
+            run(`ln -s $(joinpath(pwd(),"pkgs",".dist")) $(joinpath(gettop(),".dist"))`)
         end
-    else
+    elseif !ispath(joinpath(pwd(),"pkgs",".dist"))
         info("fetching precompiled dependencies")
+        run(`julia src/select_template.jl home-dev`)
         run(`julia src/fetch_dist.jl`)
     end
 end
