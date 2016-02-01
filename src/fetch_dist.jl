@@ -60,7 +60,7 @@ update_deps = false; update = false
 if !ispath(PATH) update_deps = true
 else
     @linux_only deps = ["xerces-c","cernlib","root","evio","ccdb","jana"]
-    @osx_only deps = ["xerces-c","root","evio","ccdb","jana"]
+    @osx_only deps = ["root","evio","ccdb","jana"]
     update_deps = !reduce(&,map(x -> contains(join(readdir(PATH)),x),deps))
 end
 if !ispath(joinpath(PATH,"sim-recon")) || !ispath(joinpath(PATH,"hdds")) update = true end
@@ -80,8 +80,8 @@ function update_env_script(fname)
     p = dirname(dirname(fname)); set = contains(fname,".sh") ? "export" : "setenv"
     top_i = contains(fname,".sh") ? r"GLUEX_TOP=.+" : r"GLUEX_TOP .+"
     top_f = contains(fname,".sh") ? "GLUEX_TOP=$p" : "GLUEX_TOP $p"
-    tobe_replaced = [top_i,r"\$GLUEX_TOP/julia-.{5,7}/bin:","/opt/rh/python27"]
-    replacement = [top_f,"","\$GLUEX_TOP/opt/rh/python27"]
+    tobe_replaced = [top_i,r"=.+/julia-.{5,7}/bin:","/opt/rh/python27"]
+    replacement = [top_f,"=","\$GLUEX_TOP/opt/rh/python27"]
     for i=1:length(tobe_replaced)
         data = replace(data,tobe_replaced[i],replacement[i])
     end

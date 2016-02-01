@@ -191,6 +191,13 @@ function get_packages(id="")
             dpath = joinpath(gettop(),".dist",basename(path))
             if ispath(dpath) path = dpath end
         end
+        @osx_only begin
+            if name == "xerces-c" && contains(path,"/.dist/xerces-c")
+                assert(length(cmds[name]) == 0)
+                dpath = joinpath("/usr/local/Cellar/xerces-c",vers[i,2])
+                if ispath(dpath) path = dpath end
+            end
+        end
         if length(cmds[name]) > 0 path = joinpath(gettop(),basename(path)) end
         if (name == "hdds" || name == "sim-recon") && vers[i,2] != "latest"
             vmm = major_minor(vers[i,2])
