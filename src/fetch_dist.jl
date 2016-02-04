@@ -96,7 +96,7 @@ if update_deps
     update_env_script(joinpath(PATH,"env-setup","hdenv.sh"))
     update_env_script(joinpath(PATH,"env-setup","hdenv.csh"))
 end
-info("Environment setup:\n\tsource $(joinpath(PATH,"env-setup","hdenv.(c)sh"))")
+info("Environment setup:\n\tsource $(joinpath(PATH,"env-setup","hdenv.[c]sh"))")
 # check consistency between commit hash records
 os_dir = readchomp(`ls $PATH/sim-recon`)
 assert(commit==split(split(readall("$PATH/sim-recon/$os_dir/success.hdpm"))[1],"-")[3])

@@ -341,6 +341,23 @@ function check_deps(pkg)
             error("$dep does not appear to be installed. Please check path
             if using external installation, or test it manually.\n")
         end
+    end # check version compatibility of deps
+    if name(pkg) == "sim-recon"
+        shlibs = ["xerces-c","root","ccdb"]
+        users = ["amptools","jana","hdds"]
+        pkgs = get_packages()
+        for pkg_shlib in pkgs; if !(name(pkg_shlib) in shlibs) continue end
+            name_ver = string(name(pkg_shlib),"-",version(pkg_shlib))
+            for pkg_ld in pkgs; if !(name(pkg_ld) in users) continue end
+                user_name_ver = string(name(pkg_ld),"-",version(pkg_ld))
+                if !contains(deps(pkg_ld),name(pkg_shlib)) continue end
+                p0 = path(pkg_ld)
+                if contains(p0,jlab_top()) || !ispath(p0) continue end
+                p = (name(pkg_ld)=="amptools") ?  p0 : joinpath(p0,osrelease())
+                record = split(readall("$p/success.hdpm"))[end]
+                if !contains(record,name_ver) error("$name_ver is incompatible with $user_name_ver.\n$user_name_ver depends on $record.\nRebuild $user_name_ver against $name_ver, or use required $(name(pkg_shlib)) version.\n") end
+            end
+        end
     end
 end
 function versions_from_xml(path="https://halldweb.jlab.org/dist/version.xml")
