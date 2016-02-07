@@ -9,7 +9,7 @@ for tag in keys(dtags); if length(ARGS) > 1 if !(tag in ARGS) continue end end
     repo = (tag == "c6" || tag == "c7") ? string(joinpath("quay.io",duser,name),":",dtags[tag]) : string(joinpath(duser,name),":",dtags[tag])
     f = open(joinpath(pwd(),".id-deps-$tag"),"w")
     try
-        write(f,readchomp(`docker inspect --format='{{.Id}}' $repo`)[1:5])
+        write(f,split(readchomp(`docker inspect --format='{{.Id}}' $repo`),":")[2][1:5])
     catch
         info(repo," does not exist")
         rm(joinpath(pwd(),".id-deps-$tag"))
