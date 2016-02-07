@@ -7,7 +7,7 @@ cwd = pwd(); cd(".sim-recon")
 commits = split(readchomp(`git log --grep="Merge pull request #" -$Nkeep --format="%h"`))
 println("$Nkeep latest commits: ",commits)
 flist = filter(r"^sim-recon-.{7}-.{5}-.{2,3}.tar.gz$",readdir(target))
-if length(ARGS) == 2 filter!(x -> contains(x,ARGS[2]),flist) end
+if length(ARGS) == 2 filter!(x -> contains(x,string("-",ARGS[2],".tar.gz")),flist) end
 for file in flist
     c = split(file,"-")[3]
     if !(c in commits) rm(joinpath(target,file)) end

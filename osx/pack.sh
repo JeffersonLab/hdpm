@@ -18,12 +18,10 @@ cd $cwd
 mv $name-$tag $name-deps-$tag; mv $name-$tag-tmp $name-$tag
 if ! test -f $target/$name-deps-$id_deps-$tag.tar.gz; then
     tar czf $name-deps-$id_deps-$tag.tar.gz $name-deps-$tag
-    #chgrp halld $name-deps-$id_deps-$tag.tar.gz
     mv $name-deps-$id_deps-$tag.tar.gz $target
 fi
 if ! test -f $target/$name-$commit-$id_deps-$tag.tar.gz; then
     tar czf $name-$commit-$id_deps-$tag.tar.gz $name-$tag
-    #chgrp halld $name-$commit-$id_deps-$tag.tar.gz
     mv $name-$commit-$id_deps-$tag.tar.gz $target
 fi
 rm -rf $name-$tag; rm -rf $name-deps-$tag
