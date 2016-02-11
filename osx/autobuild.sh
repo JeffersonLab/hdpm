@@ -29,11 +29,10 @@ if test $active == "0"; then
         echo "1" > $cwd/.active
         echo "Triggering build of sim-recon-$c (prev: $c_old)."
         cd $cwd; cd ../
-        bash -c "source setup-osx.sh && julia src/hdpm.jl select osx \
+        bash -c "source setup.sh && julia src/hdpm.jl select osx \
             && julia src/hdpm.jl build sim-recon && julia src/distclean.jl yes \
-            && cd $cwd && julia write_deps_id.jl && bash pack.sh \
+            && cd $cwd && julia write_deps_id.jl && bash pack.sh && bash publish.sh \
             && julia cull.jl 10 osx && rm -rf $top/sim-recon $top/hdds"
-        bash publish.sh
         echo "0" > $cwd/.active
     else
         echo "sim-recon is up-to-date."
