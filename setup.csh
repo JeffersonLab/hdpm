@@ -1,19 +1,22 @@
-# tcsh: Get julia binary for 64-bit Linux and put it in PATH
+# tcsh: Get julia binary and put it in PATH
 #       Make alias for running hdpm.jl
 # usage: source setup.csh
-echo "Linux (64-bit): Hall-D Package Manager setup"
+echo "Hall-D Package Manager setup"
 echo "Run the 'hdpm' command in the current working directory."
 alias hdpm 'julia src/hdpm.jl'
 setenv JULIA_LOAD_PATH `pwd`/src
-set JLPATH=/group/halld/Software/ExternalPackages/julia-latest/bin
-if ( -e ${JLPATH}/julia ) then
-    echo "You appear to be on the JLab CUE; Will try to use group installation of julia."
-    echo $PATH | grep -q $JLPATH
-    if ( $? != 0 ) then
-        echo "Putting julia in your PATH."
-        setenv PATH ${JLPATH}:$PATH; goto end
-    else
-        echo "You already have julia in your PATH."; goto end
+set uname=`uname`
+if ($uname == "Linux") then
+    set JLPATH=/group/halld/Software/ExternalPackages/julia-latest/bin
+    if ( -e ${JLPATH}/julia ) then
+        echo "You appear to be on the JLab CUE; Will try to use group installation of julia."
+        echo $PATH | grep -q $JLPATH
+        if ( $? != 0 ) then
+            echo "Putting julia in your PATH."
+            setenv PATH ${JLPATH}:$PATH; goto end
+        else
+            echo "You already have julia in your PATH."; goto end
+        endif
     endif
 endif
 set VER=0.4.3
@@ -29,10 +32,21 @@ if ( -e ${JLPATH}/julia ) then
     endif
 endif
 echo "Downloading julia-$VER."
-curl -OL https://julialang.s3.amazonaws.com/bin/linux/x64/0.4/julia-$VER-linux-x86_64.tar.gz
-mkdir -p pkgs/julia-$VER
-tar -xzf julia-$VER-linux-x86_64.tar.gz -C pkgs/julia-$VER --strip-components=1
-rm -f julia-$VER-linux-x86_64.tar.gz
+if ($uname == "Linux") then
+    curl -OL https://julialang.s3.amazonaws.com/bin/linux/x64/0.4/julia-$VER-linux-x86_64.tar.gz
+    mkdir -p pkgs/julia-$VER
+    tar -xzf julia-$VER-linux-x86_64.tar.gz -C pkgs/julia-$VER --strip-components=1
+    rm -f julia-$VER-linux-x86_64.tar.gz
+endif
+if ($uname == "Darwin") then
+    curl -OL https://s3.amazonaws.com/julialang/bin/osx/x64/0.4/julia-$VER-osx10.7+.dmg
+    hdiutil attach -quiet julia-$VER-osx10.7+.dmg
+    mkdir -p pkgs
+    cp -pr /Volumes/Julia/Julia-$VER.app/Contents/Resources/julia pkgs/julia-$VER
+    hdiutil detach -quiet /Volumes/Julia
+    rm -f pkgs/julia-$VER/etc/julia/juliarc.jl
+    rm -f julia-$VER-osx10.7+.dmg
+endif
 echo "Putting julia in your PATH."
 setenv PATH ${JLPATH}:$PATH
 end:
