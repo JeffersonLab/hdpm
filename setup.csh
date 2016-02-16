@@ -47,7 +47,13 @@ if ($uname == "Darwin") then
     rm -f pkgs/julia-$VER/etc/julia/juliarc.jl
     rm -f julia-$VER-osx10.7+.dmg
 endif
-echo "Putting julia in your PATH."
-setenv PATH ${JLPATH}:$PATH
+if ( -e ${JLPATH}/julia ) then
+    echo "Putting julia in your PATH."
+    setenv PATH ${JLPATH}:$PATH; goto end
+else
+    echo "julia download failed: Source this setup script to try again."
+    echo "If the problem persists, please check your internet connection."
+    exit 1
+endif
 end:
     echo "Good to go!"
