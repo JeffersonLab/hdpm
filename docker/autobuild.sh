@@ -26,14 +26,14 @@ if test $active == "0"; then
         echo "1" > $cwd/.active
         echo "Triggering build of sim-recon-$c (prev: $c_old)."
         cd $cwd
-        $JL build.jl sim-recon c6; $JL cull.jl 10 c6
-        $JL write_deps_id.jl nathansparks c6; bash pack.sh c6
-        $JL build.jl sim-recon c7; $JL cull.jl 10 c7
-        $JL write_deps_id.jl nathansparks c7; bash pack.sh c7
+        $JL build.jl sim-recon c6; $JL write_deps_id.jl nathansparks c6
+        bash pack.sh c6; $JL cull.jl 10 c6
+        $JL build.jl sim-recon c7; $JL write_deps_id.jl nathansparks c7
+        bash pack.sh c7; $JL cull.jl 10 c7
         cd ../osx && bash ship.sh && cd $cwd; $JL cull.jl 10 osx
-        $JL build.jl sim-recon u14 f22; $JL cull.jl 5 u14
-        $JL write_deps_id.jl nathansparks u14 f22; $JL cull.jl 5 f22
+        $JL build.jl sim-recon u14 f22; $JL write_deps_id.jl nathansparks u14 f22
         bash pack.sh u14; bash pack.sh f22
+        $JL cull.jl 5 u14; $JL cull.jl 5 f22
         echo "0" > $cwd/.active
     else
         echo "sim-recon is up-to-date."
