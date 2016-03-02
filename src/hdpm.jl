@@ -116,7 +116,9 @@ if length(ARGS) == 2 && ARGS[1] == "help"
         println("Fetch binary distribution of sim-recon and its deps"); hz("-")
         println("usage: hdpm fetch-dist\n\t(fetch latest binary distribution)"); hz("-")
         println("usage: hdpm fetch-dist [<commit>]"); hz("-")
-        println("usage: hdpm fetch-dist [<tarfile-url> | <tarfile-path>]"); hz("=")
+        println("usage: hdpm fetch-dist [<tarfile-url> | <tarfile-path>]"); hz("-")
+        println("List available binary distribution tarfiles"); hz("-")
+        println("usage: hdpm fetch-dist -l"); hz("=")
     elseif ARGS[2] == "help" hz("=")
         println("Show available commands"); hz("-"); println("usage: hdpm help"); hz("=")
     else
