@@ -8,7 +8,7 @@ println("Available OS tags:  c6 (CentOS6), c7 (CentOS7), u14 (Ubuntu14),
 os = osrelease()
 if contains(os,"CentOS6") || contains(os,"RHEL6") os_tag = "c6"
 elseif contains(os,"CentOS7") || contains(os,"RHEL7") os_tag = "c7"
-elseif contains(os,"Ubuntu14") os_tag = "u14"
+elseif contains(os,"Ubuntu14") || contains(os,"LinuxMint17") os_tag = "u14"
 elseif contains(os,"Fedora22") os_tag = "f22"
 elseif contains(os,"Darwin_macosx10.11") os_tag = "osx"
 else error("Unsupported operating system: $os"); os_tag = os end
