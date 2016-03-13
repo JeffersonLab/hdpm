@@ -105,8 +105,8 @@ if update_deps
     update_env_script(joinpath(PATH,"env-setup","hdenv.sh"))
     update_env_script(joinpath(PATH,"env-setup","hdenv.csh"))
 end
-#println("Environment setup:\n\tsource $(joinpath(PATH,"env-setup","hdenv.[c]sh"))")
 println("Environment setup\nsource $(joinpath(PATH,"env-setup","hdenv.[c]sh"))")
 # check consistency between commit hash records
-os_dir = readchomp(`ls $PATH/sim-recon`)
-assert(commit==split(split(readall("$PATH/sim-recon/$os_dir/success.hdpm"))[1],"-")[3])
+if contains(os,"RHEL") os = replace(os,"RHEL","CentOS") end
+if contains(os,"LinuxMint17") os = replace(os,r"LinuxMint17.[1-4]","Ubuntu14.04") end
+assert(commit==split(split(readall("$PATH/sim-recon/$os/success.hdpm"))[1],"-")[3])
