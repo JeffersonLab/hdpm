@@ -2,6 +2,20 @@
 #       Make alias for running hdpm.jl
 # usage: source setup.csh
 echo "Hall-D Package Manager setup"
+set ARGS=($_)
+if ("$ARGS" != "") then
+    set initial=`pwd`; cd `dirname ${ARGS[2]}`; set final=`pwd`
+    if ($initial != $final) then
+        echo "Changing to $final directory."
+    endif
+else
+    set cwd=`pwd`
+    if ( `basename ${cwd}` != "hdpm" || ! -e setup.csh ) then
+        echo "ERROR: Non-interactive usage requires the following commands:"
+        echo "cd <path_to_hdpm>; source setup.csh"
+        exit 1
+    endif
+endif
 echo "Run the 'hdpm' command in the current working directory."
 alias hdpm 'julia src/hdpm.jl'
 setenv JULIA_LOAD_PATH `pwd`/src

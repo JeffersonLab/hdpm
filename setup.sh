@@ -2,6 +2,14 @@
 #       Make alias for running hdpm.jl
 # usage: source setup.sh
 echo "Hall-D Package Manager setup"
+HDPM_PATH=${BASH_SOURCE[0]}
+if [[ -h $HDPM_PATH ]]; then
+    HDPM_PATH=$(readlink $HDPM_PATH)
+fi
+initial=$(pwd); cd $(dirname $HDPM_PATH); final=$(pwd)
+if [[ $initial != $final ]]; then
+    echo "Changing to $final directory."
+fi
 echo "Run the 'hdpm' command in the current working directory."
 alias hdpm='julia src/hdpm.jl'
 export JULIA_LOAD_PATH=$(pwd)/src
