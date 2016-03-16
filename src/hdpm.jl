@@ -17,6 +17,7 @@ if length(ARGS) == 0 || (length(ARGS) == 1 && ARGS[1] == "help")
     \t clean-build Clean build of selected packages
     \t v-xml       Replace versions with versions from a version XML file
     \t fetch-dist  Fetch binary distribution of sim-recon and its deps
+    \t run         Run a command in the Hall-D offline environment
 --------------------------------------------------------------------------------
 Use 'hdpm help <command>' to see available arguments."); hz("=")
 end
@@ -93,6 +94,8 @@ if length(ARGS) == 2 && ARGS[1] == "help"
         println("usage: hdpm build [<template-id>]")
         println("ids:   ",join(template_ids,", ")); hz("-")
         println("usage: hdpm build [<xmlfile-url> | <xmlfile-path>]"); hz("=")
+        println("Build a sim-recon subdirectory (use '-c' option to clean)"); hz("-")
+        println("usage: hdpm build [-c] <subdirectory>"); hz("=")
     elseif ARGS[2] == "update" hz("=")
         println("Update selected Git/SVN packages"); hz("-")
         println("usage: hdpm update\n\t(update all enabled repository packages)"); hz("-")
@@ -119,6 +122,9 @@ if length(ARGS) == 2 && ARGS[1] == "help"
         println("usage: hdpm fetch-dist [<tarfile-url> | <tarfile-path>]"); hz("-")
         println("List available binary distribution tarfiles"); hz("-")
         println("usage: hdpm fetch-dist -l"); hz("=")
+    elseif ARGS[2] == "run" hz("=")
+        println("Run a command in the Hall-D offline environment"); hz("-")
+        println("usage: hdpm run \"<cmd>\""); hz("=")
     elseif ARGS[2] == "help" hz("=")
         println("Show available commands"); hz("-"); println("usage: hdpm help"); hz("=")
     else
@@ -136,7 +142,9 @@ if length(ARGS) == 2 && ARGS[1] != "help"
         if ARGS[2] in template_ids && ARGS[2] in pkg_names
             error("'$(ARGS[2])' template id has the same name as a package. Rename this template id.\n")
         end
-        if ARGS[2] in template_ids
+        if ispath(ARGS[2]) && contains(ARGS[2],"sim-recon")
+            run(`julia src/build_dir.jl $(ARGS[2])`)
+        elseif ARGS[2] in template_ids
             run(`julia src/select_template.jl $(ARGS[2])`)
             run(`julia src/copkgs.jl`)
             run(`julia src/mkpkgs.jl`)
@@ -170,8 +178,17 @@ if length(ARGS) == 2 && ARGS[1] != "help"
         run(`julia src/versions_from_xml.jl $(ARGS[2])`)
     elseif ARGS[1] == "fetch-dist"
         run(`julia src/fetch_dist.jl $(ARGS[2])`)
+    elseif ARGS[1] == "run"
+        run(`julia src/run.jl $(ARGS[2])`)
     else
         error("'$(ARGS[1])' is not a hdpm command. Use 'hdpm help' to see available commands.\n")
+    end
+end
+if length(ARGS) == 3 && ARGS[1] == "build" && ARGS[2] == "-c"
+    if ispath(ARGS[3]) && contains(ARGS[3],"sim-recon")
+        run(`julia src/build_dir.jl -c $(ARGS[3])`); exit()
+    else
+        error("'$(ARGS[3])' is not a valid argument. Use 'hdpm help $(ARGS[1])' to see available arguments.\n")
     end
 end
 if length(ARGS) == 3 && ARGS[1] == "show"
