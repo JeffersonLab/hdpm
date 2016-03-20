@@ -55,6 +55,8 @@ if length(ARGS) == 1 && ARGS[1] != "help"
         run(`julia src/versions_from_xml.jl`)
     elseif ARGS[1] == "fetch-dist"
         run(`julia src/fetch_dist.jl`)
+    elseif ARGS[1] == "run"
+        run(`julia src/run.jl`)
     elseif ARGS[1] == "save"
         error("'hdpm save' requires one argument. Use 'hdpm help $(ARGS[1])' to see available arguments.\n")
     else
@@ -124,6 +126,7 @@ if length(ARGS) == 2 && ARGS[1] == "help"
         println("usage: hdpm fetch-dist -l"); hz("=")
     elseif ARGS[2] == "run" hz("=")
         println("Run a command in the Hall-D offline environment"); hz("-")
+        println("usage: hdpm run\n\t(run a bash shell for interactive work)"); hz("-")
         println("usage: hdpm run \"<cmd>\""); hz("=")
     elseif ARGS[2] == "help" hz("=")
         println("Show available commands"); hz("-"); println("usage: hdpm help"); hz("=")
