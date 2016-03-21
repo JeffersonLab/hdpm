@@ -7,7 +7,7 @@ for pkg in get_packages(); if length(ARGS) > 0 if !(name(pkg) in ARGS) continue 
         if name(pkg) == "ccdb"
             run(`rm -f .sconsign.dblite`)
             run(`rm -f success.hdpm`)
-            if length(cmds(pkg)) != 1 warn("ccdb cannot be cleaned; check 'commands.txt'"); continue end
+            if length(cmds(pkg)) != 1 warn("ccdb cannot be cleaned. Check 'commands.txt'"); continue end
             cmd = replace(cmds(pkg)[1],"scons","scons -c")
             run(setenv(`sh -c $cmd`,getenv()))
         end

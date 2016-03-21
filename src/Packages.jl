@@ -3,7 +3,7 @@ module Packages
 home = pwd()
 export Package,name,version,url,path,cmds,is_external,get_packages,get_package,gettop,osrelease,gettag,select_template,show_settings
 export get_unpack_file,mk_cd,get_template_ids,get_pkg_names,get_deps,tagged_deps,git_version,check_deps,mk_template,install_dirname
-export versions_from_xml,rm_regex,input,hz
+export versions_from_xml,rm_regex,input,hz,usage_error
 immutable Package
     name::ASCIIString
     version::ASCIIString
@@ -19,6 +19,13 @@ path(a::Package) = a.path
 cmds(a::Package) = a.cmds
 deps(a::Package) = a.deps
 is_external(a::Package) = length(cmds(a)) == 0
+#
+function usage_error(str...)
+    if length(str) > 1 println("Usage error: ",join(str))
+    elseif length(str) == 1 println("Usage error: ",str[1])
+    end
+    exit()
+end
 #
 function write_id(id)
     fid = open("settings/id.txt","w"); println(fid,id); close(fid)
@@ -58,13 +65,13 @@ function rm_regex(regex,path=pwd())
     end
 end
 function mk_template(id)
-    if id in ["master","home-dev","jlab-dev"] error("'$id' id is reserved. Use another name.\n") end
+    if id in ["master","home-dev","jlab-dev"] usage_error("'$id' id is reserved. Use another name.") end
     if ispath("templates/settings-$id") ts = readchomp(`date "+%Y-%m-%d_%H:%M:%S"`)
         info("Renaming older template with same id to '$id-$ts'.")
         run(`mv templates/settings-$id templates/settings-$id-$ts`) end
     if id == "dist"
         top = gettop()
-        if !ispath("$top/.dist") error("'$top/.dist' does not exist. Use 'hdpm fetch-dist' to fetch the latest distribution.\n")
+        if !ispath("$top/.dist") usage_error("'$top/.dist' does not exist.\n\tUse 'hdpm fetch-dist' to fetch the latest distribution.")
         elseif ispath("$top/.dist/settings") run(`cp -p settings/top.txt top.txt.tmp`)
             run(`rm -rf settings`); run(`cp -pr $top/.dist/settings settings`); run(`mv top.txt.tmp settings/top.txt`) end
     end
@@ -84,15 +91,15 @@ function input(prompt)
 end
 function check_for_settings()
     if !ispath("settings")
-        error("Please select a 'build template'.
+        usage_error("Please select a 'build template'.
         \t Use 'hdpm select <id>'.
-        \t ids: ",join(get_template_ids(),", "),"\n") end
+        \t ids: ",join(get_template_ids(),", ")) end
 end
 function gettop()
     check_for_settings()
     top = string(pwd(),"/pkgs")
     custom_top = readdlm("settings/top.txt",ASCIIString,use_mmap=false)
-    if size(custom_top,1) != 1 || size(custom_top,2) != 2 error("'top.txt' has wrong number of rows or columns.") end
+    if size(custom_top,1) != 1 || size(custom_top,2) != 2 usage_error("'top.txt' has wrong number of rows or columns.") end
     if custom_top[1,1] != "default"
         top = custom_top[1,1]
         if !isabspath(top) top = string(pwd(),"/pkgs/",top) end
@@ -105,7 +112,7 @@ osrelease() = readchomp(`perl src/osrelease.pl`)
 function gettag()
     tag = ""
     custom_tag = readdlm("settings/top.txt",ASCIIString,use_mmap=false)
-    if size(custom_tag,1) != 1 || size(custom_tag,2) != 2 error("'top.txt' has wrong number of rows or columns.") end
+    if size(custom_tag,1) != 1 || size(custom_tag,2) != 2 usage_error("'top.txt' has wrong number of rows or columns.") end
     if custom_tag[1,2] != "default" tag = custom_tag[1,2] end
     tag
 end
@@ -126,9 +133,9 @@ function get_packages(id="")
     urls = readdlm("settings/urls.txt",ASCIIString,use_mmap=false)
     paths = readdlm("settings/paths.txt",ASCIIString,use_mmap=false)
     pkg_names = get_pkg_names()
-    @assert(vers[:,1] == pkg_names,string("'versions.txt' has wrong number of packages, names, or order.\nNeeds to match: ",join(pkg_names,", "),".\n"))
-    @assert(urls[:,1] == pkg_names,string("'urls.txt' has wrong number of packages, names, or order.\nNeeds to match: ",join(pkg_names,", "),".\n"))
-    @assert(paths[:,1] == pkg_names,string("'paths.txt' has wrong number of packages, names, or order.\nNeeds to match: ",join(pkg_names,", "),".\n"))
+    @assert(vers[:,1] == pkg_names,string("'versions.txt' has wrong number of packages, names, or order.\nNeeds to match: ",join(pkg_names,", ")))
+    @assert(urls[:,1] == pkg_names,string("'urls.txt' has wrong number of packages, names, or order.\nNeeds to match: ",join(pkg_names,", ")))
+    @assert(paths[:,1] == pkg_names,string("'paths.txt' has wrong number of packages, names, or order.\nNeeds to match: ",join(pkg_names,", ")))
     #
     commands = [[] []]
     try
@@ -175,8 +182,8 @@ function get_packages(id="")
         if vers[i,2] == "NA" url = "NA"; path = "NA" end
         core = ["xerces-c","root","evio","ccdb","jana","hdds","sim-recon"]
         if path == "NA" && name in core
-            error("Core packages cannot be disabled. Replace 'NA' with a valid path in 'paths.txt'.
-            core: ",join(core,", "),"\n") end
+            usage_error("Core packages cannot be disabled.\n\tReplace 'NA' with a valid path in 'paths.txt'.
+            core: ",join(core,", ")) end
         for cmd in tmp_cmds[name]; if path == "NA" continue end
             push!(cmds[name],replace(cmd,"[PATH]",path))
         end
@@ -284,7 +291,7 @@ function show_settings(;col=:all,sep=2)
     try
         println("ID:  ",readchomp("settings/id.txt"))
     catch
-        println("ID:  ","id file not found; This will not affect build.")
+        println("ID:  ","id file not found. (This will not affect build.)")
     end
     println("TOP: ",gettop())
     println("TAG: ",gettag()); hz("-")
@@ -338,8 +345,7 @@ function check_deps(pkg)
         "sim-recon" => `hd_root`)
     for dep in get_deps([name(pkg)])
         if !success(test_cmds[dep])
-            error("$dep does not appear to be installed. Please check path
-            if using external installation, or test it manually.\n")
+            usage_error("$dep does not appear to be installed.\n\tPlease check path if using external installation, or test it manually.")
         end
     end # check version compatibility of deps
     if name(pkg) == "sim-recon"
@@ -357,7 +363,7 @@ function check_deps(pkg)
                 if contains(osrelease(),"RHEL") && contains(p0,"/.dist/") p = replace(p,"RHEL","CentOS") end
                 if contains(osrelease(),"LinuxMint17") && contains(p0,"/.dist/") p = replace(p,r"LinuxMint17.[1-4]","Ubuntu14.04") end
                 record = split(readall("$p/success.hdpm"))[end]
-                if !contains(record,name_ver) error("$name_ver is incompatible with $user_name_ver.\n$user_name_ver depends on $record.\nRebuild $user_name_ver against $name_ver, or use required $(name(pkg_shlib)) version.\n") end
+                if !contains(record,name_ver) usage_error("$name_ver is incompatible with $user_name_ver.\n\t$user_name_ver depends on $record.\n\tRebuild $user_name_ver against $name_ver, or use required $(name(pkg_shlib)) version.") end
             end
         end
     end
@@ -375,8 +381,8 @@ function versions_from_xml(path="https://halldweb.jlab.org/dist/version.xml")
     if !ispath(jlab_top()) info("Browse version xml files at https://halldweb.jlab.org/dist") end
     if ispath(jlab_top()) info("Browse version xml files at /group/halld/www/halldweb/html/dist
 Problems? Try ",joinpath(jlab_top(),"version.xml")) end
-    if !ispath(file) error(file," does not exist!\n") end
-    if !contains(file,".xml") error(file," does not appear to be an xml file!\n") end
+    if !ispath(file) usage_error(file," does not exist.") end
+    if !contains(file,".xml") usage_error(file," does not appear to be an xml file.") end
     d = readdlm(file,use_mmap=false)
     a = Dict{ASCIIString,ASCIIString}()
     for i=1:size(d,1)

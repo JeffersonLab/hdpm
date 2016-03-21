@@ -4,16 +4,16 @@ println("Tarfile base URL:   https://halldweb.jlab.org/dist")
 println("Path on JLab CUE:   /group/halld/www/halldweb/html/dist")
 println("Filename format:    sim-recon-<commit>-<id_deps>-<os_tag>.tar.gz")
 println("Available OS tags:  c6 (CentOS6), c7 (CentOS7), u14 (Ubuntu14),
-                    f22 (Fedora22), osx (OSX10.11)")
+                    f22 (Fedora22), osx (OSX10.11)"); hz("-")
 os = osrelease()
 if contains(os,"CentOS6") || contains(os,"RHEL6") os_tag = "c6"
 elseif contains(os,"CentOS7") || contains(os,"RHEL7") os_tag = "c7"
 elseif contains(os,"Ubuntu14") || contains(os,"LinuxMint17") os_tag = "u14"
 elseif contains(os,"Fedora22") os_tag = "f22"
 elseif contains(os,"Darwin_macosx10.11") os_tag = "osx"
-else error("Unsupported operating system: $os"); os_tag = os end
+else usage_error("Unsupported operating system: $os"); os_tag = os end
 PATH = joinpath(gettop(),".dist")
-if length(ARGS) > 1 error("Too many arguments; Use 'hdpm help fetch-dist' to see available arguments.") end
+if length(ARGS) > 1 usage_error("Too many arguments: Use 'hdpm help fetch-dist' to see available arguments.") end
 function get_latest_URL(str,show_flist=false)
     files = Dict{DateTime,ASCIIString}()
     latest_file = ""; latest_dt = DateTime()
@@ -32,7 +32,7 @@ function get_latest_URL(str,show_flist=false)
             if dt > latest_dt latest_dt = dt; latest_file = file end
         end
     end
-    if latest_file == "" error("File not found at https://halldweb.jlab.org/dist for $os_tag OS tag.") end
+    if latest_file == "" usage_error("File not found at https://halldweb.jlab.org/dist for $os_tag OS tag.") end
     if !show_flist
         println("Chosen tarfile: $latest_file    $latest_dt")
     else
@@ -43,7 +43,7 @@ function get_latest_URL(str,show_flist=false)
 end
 if length(ARGS) == 1 && ARGS[1] != "-l"
     URL = ARGS[1]
-    if length(URL) < 4 error("Please provide 4-7 characters to specify a commit hash") end
+    if length(URL) < 4 usage_error("Please provide 4-7 characters to specify a commit hash.") end
     if length(URL) >= 4 && length(URL) <= 7 && !ispath(URL)
         URL = get_latest_URL(URL)
     end
@@ -61,7 +61,7 @@ if !isurl && !contains(URL,"/group/halld/www/halldweb/html/dist")
     warn("$URL is an unfamiliar PATH")
 end
 parts = split(URL,"-")
-if length(parts) != 5 || !contains(URL,"sim-recon") error("Unsupported filename format") end
+if length(parts) != 5 || !contains(URL,"sim-recon") usage_error("Unsupported filename format.") end
 commit = parts[3]; id_deps = parts[4]; tag = split(parts[end],".")[1]
 if tag != os_tag warn("$URL is for $tag distribution, but you are on $os_tag") end
 url_deps = replace(URL,commit,"deps")
@@ -105,7 +105,7 @@ if update_deps
     update_env_script(joinpath(PATH,"env-setup","hdenv.sh"))
     update_env_script(joinpath(PATH,"env-setup","hdenv.csh"))
 end
-println("Environment setup\nsource $(joinpath(PATH,"env-setup","hdenv.[c]sh"))")
+hz("-"); println("Environment setup\nsource $(joinpath(PATH,"env-setup","hdenv.[c]sh"))")
 # check consistency between commit hash records
 if contains(os,"RHEL") os = replace(os,"RHEL","CentOS") end
 if contains(os,"LinuxMint17") os = replace(os,r"LinuxMint17.[1-4]","Ubuntu14.04") end

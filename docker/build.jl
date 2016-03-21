@@ -5,7 +5,7 @@ info("Available OS tags: ",join(keys(dtags),", "))
 info("Build stages: ",join(bstages,", "))
 for arg in ARGS
     if !(arg in keys(dtags)) && !(arg in bstages)
-        error("Improper argument ",arg,": Must be in OS tags or build stages")
+        println("Usage error: Improper argument ",arg,":\n\tMust be in OS tags or build stages."); exit()
     end end
 function get_list(c,args)
     list = ASCIIString[]
@@ -24,7 +24,7 @@ for tag in tags
         if stage in ["base","deps"] name = string("hd",stage); dfile = string("Dockerfile-",stage)
         else name = stage; dfile = "Dockerfile" end
         try run(`docker rmi $name:$tag`)
-        catch info("Image not available to remove (ignore previous 2 errors)") end
+        catch info("Image not available to remove (ignore previous 2 errors).") end
         f = open(joinpath(pwd(),".log-$name-$tag"),"w")
         write(f,readall(`docker build --no-cache -t $name:$tag -f $dir/$dfile $dir`)); close(f)
     end

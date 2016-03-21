@@ -3,7 +3,7 @@ using Base.Dates
 target = joinpath(pwd(),".pkgs")
 fbad = filter(r"^sim-recon--.{5}-.{2,3}.tar.gz$",readdir(target))
 for file in fbad rm(joinpath(target,file)) end
-if length(ARGS) != 2 error("Wrong number of arguments. First argument is number of files to keep; second is OS tag.") end
+if length(ARGS) != 2 println("Usage error: Wrong number of arguments:\n\tFirst argument is number of files to keep, second is OS tag."); exit() end
 Nkeep = parse(Int,ARGS[1]); assert(Nkeep>=1)
 os_tag = ARGS[2]
 todays_date = today()

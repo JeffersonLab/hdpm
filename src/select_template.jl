@@ -5,5 +5,5 @@ if length(ARGS) == 0
 elseif length(ARGS) == 1
     select_template(ARGS[1])
 else
-    error("too many arguments. Run 'hdpm help select' to see available arguments.")
+    usage_error("Too many arguments: Run 'hdpm help select' to see available arguments.")
 end

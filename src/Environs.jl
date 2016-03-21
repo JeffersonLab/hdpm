@@ -101,7 +101,7 @@ function printenv()
         id = gettag()
         if sh == "sh" n = "bash"; set = "export"; eq = "="
         elseif sh == "csh" n = "tcsh"; set = "setenv"; eq = " "
-        else error("unknown shell type") end
+        else usage_error("Unknown shell type: ",sh) end
         file = (id == "") ? open("$(env["GLUEX_TOP"])/env-setup/hdenv.$sh","w") : open("$(env["GLUEX_TOP"])/env-setup/hdenv-$id.$sh","w")
         println(file,"# $n")
         println(file,string("$set GLUEX_TOP$eq",env["GLUEX_TOP"]))

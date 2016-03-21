@@ -5,5 +5,5 @@ if length(ARGS) == 0
 elseif length(ARGS) == 1
     versions_from_xml(ARGS[1])
 else
-    error("too many arguments. Run 'hdpm help v-xml' to see available arguments.")
+    usage_error("Too many arguments: Run 'hdpm help v-xml' to see available arguments.")
 end
