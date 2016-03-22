@@ -107,6 +107,8 @@ if update_deps
 end
 hz("-"); println("Environment setup\nsource $(joinpath(PATH,"env-setup","hdenv.[c]sh"))")
 # check consistency between commit hash records
-if contains(os,"RHEL") os = replace(os,"RHEL","CentOS") end
-if contains(os,"LinuxMint17") os = replace(os,r"LinuxMint17.[1-4]","Ubuntu14.04") end
-assert(commit==split(split(readall("$PATH/sim-recon/$os/success.hdpm"))[1],"-")[3])
+for item in readdir("$PATH/sim-recon")
+    if contains(item,"Linux_") || contains(item,"Darwin_")
+        assert(commit==split(split(readall("$PATH/sim-recon/$item/success.hdpm"))[1],"-")[3])
+    end
+end

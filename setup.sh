@@ -27,7 +27,7 @@ if [[ $uname == "Linux" ]]; then
         fi
     fi
 fi
-VER=0.4.3
+VER=0.4.5
 JLPATH=$(pwd)/pkgs/julia-$VER/bin
 if [[ -f $JLPATH/julia ]]; then
     echo "julia-$VER directory already exists; nothing to download."
