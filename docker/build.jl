@@ -24,7 +24,7 @@ for tag in tags
         if stage in ["base","deps"] name = string("hd",stage); dfile = string("Dockerfile-",stage)
         else name = stage; dfile = "Dockerfile" end
         try run(`docker rmi $name:$tag`)
-        catch info("Image not available to remove (ignore previous 2 errors).") end
+        catch info("Image not available to remove (ignore previous error).") end
         f = open(joinpath(pwd(),".log-$name-$tag"),"w")
         write(f,readall(`docker build --no-cache -t $name:$tag -f $dir/$dfile $dir`)); close(f)
     end

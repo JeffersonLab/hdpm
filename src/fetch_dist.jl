@@ -110,5 +110,7 @@ hz("-"); println("Environment setup\nsource $(joinpath(PATH,"env-setup","hdenv.[
 for item in readdir("$PATH/sim-recon")
     if contains(item,"Linux_") || contains(item,"Darwin_")
         assert(commit==split(split(readall("$PATH/sim-recon/$item/success.hdpm"))[1],"-")[3])
+        JANA = joinpath(PATH,filter(r"jana-.{5,7}",readdir(PATH))[1])
+        if os != item && !ispath("$JANA/$os") run(`ln -s $JANA/$item $JANA/$os`) end
     end
 end

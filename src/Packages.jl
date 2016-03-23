@@ -360,8 +360,6 @@ function check_deps(pkg)
                 p0 = path(pkg_ld)
                 if contains(p0,jlab_top()) || !ispath(p0) continue end
                 p = (name(pkg_ld)=="amptools") ?  p0 : joinpath(p0,osrelease())
-                if contains(osrelease(),"RHEL") && contains(p0,"/.dist/") p = replace(p,"RHEL","CentOS") end
-                if contains(osrelease(),"LinuxMint17") && contains(p0,"/.dist/") p = replace(p,r"LinuxMint17.[1-4]","Ubuntu14.04") end
                 record = split(readall("$p/success.hdpm"))[end]
                 if !contains(record,name_ver) usage_error("$name_ver is incompatible with $user_name_ver.\n\t$user_name_ver depends on $record.\n\tRebuild $user_name_ver against $name_ver, or use required $(name(pkg_shlib)) version.") end
             end

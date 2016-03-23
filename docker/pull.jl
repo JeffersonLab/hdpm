@@ -7,6 +7,6 @@ for tag in keys(dtags); if length(ARGS) > 1 if !(tag in ARGS) continue end end
     repo = string(joinpath(duser,name),":",dtags[tag])
     run(`docker pull $repo`)
     try run(`docker rmi $name:$tag`)
-    catch info("Image not available to remove (ignore previous 2 errors).") end
+    catch info("Image not available to remove (ignore previous error).") end
     run(`docker tag $repo $name:$tag`); run(`docker rmi $repo`)
 end
