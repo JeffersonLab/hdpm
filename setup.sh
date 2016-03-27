@@ -2,17 +2,14 @@
 #       Make alias for running hdpm.jl
 # usage: source setup.sh
 echo "Hall-D Package Manager setup"
-HDPM_PATH=${BASH_SOURCE[0]}
-if [[ -h $HDPM_PATH ]]; then
-    HDPM_PATH=$(readlink $HDPM_PATH)
+SCRIPT_PATH=${BASH_SOURCE[0]}
+if [[ -h $SCRIPT_PATH ]]; then
+    SCRIPT_PATH=$(readlink $SCRIPT_PATH)
 fi
-initial=$(pwd); cd $(dirname $HDPM_PATH); final=$(pwd)
-if [[ $initial != $final ]]; then
-    echo "Changing to $final directory."
-fi
-echo "Run the 'hdpm' command in the current working directory."
-alias hdpm='julia src/hdpm.jl'
-export JULIA_LOAD_PATH=$(pwd)/src
+HDPM_PATH=$(cd $(dirname $SCRIPT_PATH); pwd)
+echo "Run 'hdpm' to see available commands."
+alias hdpm="julia $HDPM_PATH/src/hdpm.jl"
+export JULIA_LOAD_PATH=$HDPM_PATH/src
 uname=$(uname)
 if [[ $uname == "Linux" ]]; then
     JLPATH=/group/halld/Software/ExternalPackages/julia-latest/bin
@@ -28,7 +25,7 @@ if [[ $uname == "Linux" ]]; then
     fi
 fi
 VER=0.4.5
-JLPATH=$(pwd)/pkgs/julia-$VER/bin
+JLPATH=$HDPM_PATH/pkgs/julia-$VER/bin
 if [[ -f $JLPATH/julia ]]; then
     echo "julia-$VER directory already exists; nothing to download."
     echo $PATH | grep -q $JLPATH
@@ -42,17 +39,17 @@ fi
 echo "Downloading julia-$VER."
 if [[ $uname == "Linux" ]]; then
     curl -OL https://julialang.s3.amazonaws.com/bin/linux/x64/0.4/julia-$VER-linux-x86_64.tar.gz
-    mkdir -p pkgs/julia-$VER
-    tar -xzf julia-$VER-linux-x86_64.tar.gz -C pkgs/julia-$VER --strip-components=1
+    mkdir -p $HDPM_PATH/pkgs/julia-$VER
+    tar -xzf julia-$VER-linux-x86_64.tar.gz -C $HDPM_PATH/pkgs/julia-$VER --strip-components=1
     rm -f julia-$VER-linux-x86_64.tar.gz
 fi
 if [[ $uname == "Darwin" ]]; then
     curl -OL https://s3.amazonaws.com/julialang/bin/osx/x64/0.4/julia-$VER-osx10.7+.dmg
     hdiutil attach -quiet julia-$VER-osx10.7+.dmg
-    mkdir -p pkgs
-    cp -pr /Volumes/Julia/Julia-$VER.app/Contents/Resources/julia pkgs/julia-$VER
+    mkdir -p $HDPM_PATH/pkgs
+    cp -pr /Volumes/Julia/Julia-$VER.app/Contents/Resources/julia $HDPM_PATH/pkgs/julia-$VER
     hdiutil detach -quiet /Volumes/Julia
-    rm -f pkgs/julia-$VER/etc/julia/juliarc.jl
+    rm -f $HDPM_PATH/pkgs/julia-$VER/etc/julia/juliarc.jl
     rm -f julia-$VER-osx10.7+.dmg
 fi
 if [[ -f $JLPATH/julia ]]; then

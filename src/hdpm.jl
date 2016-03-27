@@ -1,5 +1,6 @@
 # unified interface
 using Packages
+const home = dirname(dirname(@__FILE__))
 template_ids = get_template_ids()
 pkg_names = get_pkg_names()
 pkg_cols = ["version", "url", "path", "deps", "cmds"]
@@ -21,42 +22,42 @@ if length(ARGS) == 0 || (length(ARGS) == 1 && ARGS[1] == "help")
 --------------------------------------------------------------------------------
 Use 'hdpm help <command>' to see available arguments."); hz("=")
 end
-const id = readchomp("settings/id.txt")
+const id = readchomp("$home/settings/id.txt")
 if length(ARGS) > 0 && ARGS[1] == "build" && (id == "home-dev" || "home-dev" in ARGS); mkpath(gettop())
     info("home-dev mode: checking for precompiled dependencies")
-    if id == "home-dev" && !ispath(joinpath(gettop(),".dist")) && ispath(joinpath(pwd(),"pkgs",".dist"))
+    if id == "home-dev" && !ispath(joinpath(gettop(),".dist")) && ispath(joinpath(home,"pkgs",".dist"))
         if input("Do you want to satisfy dependencies by creating a link to 'pkgs/.dist' (yes/no)? ") == "yes"
-            run(`ln -s $(joinpath(pwd(),"pkgs",".dist")) $(joinpath(gettop(),".dist"))`)
+            run(`ln -s $(joinpath(home,"pkgs",".dist")) $(joinpath(gettop(),".dist"))`)
         end
-    elseif !ispath(joinpath(pwd(),"pkgs",".dist"))
+    elseif !ispath(joinpath(home,"pkgs",".dist"))
         info("fetching precompiled dependencies")
-        run(`julia src/select_template.jl home-dev`)
-        run(`julia src/fetch_dist.jl`)
+        run(`julia $home/src/select_template.jl home-dev`)
+        run(`julia $home/src/fetch_dist.jl`)
     end
 end
 if length(ARGS) == 1 && ARGS[1] != "help"
     if ARGS[1] == "select"
-        run(`julia src/select_template.jl`)
+        run(`julia $home/src/select_template.jl`)
     elseif ARGS[1] == "fetch"
-        run(`julia src/copkgs.jl`)
+        run(`julia $home/src/copkgs.jl`)
     elseif ARGS[1] == "build"
-        run(`julia src/copkgs.jl`)
-        run(`julia src/mkpkgs.jl`)
+        run(`julia $home/src/copkgs.jl`)
+        run(`julia $home/src/mkpkgs.jl`)
     elseif ARGS[1] == "update"
-        run(`julia src/update.jl`)
+        run(`julia $home/src/update.jl`)
     elseif ARGS[1] == "clean"
-        run(`julia src/clean.jl`)
+        run(`julia $home/src/clean.jl`)
     elseif ARGS[1] == "clean-build"
-        run(`julia src/clean.jl`)
-        run(`julia src/mkpkgs.jl`)
+        run(`julia $home/src/clean.jl`)
+        run(`julia $home/src/mkpkgs.jl`)
     elseif ARGS[1] == "show"
-        run(`julia src/show_settings.jl`)
+        run(`julia $home/src/show_settings.jl`)
     elseif ARGS[1] == "v-xml"
-        run(`julia src/versions_from_xml.jl`)
+        run(`julia $home/src/versions_from_xml.jl`)
     elseif ARGS[1] == "fetch-dist"
-        run(`julia src/fetch_dist.jl`)
+        run(`julia $home/src/fetch_dist.jl`)
     elseif ARGS[1] == "run"
-        run(`julia src/run.jl`)
+        run(`julia $home/src/run.jl`)
     elseif ARGS[1] == "save"
         usage_error("'hdpm save' requires one argument.\n\tUse 'hdpm help $(ARGS[1])' to see available arguments.")
     else
@@ -137,66 +138,66 @@ end
 if length(ARGS) == 2 && ARGS[1] != "help"
     if ARGS[1] == "select"
         if ARGS[2] in template_ids
-            run(`julia src/select_template.jl $(ARGS[2])`)
+            run(`julia $home/src/select_template.jl $(ARGS[2])`)
         else usage_error("'$(ARGS[2])' is not a valid template id.\n\tUse 'hdpm help $(ARGS[1])' to see available template ids.") end
     elseif ARGS[1] == "save"
-        run(`julia src/mk_template.jl $(ARGS[2])`)
+        run(`julia $home/src/mk_template.jl $(ARGS[2])`)
     elseif ARGS[1] == "build"
         if ARGS[2] in template_ids && ARGS[2] in pkg_names
             usage_error("'$(ARGS[2])' template id has the same name as a package.\n\tRename this template id.")
         end
         if ispath(ARGS[2]) && contains(ARGS[2],"sim-recon")
-            run(`julia src/build_dir.jl $(ARGS[2])`)
+            run(`julia $home/src/build_dir.jl $(ARGS[2])`)
         elseif ARGS[2] in template_ids
-            run(`julia src/select_template.jl $(ARGS[2])`)
-            run(`julia src/copkgs.jl`)
-            run(`julia src/mkpkgs.jl`)
+            run(`julia $home/src/select_template.jl $(ARGS[2])`)
+            run(`julia $home/src/copkgs.jl`)
+            run(`julia $home/src/mkpkgs.jl`)
         elseif ARGS[2] in pkg_names
-            run(`julia src/copkgs.jl $(ARGS[2])`)
-            run(`julia src/mkpkgs.jl $(ARGS[2])`)
+            run(`julia $home/src/copkgs.jl $(ARGS[2])`)
+            run(`julia $home/src/mkpkgs.jl $(ARGS[2])`)
         elseif contains(ARGS[2],".xml")
-            run(`julia src/select_template.jl`)
-            run(`julia src/versions_from_xml.jl $(ARGS[2])`)
-            run(`julia src/copkgs.jl`)
-            run(`julia src/mkpkgs.jl`)
+            run(`julia $home/src/select_template.jl`)
+            run(`julia $home/src/versions_from_xml.jl $(ARGS[2])`)
+            run(`julia $home/src/copkgs.jl`)
+            run(`julia $home/src/mkpkgs.jl`)
         else
             usage_error("'$(ARGS[2])' is not a valid argument.\n\tUse 'hdpm help $(ARGS[1])' to see available arguments.")
         end
     elseif ARGS[1] == "show"
         if ARGS[2] in pkg_cols || isinteger(parse(Int,ARGS[2]))
-            run(`julia src/show_settings.jl $(ARGS[2])`)
+            run(`julia $home/src/show_settings.jl $(ARGS[2])`)
         else
             usage_error("'$(ARGS[2])' is not a valid argument.\n\tUse 'hdpm help $(ARGS[1])' to see available arguments.")
         end
     elseif ARGS[1] == "fetch" && ARGS[2] in pkg_names
-        run(`julia src/copkgs.jl $(ARGS[2])`)
+        run(`julia $home/src/copkgs.jl $(ARGS[2])`)
     elseif ARGS[1] == "clean" && ARGS[2] in pkg_names
-        run(`julia src/clean.jl $(ARGS[2])`)
+        run(`julia $home/src/clean.jl $(ARGS[2])`)
     elseif ARGS[1] == "clean-build" && ARGS[2] in pkg_names
-        run(`julia src/clean.jl $(ARGS[2])`)
-        run(`julia src/mkpkgs.jl $(ARGS[2])`)
+        run(`julia $home/src/clean.jl $(ARGS[2])`)
+        run(`julia $home/src/mkpkgs.jl $(ARGS[2])`)
     elseif ARGS[1] == "update" && ARGS[2] in pkg_names
-        run(`julia src/update.jl $(ARGS[2])`)
+        run(`julia $home/src/update.jl $(ARGS[2])`)
     elseif ARGS[1] == "v-xml"
-        run(`julia src/versions_from_xml.jl $(ARGS[2])`)
+        run(`julia $home/src/versions_from_xml.jl $(ARGS[2])`)
     elseif ARGS[1] == "fetch-dist"
-        run(`julia src/fetch_dist.jl $(ARGS[2])`)
+        run(`julia $home/src/fetch_dist.jl $(ARGS[2])`)
     elseif ARGS[1] == "run"
-        run(`julia src/run.jl $(ARGS[2])`)
+        run(`julia $home/src/run.jl $(ARGS[2])`)
     else
         usage_error("'$(ARGS[1])' is not a hdpm command.\n\tUse 'hdpm help' to see available commands.")
     end
 end
 if length(ARGS) == 3 && ARGS[1] == "build" && ARGS[2] == "-c"
     if ispath(ARGS[3]) && contains(ARGS[3],"sim-recon")
-        run(`julia src/build_dir.jl -c $(ARGS[3])`); exit()
+        run(`julia $home/src/build_dir.jl -c $(ARGS[3])`); exit()
     else
         usage_error("'$(ARGS[3])' is not a valid argument.\n\tUse 'hdpm help $(ARGS[1])' to see available arguments.")
     end
 end
 if length(ARGS) == 3 && ARGS[1] == "show"
     if ARGS[2] in pkg_cols || ARGS[3] in pkg_cols
-        run(`julia src/show_settings.jl $(ARGS[2]) $(ARGS[3])`)
+        run(`julia $home/src/show_settings.jl $(ARGS[2]) $(ARGS[3])`)
     else
         usage_error("'$(ARGS[2])' or '$(ARGS[3])' is not a valid argument.\n\tUse 'hdpm help $(ARGS[1])' to see available arguments.")
     end
@@ -216,17 +217,17 @@ if length(ARGS) >= 3 && (length(ARGS) <= length(pkg_names) + 1) && ARGS[1] != "s
         nargs = `$nargs $(ARGS[i])`
     end
     if ARGS[1] == "fetch"
-        run(`julia src/copkgs.jl $nargs`)
+        run(`julia $home/src/copkgs.jl $nargs`)
     elseif ARGS[1] == "build"
-        run(`julia src/copkgs.jl $nargs`)
-        run(`julia src/mkpkgs.jl $nargs`)
+        run(`julia $home/src/copkgs.jl $nargs`)
+        run(`julia $home/src/mkpkgs.jl $nargs`)
     elseif ARGS[1] == "update"
-        run(`julia src/update.jl $nargs`)
+        run(`julia $home/src/update.jl $nargs`)
     elseif ARGS[1] == "clean"
-        run(`julia src/clean.jl $nargs`)
+        run(`julia $home/src/clean.jl $nargs`)
     elseif ARGS[1] == "clean-build"
-        run(`julia src/clean.jl $nargs`)
-        run(`julia src/mkpkgs.jl $nargs`)
+        run(`julia $home/src/clean.jl $nargs`)
+        run(`julia $home/src/mkpkgs.jl $nargs`)
     else
         usage_error("'$(ARGS[1])' is not a hdpm command.\n\tUse 'hdpm help' to see available commands.")
     end

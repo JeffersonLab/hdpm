@@ -1,6 +1,5 @@
 module Packages
 # organize package information
-home = pwd()
 export Package,name,version,url,path,cmds,is_external,get_packages,get_package,gettop,osrelease,gettag,select_template,show_settings
 export get_unpack_file,mk_cd,get_template_ids,get_pkg_names,get_deps,tagged_deps,git_version,check_deps,mk_template,install_dirname
 export versions_from_xml,rm_regex,input,hz,usage_error
@@ -20,6 +19,7 @@ cmds(a::Package) = a.cmds
 deps(a::Package) = a.deps
 is_external(a::Package) = length(cmds(a)) == 0
 #
+const home = dirname(dirname(@__FILE__))
 function usage_error(str...)
     if length(str) > 1 println("Usage error: ",join(str))
     elseif length(str) == 1 println("Usage error: ",str[1])
@@ -28,34 +28,34 @@ function usage_error(str...)
 end
 #
 function write_id(id)
-    fid = open("settings/id.txt","w"); println(fid,id); close(fid)
+    fid = open("$home/settings/id.txt","w"); println(fid,id); close(fid)
 end
 #
 function select_template(id="master")
-    run(`rm -rf settings`)
-    if id in ["master","home-dev","jlab-dev"] run(`cp -pr templates/$id settings`)
-    else run(`cp -pr templates/settings-$id settings`) end
+    run(`rm -rf $home/settings`)
+    if id in ["master","home-dev","jlab-dev"] run(`cp -pr $home/templates/$id $home/settings`)
+    else run(`cp -pr $home/templates/settings-$id $home/settings`) end
     write_id(id)
 end
 #
 function get_template_ids()
-    if !ispath("settings") run(`cp -pr templates/master settings`)
+    if !ispath("$home/settings") run(`cp -pr $home/templates/master $home/settings`)
         write_id("master") end
     list = Array(ASCIIString,0)
     push!(list,"master","home-dev","jlab-dev")
-    for dir in readdir("templates")
+    for dir in readdir("$home/templates")
         if contains(dir,"settings") push!(list,split(dir,"settings-")[2]) end
     end
     list
 end
 function disable_cmds()
-    run(`mv settings/commands.txt settings/commands.txt.old`)
-    file = Dict("cmds-old"=>open("settings/commands.txt.old"),"cmds"=>open("settings/commands.txt","w"))
+    run(`mv $home/settings/commands.txt $home/settings/commands.txt.old`)
+    file = Dict("cmds-old"=>open("$home/settings/commands.txt.old"),"cmds"=>open("$home/settings/commands.txt","w"))
     for line in readlines(file["cmds-old"])
         println(file["cmds"],string("#",chomp(line)))
     end
     for (k,v) in file close(v) end
-    rm("settings/commands.txt.old")
+    rm("$home/settings/commands.txt.old")
 end
 function rm_regex(regex,path=pwd())
     if ispath(path)
@@ -66,20 +66,20 @@ function rm_regex(regex,path=pwd())
 end
 function mk_template(id)
     if id in ["master","home-dev","jlab-dev"] usage_error("'$id' id is reserved. Use another name.") end
-    if ispath("templates/settings-$id") ts = readchomp(`date "+%Y-%m-%d_%H:%M:%S"`)
+    if ispath("$home/templates/settings-$id") ts = readchomp(`date "+%Y-%m-%d_%H:%M:%S"`)
         info("Renaming older template with same id to '$id-$ts'.")
-        run(`mv templates/settings-$id templates/settings-$id-$ts`) end
+        run(`mv $home/templates/settings-$id $home/templates/settings-$id-$ts`) end
     if id == "dist"
         top = gettop()
         if !ispath("$top/.dist") usage_error("'$top/.dist' does not exist.\n\tUse 'hdpm fetch-dist' to fetch the latest distribution.")
-        elseif ispath("$top/.dist/settings") run(`cp -p settings/top.txt top.txt.tmp`)
-            run(`rm -rf settings`); run(`cp -pr $top/.dist/settings settings`); run(`mv top.txt.tmp settings/top.txt`) end
+        elseif ispath("$top/.dist/settings") run(`cp -p $home/settings/top.txt top.txt.tmp`)
+            run(`rm -rf $home/settings`); run(`cp -pr $top/.dist/settings $home/settings`); run(`mv top.txt.tmp $home/settings/top.txt`) end
     end
     if id == "jlab" || id == "dist" disable_cmds()
         info("Saving '$id' template. All build commands are disabled.") end
     write_settings(id)
-    rm_regex(r".+\.txt~$","settings")
-    run(`cp -pr settings templates/settings-$id`)
+    rm_regex(r".+\.txt~$","$home/settings")
+    run(`cp -pr $home/settings $home/templates/settings-$id`)
     write_id(id)
 end
 #
@@ -90,28 +90,28 @@ function input(prompt)
     print(prompt); chomp(readline())
 end
 function check_for_settings()
-    if !ispath("settings")
+    if !ispath("$home/settings")
         usage_error("Please select a 'build template'.
         \t Use 'hdpm select <id>'.
         \t ids: ",join(get_template_ids(),", ")) end
 end
 function gettop()
     check_for_settings()
-    top = string(pwd(),"/pkgs")
-    custom_top = readdlm("settings/top.txt",ASCIIString,use_mmap=false)
+    top = string(home,"/pkgs")
+    custom_top = readdlm("$home/settings/top.txt",ASCIIString,use_mmap=false)
     if size(custom_top,1) != 1 || size(custom_top,2) != 2 usage_error("'top.txt' has wrong number of rows or columns.") end
     if custom_top[1,1] != "default"
         top = custom_top[1,1]
-        if !isabspath(top) top = string(pwd(),"/pkgs/",top) end
+        if !isabspath(top) top = string(home,"/pkgs/",top) end
     end
     top
 end
 #
-osrelease() = readchomp(`perl src/osrelease.pl`)
+osrelease() = readchomp(`perl $home/src/osrelease.pl`)
 #
 function gettag()
     tag = ""
-    custom_tag = readdlm("settings/top.txt",ASCIIString,use_mmap=false)
+    custom_tag = readdlm("$home/settings/top.txt",ASCIIString,use_mmap=false)
     if size(custom_tag,1) != 1 || size(custom_tag,2) != 2 usage_error("'top.txt' has wrong number of rows or columns.") end
     if custom_tag[1,2] != "default" tag = custom_tag[1,2] end
     tag
@@ -129,9 +129,9 @@ function major_minor(ver)
 end
 function get_packages(id="")
     check_for_settings()
-    vers = readdlm("settings/versions.txt",ASCIIString,use_mmap=false)
-    urls = readdlm("settings/urls.txt",ASCIIString,use_mmap=false)
-    paths = readdlm("settings/paths.txt",ASCIIString,use_mmap=false)
+    vers = readdlm("$home/settings/versions.txt",ASCIIString,use_mmap=false)
+    urls = readdlm("$home/settings/urls.txt",ASCIIString,use_mmap=false)
+    paths = readdlm("$home/settings/paths.txt",ASCIIString,use_mmap=false)
     pkg_names = get_pkg_names()
     @assert(vers[:,1] == pkg_names,string("'versions.txt' has wrong number of packages, names, or order.\nNeeds to match: ",join(pkg_names,", ")))
     @assert(urls[:,1] == pkg_names,string("'urls.txt' has wrong number of packages, names, or order.\nNeeds to match: ",join(pkg_names,", ")))
@@ -139,7 +139,7 @@ function get_packages(id="")
     #
     commands = [[] []]
     try
-        commands = readdlm("settings/commands.txt",ASCIIString,use_mmap=false)
+        commands = readdlm("$home/settings/commands.txt",ASCIIString,use_mmap=false)
     catch
         info("All builds are disabled.")
     end
@@ -223,9 +223,9 @@ function get_packages(id="")
     pkgs
 end
 function write_settings(id)
-    mkdir("settings-tmp")
-    run(`cp -p settings/top.txt settings-tmp`); run(`cp -p settings/commands.txt settings-tmp`)
-    file = Dict("vers"=>open("settings-tmp/versions.txt","w"),"urls"=>open("settings-tmp/urls.txt","w"),"paths"=>open("settings-tmp/paths.txt","w"))
+    mkdir("$home/settings-tmp")
+    run(`cp -p $home/settings/top.txt $home/settings-tmp`); run(`cp -p $home/settings/commands.txt $home/settings-tmp`)
+    file = Dict("vers"=>open("$home/settings-tmp/versions.txt","w"),"urls"=>open("$home/settings-tmp/urls.txt","w"),"paths"=>open("$home/settings-tmp/paths.txt","w"))
     w = 10
     for pkg in get_packages(id)
         println(file["vers"],rpad(name(pkg),w," "),version(pkg))
@@ -240,7 +240,7 @@ function write_settings(id)
         end
     end
     for (k,v) in file close(v) end
-    run(`rm -rf settings`); run(`mv settings-tmp settings`)
+    run(`rm -rf $home/settings`); run(`mv $home/settings-tmp $home/settings`)
 end
 function get_package(a::ASCIIString)
     cd(home)
@@ -289,7 +289,7 @@ function show_settings(;col=:all,sep=2)
     hz("="); print(Base.text_colors[:bold])
     println("Current build settings")
     try
-        println("ID:  ",readchomp("settings/id.txt"))
+        println("ID:  ",readchomp("$home/settings/id.txt"))
     catch
         println("ID:  ","id file not found. (This will not affect build.)")
     end
@@ -387,8 +387,8 @@ Problems? Try ",joinpath(jlab_top(),"version.xml")) end
         a[replace(replace(d[i,2],"name=",""),"\"","")] = replace(replace(replace(d[i,3],"version=",""),"/>",""),"\"","")
     end
     a["amptools"] = "NA"; a["geant4"] = "NA"
-    vers = readdlm("settings/versions.txt",ASCIIString,use_mmap=false)
-    output = open("settings/versions.txt","w")
+    vers = readdlm("$home/settings/versions.txt",ASCIIString,use_mmap=false)
+    output = open("$home/settings/versions.txt","w")
     for i=1:size(vers,1)
         for (k,v) in a
             if vers[i,1] == k println(output,rpad(k,10," "),v) end

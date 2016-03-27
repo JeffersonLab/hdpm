@@ -2,7 +2,7 @@ module Environs
 # set environment variables
 export getenv,printenv
 using Packages
-const home_hdpm = pwd()
+const home_hdpm = dirname(dirname(@__FILE__))
 function getenv()
     dir = pwd()
     cd(home_hdpm)

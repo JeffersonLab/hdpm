@@ -1,6 +1,6 @@
 using Environs,Packages
 # build packages
-home = pwd()
+const home = dirname(dirname(@__FILE__))
 printenv() # expose env variables and save them to env-setup file
 BMS_OSNAME = install_dirname()
 deps = get_deps(ARGS) # add deps
