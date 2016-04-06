@@ -29,6 +29,7 @@ else
     echo "Multiple-plugins test passed."
 fi
 echo -e "\nTesting hdgeant ..."
+export JANA_CALIB_CONTEXT="variation=mc_sim1"
 timeout $TLIMIT hdgeant >& $LOG/hdgeant.txt
 if test $? -ne 0; then
     echo "hdgeant failed."
