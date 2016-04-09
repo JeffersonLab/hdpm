@@ -1,4 +1,4 @@
-xerces-c  http://archive.apache.org/dist/xerces/c/3/sources/xerces-c-[VER].tar.gz
+xerces-c  http://apache.claz.org/xerces/c/3/sources/xerces-c-[VER].tar.gz
 cernlib   http://www-zeuthen.desy.de/linear_collider/cernlib/new/cernlib.2005.corr.2014.04.17.tgz
 root      https://root.cern.ch/download/root_v[VER].source.tar.gz
 amptools  http://downloads.sourceforge.net/project/amptools/AmpTools_v[VER].tgz
