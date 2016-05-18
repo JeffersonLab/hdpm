@@ -87,7 +87,7 @@ function getenv()
     end
     # remove items with Non-Applicable (NA) paths
     for (k,v) in env
-        if v == "NA" pop!(env,k) end
+        if v == "NA" || startswith(v,"NA/") pop!(env,k) end
     end
     cd(dir)
     env
