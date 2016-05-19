@@ -394,7 +394,7 @@ Problems? Try ",joinpath(jlab_top(),"version.xml")) end
         a[replace(replace(d[i,2],"name=",""),"\"","")] = replace(replace(replace(d[i,3],"version=",""),"/>",""),"\"","")
     end
     a["amptools"] = "NA"; a["geant4"] = "NA"
-    a["gluex_root_analysis"] = "NA"; a["gluex_workshops"] = "NA"
+    a["gluex_root_analysis"] = "latest"
     vers = readdlm("$home/settings/versions.txt",ASCIIString,use_mmap=false)
     output = open("$home/settings/versions.txt","w")
     for i=1:size(vers,1)
