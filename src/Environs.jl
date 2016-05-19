@@ -22,13 +22,9 @@ function getenv()
     if ispath("/apps/python/PRO/bin/python2.7")
         PYTHON_HOME = "/apps/python/PRO"
     end
-    JANA_RESOURCE_DIR = "NA"; HTTP_PROXY = "NA"; HTTPS_PROXY = "NA"
+    JANA_RESOURCE_DIR = "NA"
     if ispath("/u/group/halld/www/halldweb/html/resources")
         JANA_RESOURCE_DIR = "/u/group/halld/www/halldweb/html/resources"
-    end
-    if ispath("/w/work/halld/home")
-        HTTP_PROXY = "http://jprox.jlab.org:8081"
-        HTTPS_PROXY = "https://jprox.jlab.org:8081"
     end
     CCDB_CONNECTION = "mysql://ccdb_user@hallddb.jlab.org/ccdb"
     env = Dict(
@@ -51,9 +47,7 @@ function getenv()
              "HALLD_HOME" => home["sim-recon"],
              "JANA_RESOURCE_DIR" => JANA_RESOURCE_DIR,
              "ROOT_ANALYSIS_HOME" => home["gluex_root_analysis"],
-             "HALLD_MY" => joinpath(GLUEX_TOP,"halld_my"),
-             "http_proxy" => HTTP_PROXY,
-             "https_proxy" => HTTPS_PROXY)
+             "HALLD_MY" => joinpath(GLUEX_TOP,"halld_my"))
     #
     if !haskey(ENV,"HALLD_MY") mkpath(joinpath(GLUEX_TOP,"halld_my"))
     else env["HALLD_MY"] = ENV["HALLD_MY"] end

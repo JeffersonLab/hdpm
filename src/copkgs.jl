@@ -1,4 +1,8 @@
 using Packages
+if ispath("/w/work/halld/home")
+    ENV["http_proxy"] = "http://jprox.jlab.org:8081"
+    ENV["https_proxy"] = "https://jprox.jlab.org:8081"
+end
 top = gettop()
 deps = get_deps(ARGS) # add deps
 if length(deps) > 0 info("dependency list: ",join(deps,", ")) end
