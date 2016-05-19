@@ -8,3 +8,5 @@ ccdb      .dist/ccdb-[VER]
 jana      .dist/jana-[VER]
 hdds      hdds
 sim-recon sim-recon
+gluex_root_analysis gluex_root_analysis
+gluex_workshops gluex_workshops

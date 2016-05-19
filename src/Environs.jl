@@ -22,14 +22,18 @@ function getenv()
     if ispath("/apps/python/PRO/bin/python2.7")
         PYTHON_HOME = "/apps/python/PRO"
     end
-    JANA_RESOURCE_DIR = "NA"
+    JANA_RESOURCE_DIR = "NA"; HTTP_PROXY = "NA"; HTTPS_PROXY = "NA"
     if ispath("/u/group/halld/www/halldweb/html/resources")
         JANA_RESOURCE_DIR = "/u/group/halld/www/halldweb/html/resources"
     end
+    if ispath("/w/work/halld/home")
+        HTTP_PROXY = "http://jprox.jlab.org:8081"
+        HTTPS_PROXY = "https://jprox.jlab.org:8081"
+    end
     CCDB_CONNECTION = "mysql://ccdb_user@hallddb.jlab.org/ccdb"
     env = Dict(
-             "GLUEX_TOP" => "$GLUEX_TOP",
-             "BMS_OSNAME" => "$BMS_OSNAME",
+             "GLUEX_TOP" => GLUEX_TOP,
+             "BMS_OSNAME" => BMS_OSNAME,
              "CERN" => home["cernlib"],
              "CERN_LEVEL" => vers["cernlib"],
              "ROOTSYS" => home["root"],
@@ -38,15 +42,21 @@ function getenv()
              "XERCESCROOT" => home["xerces-c"],
              "EVIOROOT" => string(home["evio"],"/",readchomp(`uname -s`),"-",readchomp(`uname -m`)),
              "CCDB_HOME" => home["ccdb"],
-             "CCDB_CONNECTION" => "$CCDB_CONNECTION",
+             "CCDB_CONNECTION" => CCDB_CONNECTION,
              "CCDB_USER" => "\$USER",
              "HDDS_HOME" => home["hdds"],
-             "JANA_HOME" => "$JANA_HOME",
-             "JANA_CALIB_URL" => "$CCDB_CONNECTION",
+             "JANA_HOME" => JANA_HOME,
+             "JANA_CALIB_URL" => CCDB_CONNECTION,
              "JANA_GEOMETRY_URL" => string("xmlfile://",home["hdds"],"/main_HDDS.xml"),
              "HALLD_HOME" => home["sim-recon"],
-             "JANA_RESOURCE_DIR" => "$JANA_RESOURCE_DIR")
+             "JANA_RESOURCE_DIR" => JANA_RESOURCE_DIR,
+             "ROOT_ANALYSIS_HOME" => home["gluex_root_analysis"],
+             "HALLD_MY" => joinpath(GLUEX_TOP,"halld_my"),
+             "http_proxy" => HTTP_PROXY,
+             "https_proxy" => HTTPS_PROXY)
     #
+    if !haskey(ENV,"HALLD_MY") mkpath(joinpath(GLUEX_TOP,"halld_my"))
+    else env["HALLD_MY"] = ENV["HALLD_MY"] end
     function add_to_path(path,new_path)
         if !contains(path,new_path) && !contains(new_path,"/NA/") && !startswith(new_path,"/usr/local/")
             return (path == "") ? new_path : string(new_path,":",path)
@@ -65,7 +75,7 @@ function getenv()
     if !haskey(ENV,"JANA_PLUGIN_PATH") env["JANA_PLUGIN_PATH"] = ""
     else env["JANA_PLUGIN_PATH"] = ENV["JANA_PLUGIN_PATH"] end
     # do PATH
-    paths = [joinpath(env["CERN"],env["CERN_LEVEL"]),env["ROOTSYS"],env["XERCESCROOT"],env["EVIOROOT"],env["CCDB_HOME"],env["HDDS_HOME"],env["JANA_HOME"],joinpath(env["HALLD_HOME"],env["BMS_OSNAME"])]
+    paths = [joinpath(env["CERN"],env["CERN_LEVEL"]),env["ROOTSYS"],env["XERCESCROOT"],env["EVIOROOT"],env["CCDB_HOME"],env["HDDS_HOME"],env["JANA_HOME"],joinpath(env["HALLD_HOME"],env["BMS_OSNAME"]),joinpath(env["ROOT_ANALYSIS_HOME"],env["BMS_OSNAME"])]
     if PYTHON_HOME != "NA" push!(paths,PYTHON_HOME) end
     for p in paths
         env["PATH"] = add_to_path(env["PATH"],string(p,"/bin"))
@@ -80,7 +90,7 @@ function getenv()
     for pyp in pypaths
         env["PYTHONPATH"] = add_to_path(env["PYTHONPATH"],pyp)
     end
-    plugin_paths = [string(env["JANA_HOME"],"/plugins"),string(joinpath(env["HALLD_HOME"],env["BMS_OSNAME"]),"/plugins")]
+    plugin_paths = [joinpath(env["JANA_HOME"],"plugins"),joinpath(env["HALLD_HOME"],env["BMS_OSNAME"],"plugins"),joinpath(env["HALLD_MY"],env["BMS_OSNAME"],"plugins")]
     # do JANA_PLUGIN_PATH
     for plugin_path in plugin_paths
         env["JANA_PLUGIN_PATH"] = add_to_path(env["JANA_PLUGIN_PATH"],plugin_path)

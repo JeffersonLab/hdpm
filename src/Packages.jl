@@ -33,7 +33,7 @@ end
 #
 function select_template(id="master")
     run(`rm -rf $home/settings`)
-    if id in ["master","home-dev","jlab-dev"] run(`cp -pr $home/templates/$id $home/settings`)
+    if id in ["master","home-dev","jlab-dev","workshop-2016"] run(`cp -pr $home/templates/$id $home/settings`)
     else run(`cp -pr $home/templates/settings-$id $home/settings`) end
     write_id(id)
 end
@@ -42,7 +42,7 @@ function get_template_ids()
     if !ispath("$home/settings") run(`cp -pr $home/templates/master $home/settings`)
         write_id("master") end
     list = Array(ASCIIString,0)
-    push!(list,"master","home-dev","jlab-dev")
+    push!(list,"master","home-dev","jlab-dev","workshop-2016")
     for dir in readdir("$home/templates")
         if contains(dir,"settings") push!(list,split(dir,"settings-")[2]) end
     end
@@ -65,7 +65,7 @@ function rm_regex(regex,path=pwd())
     end
 end
 function mk_template(id)
-    if id in ["master","home-dev","jlab-dev"] usage_error("'$id' id is reserved. Use another name.") end
+    if id in ["master","home-dev","jlab-dev","workshop-2016"] usage_error("'$id' id is reserved. Use another name.") end
     if ispath("$home/templates/settings-$id") ts = readchomp(`date "+%Y-%m-%d_%H:%M:%S"`)
         info("Renaming older template with same id to '$id-$ts'.")
         run(`mv $home/templates/settings-$id $home/templates/settings-$id-$ts`) end
@@ -117,7 +117,7 @@ function gettag()
     tag
 end
 install_dirname() = (gettag() == "") ? osrelease() : string("build-",gettag())
-get_pkg_names() = ["xerces-c","cernlib","root","amptools","geant4","evio","ccdb","jana","hdds","sim-recon"]
+get_pkg_names() = ["xerces-c","cernlib","root","amptools","geant4","evio","ccdb","jana","hdds","sim-recon","gluex_root_analysis","gluex_workshops"]
 hz(a::ASCIIString) = println(repeat(a,80))
 jlab_top() = string("/group/halld/Software/builds/",osrelease())
 #
@@ -162,9 +162,13 @@ function get_packages(id="")
         "ccdb" => "",
         "jana" => "xerces-c,root,ccdb",
         "hdds" => "xerces-c",
-        "sim-recon" => "xerces-c,cernlib,root,evio,ccdb,jana,hdds")
+        "sim-recon" => "xerces-c,cernlib,root,evio,ccdb,jana,hdds",
+        "gluex_root_analysis" => "xerces-c,cernlib,root,evio,ccdb,jana,hdds,sim-recon",
+        "gluex_workshops" => "xerces-c,cernlib,root,evio,ccdb,jana,hdds,sim-recon,gluex_root_analysis")
     @osx_only mydeps["sim-recon"] = "xerces-c,root,evio,ccdb,jana,hdds"
-    jsep = Dict("xerces-c"=>"-","cernlib"=>"","root"=>"_","amptools"=>"_","geant4"=>"-","evio"=>"-","ccdb"=>"_","jana"=>"_","hdds"=>"-","sim-recon"=>"-")
+    @osx_only mydeps["gluex_root_analysis"] = "xerces-c,root,evio,ccdb,jana,hdds,sim-recon"
+    @osx_only mydeps["gluex_workshops"] = "xerces-c,root,evio,ccdb,jana,hdds,sim-recon,gluex_root_analysis"
+    jsep = Dict("xerces-c"=>"-","cernlib"=>"","root"=>"_","amptools"=>"_","geant4"=>"-","evio"=>"-","ccdb"=>"_","jana"=>"_","hdds"=>"-","sim-recon"=>"-","gluex_root_analysis"=> "_","gluex_workshops"=>"_")
     pkgs = Array(Package,0)
     for i=1:size(paths,1)
         name = paths[i,1]
@@ -206,7 +210,7 @@ function get_packages(id="")
             end
         end
         if length(cmds[name]) > 0 path = joinpath(gettop(),basename(path)) end
-        if (name == "hdds" || name == "sim-recon") && vers[i,2] != "latest"
+        if (name == "hdds" || name == "sim-recon") && vers[i,2] != "latest" && !contains(vers[i,2],"_")
             vmm = major_minor(vers[i,2])
             url_alt = "https://github.com/JeffersonLab/$name/archive/$name-$(vers[i,2]).tar.gz"
             if name == "hdds"
@@ -342,7 +346,9 @@ function check_deps(pkg)
         "ccdb" => `ccdb`,
         "jana" => `jana`,
         "hdds" => pipeline(`$LDD $(path(get_package("hdds")))/$install_dir/lib/libhdds.so`,`grep libxerces-c`),
-        "sim-recon" => `hd_root`)
+        "sim-recon" => `hd_root`,
+        "gluex_root_analysis" => `root -b -q -l`,
+        "gluex_workshops" => `root -b -q -l`)
     for dep in get_deps([name(pkg)])
         if !success(test_cmds[dep])
             usage_error("$dep does not appear to be installed.\n\tPlease check path if using external installation, or test it manually.")
@@ -387,6 +393,7 @@ Problems? Try ",joinpath(jlab_top(),"version.xml")) end
         a[replace(replace(d[i,2],"name=",""),"\"","")] = replace(replace(replace(d[i,3],"version=",""),"/>",""),"\"","")
     end
     a["amptools"] = "NA"; a["geant4"] = "NA"
+    a["gluex_root_analysis"] = "NA"; a["gluex_workshops"] = "NA"
     vers = readdlm("$home/settings/versions.txt",ASCIIString,use_mmap=false)
     output = open("$home/settings/versions.txt","w")
     for i=1:size(vers,1)

@@ -4,11 +4,12 @@ println("Tarfile base URL:   https://halldweb.jlab.org/dist")
 println("Path on JLab CUE:   /group/halld/www/halldweb/html/dist")
 println("Filename format:    sim-recon-<commit>-<id_deps>-<os_tag>.tar.gz")
 println("Available OS tags:  c6 (CentOS6), c7 (CentOS7), u14 (Ubuntu14),
-                    f22 (Fedora22), osx (OSX10.11)"); hz("-")
+                    u16 (Ubuntu16), f22 (Fedora22), osx (OSX10.11)"); hz("-")
 os = osrelease()
 if contains(os,"CentOS6") || contains(os,"RHEL6") os_tag = "c6"
 elseif contains(os,"CentOS7") || contains(os,"RHEL7") os_tag = "c7"
 elseif contains(os,"Ubuntu14") || contains(os,"LinuxMint17") os_tag = "u14"
+elseif contains(os,"Ubuntu16") || contains(os,"LinuxMint18") os_tag = "u16"
 elseif contains(os,"Fedora22") os_tag = "f22"
 elseif contains(os,"Darwin_macosx10.11") os_tag = "osx"
 else usage_error("Unsupported operating system: $os"); os_tag = os end

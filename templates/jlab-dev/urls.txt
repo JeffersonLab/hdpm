@@ -8,3 +8,5 @@ ccdb      https://github.com/JeffersonLab/ccdb/archive/v[VER].tar.gz
 jana      https://www.jlab.org/JANA/releases/jana_[VER].tgz
 hdds      https://github.com/JeffersonLab/hdds
 sim-recon https://github.com/JeffersonLab/sim-recon
+gluex_root_analysis https://github.com/JeffersonLab/gluex_root_analysis
+gluex_workshops https://github.com/JeffersonLab/gluex_workshops

@@ -2,7 +2,7 @@ xerces-c  xerces-c-[VER]
 cernlib   cernlib
 root      root-[VER]
 amptools  amptools-[VER]
-geant4    geant4-[VER]
+geant4    NA
 evio      evio-[VER]
 ccdb      ccdb-[VER]
 jana      jana-[VER]

@@ -6,13 +6,13 @@ root      "./configure --enable-roofit"
 root      "make -j 8"
 amptools  "cd AmpTools && make && cd ../"
 amptools  "cd AmpPlotter && make"
-geant4    "cmake -DCMAKE_INSTALL_PREFIX=[PATH] [PATH]"
-geant4    "make -j 8"
-geant4    "make install"
+#geant4    "cmake -DCMAKE_INSTALL_PREFIX=[PATH] [PATH]"
+#geant4    "make -j 8"
+#geant4    "make install"
 evio      "scons --prefix=[PATH] install"
 ccdb      scons
 jana      "scons -u -j8 install"
 hdds      "scons -u install"
 sim-recon "scons -u -j8 install DEBUG=0"
 gluex_root_analysis ./make_all.sh
-#gluex_workshops ls
+gluex_workshops ls
