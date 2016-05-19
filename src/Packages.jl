@@ -230,7 +230,7 @@ function write_settings(id)
     mkdir("$home/settings-tmp")
     run(`cp -p $home/settings/top.txt $home/settings-tmp`); run(`cp -p $home/settings/commands.txt $home/settings-tmp`)
     file = Dict("vers"=>open("$home/settings-tmp/versions.txt","w"),"urls"=>open("$home/settings-tmp/urls.txt","w"),"paths"=>open("$home/settings-tmp/paths.txt","w"))
-    w = 10
+    w = 20
     for pkg in get_packages(id)
         println(file["vers"],rpad(name(pkg),w," "),version(pkg))
         if version(pkg) != "NA"
