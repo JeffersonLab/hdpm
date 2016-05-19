@@ -133,9 +133,10 @@ function get_packages(id="")
     urls = readdlm("$home/settings/urls.txt",ASCIIString,use_mmap=false)
     paths = readdlm("$home/settings/paths.txt",ASCIIString,use_mmap=false)
     pkg_names = get_pkg_names()
-    @assert(vers[:,1] == pkg_names,string("'versions.txt' has wrong number of packages, names, or order.\nNeeds to match: ",join(pkg_names,", ")))
-    @assert(urls[:,1] == pkg_names,string("'urls.txt' has wrong number of packages, names, or order.\nNeeds to match: ",join(pkg_names,", ")))
-    @assert(paths[:,1] == pkg_names,string("'paths.txt' has wrong number of packages, names, or order.\nNeeds to match: ",join(pkg_names,", ")))
+    @assert(contains(join(pkg_names,","),join(vers[:,1],",")),string("'versions.txt' has wrong number of packages, names, or order.\nNeeds to match: ",join(pkg_names,", ")))
+    @assert(contains(join(pkg_names,","),join(urls[:,1],",")),string("'urls.txt' has wrong number of packages, names, or order.\nNeeds to match: ",join(pkg_names,", ")))
+    @assert(contains(join(pkg_names,","),join(paths[:,1],",")),string("'paths.txt' has wrong number of packages, names, or order.\nNeeds to match: ",join(pkg_names,", ")))
+    @assert(size(vers,1)==size(urls,1)&&size(vers,1)==size(paths,1),"The same number of packages must be listed in 'versions.txt', 'urls.txt', and 'paths.txt'.")
     #
     commands = [[] []]
     try

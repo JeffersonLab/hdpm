@@ -9,4 +9,4 @@ jana      jana-[VER]
 hdds      hdds-[VER]
 sim-recon sim-recon-[VER]
 gluex_root_analysis gluex_root_analysis-[VER]
-gluex_workshops gluex_workshops-[VER]
+gluex_workshops gluex_workshops/physics_workshop_2016

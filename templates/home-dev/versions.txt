@@ -9,4 +9,3 @@ jana      0.7.5p1
 hdds      latest
 sim-recon latest
 gluex_root_analysis latest
-gluex_workshops latest

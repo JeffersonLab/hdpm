@@ -15,4 +15,3 @@
 hdds      "scons -u install"
 sim-recon "scons -u -j8 install DEBUG=0"
 gluex_root_analysis ./make_all.sh
-#gluex_workshops ls

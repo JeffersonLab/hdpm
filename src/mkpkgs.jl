@@ -36,7 +36,7 @@ for pkg in get_packages(); if length(ARGS) > 0 if !(name(pkg) in ARGS) && !(name
         "\n# disk use, final minus initial\n","\"$(du_f)B - $(du)B\"","\n# compiled against\n",tagged_deps(pkg)))
         close(success_file)
     elseif !is_external(pkg) && ispath(path_to_success)
-        d = readdlm(path_to_success,use_mmap=false); w = 20
+        d = readdlm(path_to_success,use_mmap=false); w = 22
         if first_success == name(pkg)
             print(Base.text_colors[:bold]); hz("-")
             print(string(rpad("package",w," "),rpad("build time",w-6," "),rpad("disk use",w-3," "),"timestamp\n"))

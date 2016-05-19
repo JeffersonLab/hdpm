@@ -15,4 +15,8 @@ jana      "scons -u -j8 install"
 hdds      "scons -u install"
 sim-recon "scons -u -j8 install DEBUG=0"
 gluex_root_analysis ./make_all.sh
-gluex_workshops ls
+gluex_workshops "cd [PATH]/session2/omega_ref; scons install"
+gluex_workshops "cd [PATH]/session2/omega_skim_rest; scons install"
+gluex_workshops "cd [PATH]/session2/omega_solutions; scons install"
+gluex_workshops "cd [PATH]/session3b/omega_skim_tree; scons install"
+gluex_workshops "cd [PATH]/session5b/p2gamma_workshop; scons install"

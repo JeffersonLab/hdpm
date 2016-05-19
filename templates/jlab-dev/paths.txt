@@ -9,4 +9,3 @@ jana      /group/halld/Software/builds/[OS]/jana/jana_[VER]
 hdds      hdds
 sim-recon sim-recon
 gluex_root_analysis gluex_root_analysis
-gluex_workshops gluex_workshops
