@@ -92,8 +92,6 @@ function getenv()
     for plugin_path in plugin_paths
         env["JANA_PLUGIN_PATH"] = add_to_path(env["JANA_PLUGIN_PATH"],plugin_path)
     end
-    rcdb_cplus_inc = joinpath(env["RCDB_HOME"],"cpp","include")
-    env["CPLUS_INCLUDE_PATH"] = !haskey(ENV,"CPLUS_INCLUDE_PATH") ? rcdb_cplus_inc:string(rcdb_cplus_inc,":",ENV["CPLUS_INCLUDE_PATH"])
     # remove items with Non-Applicable (NA) paths
     for (k,v) in env
         if v == "NA" || startswith(v,"NA/") pop!(env,k) end
@@ -123,7 +121,7 @@ function printenv()
         if !haskey(env,"JANA_RESOURCE_DIR") println(file,"#$set JANA_RESOURCE_DIR$(eq)/path/to/resources") end
         @linux_only ldlp = "LD_LIBRARY_PATH"
         @osx_only ldlp = "DYLD_LIBRARY_PATH"
-        for path_name in ["CPLUS_INCLUDE_PATH","PATH",ldlp,"PYTHONPATH","JANA_PLUGIN_PATH"]
+        for path_name in ["PATH",ldlp,"PYTHONPATH","JANA_PLUGIN_PATH"]
             path = env[path_name]
             for (k,v) in env; if k == "GLUEX_TOP" || k == "CCDB_USER" || contains(k,"PATH") continue end
                 path = replace(path,v,string("\${",k,"}"))
