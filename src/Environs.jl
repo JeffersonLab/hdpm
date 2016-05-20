@@ -48,11 +48,9 @@ function getenv()
              "JANA_GEOMETRY_URL" => string("xmlfile://",home["hdds"],"/main_HDDS.xml"),
              "HALLD_HOME" => home["sim-recon"],
              "JANA_RESOURCE_DIR" => JANA_RESOURCE_DIR,
-             "ROOT_ANALYSIS_HOME" => home["gluex_root_analysis"],
-             "HALLD_MY" => joinpath(GLUEX_TOP,"halld_my"))
+             "ROOT_ANALYSIS_HOME" => home["gluex_root_analysis"])
     #
-    if !haskey(ENV,"HALLD_MY") mkpath(joinpath(GLUEX_TOP,"halld_my"))
-    else env["HALLD_MY"] = ENV["HALLD_MY"] end
+    if haskey(ENV,"HALLD_MY") env["HALLD_MY"] = ENV["HALLD_MY"] end
     function add_to_path(path,new_path)
         if !contains(path,new_path) && !contains(new_path,"/NA/") && !startswith(new_path,"/usr/local/")
             return (path == "") ? new_path : string(new_path,":",path)
@@ -88,7 +86,8 @@ function getenv()
     for pyp in pypaths
         env["PYTHONPATH"] = add_to_path(env["PYTHONPATH"],pyp)
     end
-    plugin_paths = [joinpath(env["JANA_HOME"],"plugins"),joinpath(env["HALLD_HOME"],env["BMS_OSNAME"],"plugins"),joinpath(env["HALLD_MY"],env["BMS_OSNAME"],"plugins")]
+    plugin_paths = [joinpath(env["JANA_HOME"],"plugins"),joinpath(env["HALLD_HOME"],env["BMS_OSNAME"],"plugins")]
+    if haskey(env,"HALLD_MY") push!(plugin_paths,joinpath(env["HALLD_MY"],env["BMS_OSNAME"],"plugins")) end
     # do JANA_PLUGIN_PATH
     for plugin_path in plugin_paths
         env["JANA_PLUGIN_PATH"] = add_to_path(env["JANA_PLUGIN_PATH"],plugin_path)
