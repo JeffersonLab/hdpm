@@ -4,6 +4,7 @@ root      .dist/root-[VER]
 amptools  .dist/amptools-[VER]
 geant4    NA
 evio      .dist/evio-[VER]
+rcdb      rcdb-[VER]
 ccdb      .dist/ccdb-[VER]
 jana      .dist/jana-[VER]
 hdds      hdds

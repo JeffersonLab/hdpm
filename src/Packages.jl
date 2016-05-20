@@ -117,7 +117,33 @@ function gettag()
     tag
 end
 install_dirname() = (gettag() == "") ? osrelease() : string("build-",gettag())
-get_pkg_names() = ["xerces-c","cernlib","root","amptools","geant4","evio","ccdb","jana","hdds","sim-recon","gluex_root_analysis","gluex_workshops"]
+function get_pkg_names(fname="$home/settings/versions.txt")
+    pkg_names = Array(ASCIIString,0)
+    f = open(fname)
+    for line in readlines(f)
+        const listed_names = ["xerces-c","cernlib","root","amptools","geant4","evio","rcdb","ccdb","jana","hdds","sim-recon","gluex_root_analysis","gluex_workshops"]
+        for name in listed_names
+            if startswith(line,name) push!(pkg_names,name) end
+        end
+    end
+    close(f)
+    pkg_names
+end
+function get_data(fname)
+    data = Array(ASCIIString,0)
+    f = open(fname)
+    for line in readlines(f)
+        line = chomp(line)
+        if startswith(line,"#") continue end
+        if endswith(line,"\"")
+            push!(data,split(line,"\"")[2])
+        else
+            push!(data,split(line)[2])
+        end
+    end
+    close(f)
+    data
+end
 hz(a::ASCIIString) = println(repeat(a,80))
 jlab_top() = string("/group/halld/Software/builds/",osrelease())
 #
@@ -129,29 +155,24 @@ function major_minor(ver)
 end
 function get_packages(id="")
     check_for_settings()
-    vers = readdlm("$home/settings/versions.txt",ASCIIString,use_mmap=false)
-    urls = readdlm("$home/settings/urls.txt",ASCIIString,use_mmap=false)
-    paths = readdlm("$home/settings/paths.txt",ASCIIString,use_mmap=false)
-    pkg_names = get_pkg_names()
-    @assert(contains(join(pkg_names,","),join(vers[:,1],",")),string("'versions.txt' has wrong number of packages, names, or order.\nNeeds to match: ",join(pkg_names,", ")))
-    @assert(contains(join(pkg_names,","),join(urls[:,1],",")),string("'urls.txt' has wrong number of packages, names, or order.\nNeeds to match: ",join(pkg_names,", ")))
-    @assert(contains(join(pkg_names,","),join(paths[:,1],",")),string("'paths.txt' has wrong number of packages, names, or order.\nNeeds to match: ",join(pkg_names,", ")))
-    @assert(size(vers,1)==size(urls,1)&&size(vers,1)==size(paths,1),"The same number of packages must be listed in 'versions.txt', 'urls.txt', and 'paths.txt'.")
+    vers = get_data("$home/settings/versions.txt")
+    urls = get_data("$home/settings/urls.txt")
+    paths = get_data("$home/settings/paths.txt")
+    const pkg_names = get_pkg_names()
+    @assert(pkg_names==get_pkg_names("$home/settings/urls.txt"),"\n'versions.txt' and 'urls.txt' are inconsistent. Check package names and order.")
+    @assert(pkg_names==get_pkg_names("$home/settings/paths.txt"),"\n'versions.txt' and 'paths.txt' are inconsistent. Check package names and order.")
     #
-    commands = [[] []]
-    try
-        commands = readdlm("$home/settings/commands.txt",ASCIIString,use_mmap=false)
-    catch
-        info("All builds are disabled.")
-    end
+    commands = get_data("$home/settings/commands.txt")
+    if length(commands) == 0 info("All builds are disabled.") end
+    const pkg_names_cmd = get_pkg_names("$home/settings/commands.txt")
     tmp_cmds = Dict{ASCIIString,Array{ASCIIString,1}}()
     cmds = Dict{ASCIIString,Array{ASCIIString,1}}()
-    for name in get_pkg_names()
+    for name in pkg_names
         tmp_cmds[name] = Array(ASCIIString,0)
         cmds[name] = Array(ASCIIString,0)
     end
     for i=1:size(commands,1)
-        push!(tmp_cmds[commands[i,1]],commands[i,2])
+        push!(tmp_cmds[pkg_names_cmd[i]],commands[i])
     end
     mydeps = Dict(
         "xerces-c" => "",
@@ -160,6 +181,7 @@ function get_packages(id="")
         "amptools" => "root",
         "geant4" => "",
         "evio" => "",
+        "rcdb" => "",
         "ccdb" => "",
         "jana" => "xerces-c,root,ccdb",
         "hdds" => "xerces-c",
@@ -169,22 +191,22 @@ function get_packages(id="")
     @osx_only mydeps["sim-recon"] = "xerces-c,root,evio,ccdb,jana,hdds"
     @osx_only mydeps["gluex_root_analysis"] = "xerces-c,root,evio,ccdb,jana,hdds,sim-recon"
     @osx_only mydeps["gluex_workshops"] = "xerces-c,root,evio,ccdb,jana,hdds,sim-recon,gluex_root_analysis"
-    jsep = Dict("xerces-c"=>"-","cernlib"=>"","root"=>"_","amptools"=>"_","geant4"=>"-","evio"=>"-","ccdb"=>"_","jana"=>"_","hdds"=>"-","sim-recon"=>"-","gluex_root_analysis"=> "_","gluex_workshops"=>"_")
+    jsep = Dict("xerces-c"=>"-","cernlib"=>"","root"=>"_","amptools"=>"_","geant4"=>"-","evio"=>"-","rcdb"=>"-","ccdb"=>"_","jana"=>"_","hdds"=>"-","sim-recon"=>"-","gluex_root_analysis"=> "-")
     pkgs = Array(Package,0)
     for i=1:size(paths,1)
-        name = paths[i,1]
-        path = paths[i,2]; path = replace(path,"[OS]",osrelease())
-        path = (vers[i,2] != "latest") ? replace(path,"[VER]",vers[i,2]) : replace(replace(path,"-[VER]",""),"_[VER]","")
-        url = urls[i,2]
+        name = pkg_names[i]
+        path = paths[i]; path = replace(path,"[OS]",osrelease())
+        path = (vers[i] != "latest") ? replace(path,"[VER]",vers[i]) : replace(replace(path,"-[VER]",""),"_[VER]","")
+        url = urls[i]
         if name == "evio"
-            evio_major_minor = join(major_minor(vers[i,2]),".")
+            evio_major_minor = join(major_minor(vers[i]),".")
             if !contains(url,evio_major_minor) url = replace(url,r"4.[0-9]",evio_major_minor) end
         end
-        url = replace(url,"[VER]",vers[i,2])
+        url = replace(url,"[VER]",vers[i])
         if !isabspath(path) && path != "NA"
             path = joinpath(gettop(),path)
         end
-        if vers[i,2] == "NA" url = "NA"; path = "NA" end
+        if vers[i] == "NA" url = "NA"; path = "NA" end
         core = ["xerces-c","root","evio","ccdb","jana","hdds","sim-recon"]
         if path == "NA" && name in core
             usage_error("Core packages cannot be disabled.\n\tReplace 'NA' with a valid path in 'paths.txt'.
@@ -206,24 +228,24 @@ function get_packages(id="")
         @osx_only begin
             if name == "xerces-c" && contains(path,"/.dist/xerces-c")
                 assert(length(cmds[name]) == 0)
-                dpath = joinpath("/usr/local/Cellar/xerces-c",vers[i,2])
+                dpath = joinpath("/usr/local/Cellar/xerces-c",vers[i])
                 if ispath(dpath) path = dpath end
             end
         end
         if length(cmds[name]) > 0 path = joinpath(gettop(),basename(path)) end
-        if (name == "hdds" || name == "sim-recon") && vers[i,2] != "latest" && !contains(vers[i,2],"_")
-            vmm = major_minor(vers[i,2])
-            url_alt = "https://github.com/JeffersonLab/$name/archive/$name-$(vers[i,2]).tar.gz"
+        if (name == "hdds" || name == "sim-recon") && vers[i] != "latest" && !contains(vers[i],"_")
+            vmm = major_minor(vers[i])
+            url_alt = "https://github.com/JeffersonLab/$name/archive/$name-$(vers[i]).tar.gz"
             if name == "hdds"
                 if parse(Int,vmm[1]) <= 3 && parse(Int,vmm[2]) <= 2 || parse(Int,vmm[1]) <= 2 url = url_alt end
             elseif name == "sim-recon"
-                if parse(Int,vmm[1]) <= 1 && parse(Int,vmm[2]) <= 3 || parse(Int,vmm[1]) == 0 || contains(vers[i,2],"dc") url = url_alt end
+                if parse(Int,vmm[1]) <= 1 && parse(Int,vmm[2]) <= 3 || parse(Int,vmm[1]) == 0 || contains(vers[i],"dc") url = url_alt end
             end
         end
-        if vers[i,2] == "latest" && contains(url,"https://github.com/JeffersonLab/$name/archive/")
+        if vers[i] == "latest" && contains(url,"https://github.com/JeffersonLab/$name/archive/")
             url = "https://github.com/JeffersonLab/$name" end
-        if name == "jana" && vers[i,2] == "latest" url = "https://phys12svn.jlab.org/repos/JANA" end
-        push!(pkgs,Package(name,vers[i,2],url,path,cmds[name],mydeps[name]))
+        if name == "jana" && vers[i] == "latest" url = "https://phys12svn.jlab.org/repos/JANA" end
+        push!(pkgs,Package(name,vers[i],url,path,cmds[name],mydeps[name]))
     end
     pkgs
 end
@@ -344,12 +366,12 @@ function check_deps(pkg)
         "cernlib" => `ls -lh $(path(get_package("cernlib")))/$(version(get_package("cernlib")))/lib/libgeant321.a`,
         "root" => `root -b -q -l`,
         "evio" => `evio2xml`,
+        "rcdb" => `rcdb`,
         "ccdb" => `ccdb`,
         "jana" => `jana`,
         "hdds" => pipeline(`$LDD $(path(get_package("hdds")))/$install_dir/lib/libhdds.so`,`grep libxerces-c`),
         "sim-recon" => `hd_root`,
-        "gluex_root_analysis" => `root -b -q -l`,
-        "gluex_workshops" => `root -b -q -l`)
+        "gluex_root_analysis" => `root -b -q -l`)
     for dep in get_deps([name(pkg)])
         if !success(test_cmds[dep])
             usage_error("$dep does not appear to be installed.\n\tPlease check path if using external installation, or test it manually.")
@@ -393,7 +415,7 @@ Problems? Try ",joinpath(jlab_top(),"version.xml")) end
     for i=1:size(d,1)
         a[replace(replace(d[i,2],"name=",""),"\"","")] = replace(replace(replace(d[i,3],"version=",""),"/>",""),"\"","")
     end
-    a["amptools"] = "NA"; a["geant4"] = "NA"
+    a["amptools"] = "NA"; a["geant4"] = "NA"; a["rcdb"] = "latest"
     a["gluex_root_analysis"] = "latest"
     vers = readdlm("$home/settings/versions.txt",ASCIIString,use_mmap=false)
     output = open("$home/settings/versions.txt","w")

@@ -18,7 +18,7 @@ for pkg in get_packages(); if length(ARGS) > 0 if !(name(pkg) in ARGS) && !(name
         cd(path(pkg))
         tic() # start timer
         du = split(readchomp(`du -sh $(path(pkg))`))[1] # src code disk use
-        if name(pkg) in ["xerces-c","root","amptools","geant4","evio","ccdb","jana","hdds","sim-recon","gluex_root_analysis","gluex_workshops"]
+        if name(pkg) in ["xerces-c","root","amptools","geant4","evio","rcdb","ccdb","jana","hdds","sim-recon","gluex_root_analysis","gluex_workshops"]
             if name(pkg) == "sim-recon" cd("src") end
             if name(pkg) == "geant4" mk_cd("../$(name(pkg))_build") end
             for cmd in cmds(pkg)

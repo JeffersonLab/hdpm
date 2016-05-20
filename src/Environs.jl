@@ -37,6 +37,8 @@ function getenv()
              "AMPPLOTTER" => joinpath(home["amptools"],"AmpPlotter"),
              "XERCESCROOT" => home["xerces-c"],
              "EVIOROOT" => string(home["evio"],"/",readchomp(`uname -s`),"-",readchomp(`uname -m`)),
+             "RCDB_HOME" => home["rcdb"],
+             "RCDB_CONNECTION" => "mysql://rcdb@hallddb.jlab.org/rcdb",
              "CCDB_HOME" => home["ccdb"],
              "CCDB_CONNECTION" => CCDB_CONNECTION,
              "CCDB_USER" => "\$USER",
@@ -69,18 +71,20 @@ function getenv()
     if !haskey(ENV,"JANA_PLUGIN_PATH") env["JANA_PLUGIN_PATH"] = ""
     else env["JANA_PLUGIN_PATH"] = ENV["JANA_PLUGIN_PATH"] end
     # do PATH
-    paths = [joinpath(env["CERN"],env["CERN_LEVEL"]),env["ROOTSYS"],env["XERCESCROOT"],env["EVIOROOT"],env["CCDB_HOME"],env["HDDS_HOME"],env["JANA_HOME"],joinpath(env["HALLD_HOME"],env["BMS_OSNAME"]),joinpath(env["ROOT_ANALYSIS_HOME"],env["BMS_OSNAME"])]
+    paths = [joinpath(env["CERN"],env["CERN_LEVEL"]),env["ROOTSYS"],env["XERCESCROOT"],env["EVIOROOT"],joinpath(env["RCDB_HOME"],"cpp"),env["CCDB_HOME"],env["HDDS_HOME"],env["JANA_HOME"],joinpath(env["HALLD_HOME"],env["BMS_OSNAME"]),joinpath(env["ROOT_ANALYSIS_HOME"],env["BMS_OSNAME"])]
     if PYTHON_HOME != "NA" push!(paths,PYTHON_HOME) end
     for p in paths
         env["PATH"] = add_to_path(env["PATH"],string(p,"/bin"))
     end
+    env["PATH"] = add_to_path(env["PATH"],string(env["RCDB_HOME"],"/bin"))
+    env["PATH"] = string(env["RCDB_HOME"],":",env["PATH"])
     # do LD_LIBRARY_PATH
     for ldp in paths
         @linux_only env["LD_LIBRARY_PATH"] = add_to_path(env["LD_LIBRARY_PATH"],string(ldp,"/lib"))
         @osx_only env["DYLD_LIBRARY_PATH"] = add_to_path(env["DYLD_LIBRARY_PATH"],string(ldp,"/lib"))
     end
     # do PYTHONPATH
-    pypaths = [string(env["ROOTSYS"],"/lib"),string(joinpath(env["CCDB_HOME"],"python"),":",joinpath(env["CCDB_HOME"],"python","ccdb","ccdb_pyllapi/")),string(joinpath(env["HALLD_HOME"],env["BMS_OSNAME"]),"/lib/python")]
+    pypaths = [string(env["ROOTSYS"],"/lib"),joinpath(env["RCDB_HOME"],"python"),string(joinpath(env["CCDB_HOME"],"python"),":",joinpath(env["CCDB_HOME"],"python","ccdb","ccdb_pyllapi/")),string(joinpath(env["HALLD_HOME"],env["BMS_OSNAME"]),"/lib/python")]
     for pyp in pypaths
         env["PYTHONPATH"] = add_to_path(env["PYTHONPATH"],pyp)
     end
@@ -89,6 +93,8 @@ function getenv()
     for plugin_path in plugin_paths
         env["JANA_PLUGIN_PATH"] = add_to_path(env["JANA_PLUGIN_PATH"],plugin_path)
     end
+    rcdb_cplus_inc = joinpath(env["RCDB_HOME"],"cpp","include")
+    env["CPLUS_INCLUDE_PATH"] = !haskey(ENV,"CPLUS_INCLUDE_PATH") ? rcdb_cplus_inc:string(rcdb_cplus_inc,":",ENV["CPLUS_INCLUDE_PATH"])
     # remove items with Non-Applicable (NA) paths
     for (k,v) in env
         if v == "NA" || startswith(v,"NA/") pop!(env,k) end
@@ -118,7 +124,7 @@ function printenv()
         if !haskey(env,"JANA_RESOURCE_DIR") println(file,"#$set JANA_RESOURCE_DIR$(eq)/path/to/resources") end
         @linux_only ldlp = "LD_LIBRARY_PATH"
         @osx_only ldlp = "DYLD_LIBRARY_PATH"
-        for path_name in ["PATH",ldlp,"PYTHONPATH","JANA_PLUGIN_PATH"]
+        for path_name in ["CPLUS_INCLUDE_PATH","PATH",ldlp,"PYTHONPATH","JANA_PLUGIN_PATH"]
             path = env[path_name]
             for (k,v) in env; if k == "GLUEX_TOP" || k == "CCDB_USER" || contains(k,"PATH") continue end
                 path = replace(path,v,string("\$",k))

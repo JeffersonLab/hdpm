@@ -4,9 +4,10 @@ root      root-[VER]
 amptools  amptools-[VER]
 geant4    NA
 evio      evio-[VER]
+rcdb      rcdb-[VER]
 ccdb      ccdb-[VER]
 jana      jana-[VER]
 hdds      hdds-[VER]
 sim-recon sim-recon-[VER]
 gluex_root_analysis gluex_root_analysis-[VER]
-gluex_workshops gluex_workshops/physics_workshop_2016
+gluex_workshops gluex_workshops

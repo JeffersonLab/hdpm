@@ -1,9 +1,9 @@
 # unified interface
 using Packages
 const home = dirname(dirname(@__FILE__))
-template_ids = get_template_ids()
-pkg_names = get_pkg_names()
-pkg_cols = ["version", "url", "path", "deps", "cmds"]
+const template_ids = get_template_ids()
+const pkg_names = get_pkg_names()
+const pkg_cols = ["version", "url", "path", "deps", "cmds"]
 if length(ARGS) == 0 || (length(ARGS) == 1 && ARGS[1] == "help")
     hz("="); println("usage: hdpm <command> [<args>]
     commands:
