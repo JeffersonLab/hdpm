@@ -216,7 +216,7 @@ function get_packages(id="")
         end
         if id == "jlab"
             assert(length(cmds[name]) == 0)
-            jpath = joinpath(jlab_top(),name,string(name,jsep[name],vers[i,2]))
+            jpath = joinpath(jlab_top(),name,string(name,jsep[name],vers[i]))
             if ispath(jpath) path = jpath end
             if name == "cernlib" && ispath(joinpath(jlab_top(),name)) path = joinpath(jlab_top(),name) end
         end
@@ -421,9 +421,9 @@ Problems? Try ",joinpath(jlab_top(),"version.xml")) end
     output = open("$home/settings/versions.txt","w")
     for i=1:size(vers,1)
         for (k,v) in a
-            if vers[i,1] == k println(output,rpad(k,10," "),v) end
+            if vers[i,1] == k println(output,rpad(k,20," "),v) end
         end
-        if !haskey(a,"evio") && vers[i,1] == "evio" println(output,rpad("evio",10," "),vers[i,2]) end
+        if !haskey(a,"evio") && vers[i,1] == "evio" println(output,rpad("evio",20," "),vers[i,2]) end
      end
      close(output)
      if wasurl rm(file) end
