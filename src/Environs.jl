@@ -127,7 +127,7 @@ function printenv()
         for path_name in ["CPLUS_INCLUDE_PATH","PATH",ldlp,"PYTHONPATH","JANA_PLUGIN_PATH"]
             path = env[path_name]
             for (k,v) in env; if k == "GLUEX_TOP" || k == "CCDB_USER" || contains(k,"PATH") continue end
-                path = replace(path,v,string("\$",k))
+                path = replace(path,v,string("\${",k,"}"))
             end
             if haskey(ENV,path_name) path = replace(path,ENV[path_name],string("\$",path_name)) end
             path = replace(path,env["GLUEX_TOP"],"\$GLUEX_TOP")
