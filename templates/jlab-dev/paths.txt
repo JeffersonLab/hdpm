@@ -4,9 +4,9 @@ root      /group/halld/Software/builds/[OS]/root/root_[VER]
 amptools  NA
 geant4    NA
 evio      /group/halld/Software/builds/[OS]/evio/evio-[VER]
-rcdb      rcdb-[VER]
+rcdb      rcdb/[VER]
 ccdb      /group/halld/Software/builds/[OS]/ccdb/ccdb_[VER]
 jana      /group/halld/Software/builds/[OS]/jana/jana_[VER]
-hdds      hdds
-sim-recon sim-recon
-gluex_root_analysis gluex_root_analysis
+hdds      hdds/[VER]
+sim-recon sim-recon/[VER]
+gluex_root_analysis gluex_root_analysis/[VER]

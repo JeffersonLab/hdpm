@@ -195,18 +195,19 @@ function get_packages(id="")
     pkgs = Array(Package,0)
     for i=1:size(paths,1)
         name = pkg_names[i]
+        version = (vers[i] == "latest") ? "master" : vers[i]
         path = paths[i]; path = replace(path,"[OS]",osrelease())
-        path = (vers[i] != "latest") ? replace(path,"[VER]",vers[i]) : replace(replace(path,"-[VER]",""),"_[VER]","")
+        path = replace(path,"[VER]",version)
         url = urls[i]
         if name == "evio"
-            evio_major_minor = join(major_minor(vers[i]),".")
+            evio_major_minor = join(major_minor(version),".")
             if !contains(url,evio_major_minor) url = replace(url,r"4.[0-9]",evio_major_minor) end
         end
-        url = replace(url,"[VER]",vers[i])
+        url = replace(url,"[VER]",version)
         if !isabspath(path) && path != "NA"
             path = joinpath(gettop(),path)
         end
-        if vers[i] == "NA" url = "NA"; path = "NA" end
+        if version == "NA" url = "NA"; path = "NA" end
         core = ["xerces-c","root","evio","ccdb","jana","hdds","sim-recon"]
         if path == "NA" && name in core
             usage_error("Core packages cannot be disabled.\n\tReplace 'NA' with a valid path in 'paths.txt'.
@@ -216,7 +217,7 @@ function get_packages(id="")
         end
         if id == "jlab"
             assert(length(cmds[name]) == 0)
-            jpath = joinpath(jlab_top(),name,string(name,jsep[name],vers[i]))
+            jpath = joinpath(jlab_top(),name,string(name,jsep[name],version))
             if ispath(jpath) path = jpath end
             if name == "cernlib" && ispath(joinpath(jlab_top(),name)) path = joinpath(jlab_top(),name) end
         end
@@ -228,24 +229,14 @@ function get_packages(id="")
         @osx_only begin
             if name == "xerces-c" && contains(path,"/.dist/xerces-c")
                 assert(length(cmds[name]) == 0)
-                dpath = joinpath("/usr/local/Cellar/xerces-c",vers[i])
+                dpath = joinpath("/usr/local/Cellar/xerces-c",version)
                 if ispath(dpath) path = dpath end
             end
         end
-        if length(cmds[name]) > 0 path = joinpath(gettop(),basename(path)) end
-        if (name == "hdds" || name == "sim-recon") && vers[i] != "latest" && !contains(vers[i],"_")
-            vmm = major_minor(vers[i])
-            url_alt = "https://github.com/JeffersonLab/$name/archive/$name-$(vers[i]).tar.gz"
-            if name == "hdds"
-                if parse(Int,vmm[1]) <= 3 && parse(Int,vmm[2]) <= 2 || parse(Int,vmm[1]) <= 2 url = url_alt end
-            elseif name == "sim-recon"
-                if parse(Int,vmm[1]) <= 1 && parse(Int,vmm[2]) <= 3 || parse(Int,vmm[1]) == 0 || contains(vers[i],"dc") url = url_alt end
-            end
-        end
-        if vers[i] == "latest" && contains(url,"https://github.com/JeffersonLab/$name/archive/")
+        if version == "master" && contains(url,"https://github.com/JeffersonLab/$name/archive/")
             url = "https://github.com/JeffersonLab/$name" end
-        if name == "jana" && vers[i] == "latest" url = "https://phys12svn.jlab.org/repos/JANA" end
-        push!(pkgs,Package(name,vers[i],url,path,cmds[name],mydeps[name]))
+        if name == "jana" && version == "master" url = "https://phys12svn.jlab.org/repos/JANA" end
+        push!(pkgs,Package(name,version,url,path,cmds[name],mydeps[name]))
     end
     pkgs
 end
@@ -257,7 +248,7 @@ function write_settings(id)
     for pkg in get_packages(id)
         println(file["vers"],rpad(name(pkg),w," "),version(pkg))
         if version(pkg) != "NA"
-            PATH = contains(path(pkg),gettop()) && !contains(path(pkg),"/.dist/") ? replace(basename(path(pkg)),version(pkg),"[VER]") : replace(replace(path(pkg),osrelease(),"[OS]"),version(pkg),"[VER]")
+            PATH = contains(path(pkg),gettop()) && !contains(path(pkg),"/.dist/") ? replace(replace(path(pkg),version(pkg),"[VER]"),string(gettop(),"/"),"") : replace(replace(path(pkg),osrelease(),"[OS]"),version(pkg),"[VER]")
             if contains(PATH,"/.dist/") PATH = joinpath(".dist",basename(PATH)) end
             println(file["urls"],rpad(name(pkg),w," "),replace(url(pkg),version(pkg),"[VER]"))
             println(file["paths"],rpad(name(pkg),w," "),PATH)
@@ -415,8 +406,8 @@ Problems? Try ",joinpath(jlab_top(),"version.xml")) end
     for i=1:size(d,1)
         a[replace(replace(d[i,2],"name=",""),"\"","")] = replace(replace(replace(d[i,3],"version=",""),"/>",""),"\"","")
     end
-    a["amptools"] = "NA"; a["geant4"] = "NA"; a["rcdb"] = "latest"
-    a["gluex_root_analysis"] = "latest"
+    a["amptools"] = "NA"; a["geant4"] = "NA"; a["rcdb"] = "master"
+    a["gluex_root_analysis"] = "master"
     vers = readdlm("$home/settings/versions.txt",ASCIIString,use_mmap=false)
     output = open("$home/settings/versions.txt","w")
     for i=1:size(vers,1)

@@ -16,19 +16,15 @@ for pkg in get_packages(); if length(ARGS) > 0 if !(name(pkg) in ARGS) && !(name
         # checkout/clone svn and git packages
         if contains(URL,"svn")
             rev = version(pkg)
-            if rev!="latest" && !contains(URL,"tags")
+            if rev!="master" && !contains(URL,"tags")
                 run(`svn checkout --non-interactive --trust-server-cert -r $rev $URL $(path(pkg))`)
             else
                 run(`svn checkout --non-interactive --trust-server-cert $URL $(path(pkg))`)
             end
         end
         if contains(URL,"git") && !contains(URL,"archive")
-            run(`git clone $URL $(path(pkg))`)
-            rev = version(pkg)
-            if rev!="latest"
-                cd(path(pkg))
-                run(`git checkout -b $rev $rev`)
-            end
+            branch = version(pkg)
+            run(`git clone -b $branch $URL $(path(pkg))`)
         end
         # download/unpack other packages
         if name(pkg) != "cernlib" && (contains(URL,".tar.gz") || contains(URL,".tgz"))

@@ -4,10 +4,10 @@ root      5.34.36
 amptools  0.9.1
 geant4    NA
 evio      4.4.6
-rcdb      latest
+rcdb      master
 ccdb      1.06.01
 jana      0.7.5p1
 hdds      physics_workshop_2016
 sim-recon physics_workshop_2016
 gluex_root_analysis physics_workshop_2016
-gluex_workshops latest
+gluex_workshops master

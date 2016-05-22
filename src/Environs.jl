@@ -3,6 +3,7 @@ module Environs
 export getenv,printenv
 using Packages
 const home_hdpm = dirname(dirname(@__FILE__))
+const id = readchomp("$home_hdpm/settings/id.txt")
 function getenv()
     dir = pwd()
     cd(home_hdpm)
@@ -103,11 +104,10 @@ function printenv()
     function myprint(sh,env) # print env-setup scripts for tcsh and bash shells
         myoptenv = Dict("JANA_CALIB_CONTEXT" => "\"variation=mc\"")
         mkpath("$(env["GLUEX_TOP"])/env-setup")
-        id = gettag()
         if sh == "sh" n = "bash"; set = "export"; eq = "="
         elseif sh == "csh" n = "tcsh"; set = "setenv"; eq = " "
         else usage_error("Unknown shell type: ",sh) end
-        file = (id == "") ? open("$(env["GLUEX_TOP"])/env-setup/hdenv.$sh","w") : open("$(env["GLUEX_TOP"])/env-setup/hdenv-$id.$sh","w")
+        file = open("$(env["GLUEX_TOP"])/env-setup/$id.$sh","w")
         println(file,"# $n")
         println(file,string("$set GLUEX_TOP$eq",env["GLUEX_TOP"]))
         println(file,string("$set BMS_OSNAME$eq",env["BMS_OSNAME"]))
