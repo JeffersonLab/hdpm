@@ -23,10 +23,6 @@ function getenv()
     if ispath("/apps/python/PRO/bin/python2.7")
         PYTHON_HOME = "/apps/python/PRO"
     end
-    JANA_RESOURCE_DIR = "NA"
-    if ispath("/u/group/halld/www/halldweb/html/resources")
-        JANA_RESOURCE_DIR = "/u/group/halld/www/halldweb/html/resources"
-    end
     CCDB_CONNECTION = "mysql://ccdb_user@hallddb.jlab.org/ccdb"
     env = Dict(
              "GLUEX_TOP" => GLUEX_TOP,
@@ -48,9 +44,14 @@ function getenv()
              "JANA_CALIB_URL" => CCDB_CONNECTION,
              "JANA_GEOMETRY_URL" => string("xmlfile://",home["hdds"],"/main_HDDS.xml"),
              "HALLD_HOME" => home["sim-recon"],
-             "JANA_RESOURCE_DIR" => JANA_RESOURCE_DIR,
+             "JANA_RESOURCE_DIR" => "/u/group/halld/www/halldweb/html/resources",
              "ROOT_ANALYSIS_HOME" => home["gluex_root_analysis"])
     #
+    for (k,v) in env
+        if k == "JANA_HOME" || k == "EVIOROOT" continue end
+        if v == "NA" || startswith(v,"NA/") env[k] = "/NA/" end
+        if startswith(v,"/") && !ispath(v) env[k] = "/NA/" end
+    end
     if haskey(ENV,"HALLD_MY") env["HALLD_MY"] = ENV["HALLD_MY"] end
     function add_to_path(path,new_path)
         if !contains(path,new_path) && !contains(new_path,"/NA/") && !startswith(new_path,"/usr/local/")
@@ -76,7 +77,7 @@ function getenv()
         env["PATH"] = add_to_path(env["PATH"],string(p,"/bin"))
     end
     env["PATH"] = add_to_path(env["PATH"],string(env["RCDB_HOME"],"/bin"))
-    env["PATH"] = string(env["RCDB_HOME"],":",env["PATH"])
+    if env["RCDB_HOME"] != "/NA/" env["PATH"] = string(env["RCDB_HOME"],":",env["PATH"]) end
     # do LD_LIBRARY_PATH
     for ldp in paths
         @linux_only env["LD_LIBRARY_PATH"] = add_to_path(env["LD_LIBRARY_PATH"],string(ldp,"/lib"))
@@ -95,7 +96,7 @@ function getenv()
     end
     # remove items with Non-Applicable (NA) paths
     for (k,v) in env
-        if v == "NA" || startswith(v,"NA/") pop!(env,k) end
+        if v == "/NA/" || v == "" pop!(env,k) end
     end
     cd(dir)
     env
@@ -122,6 +123,7 @@ function printenv()
         @linux_only ldlp = "LD_LIBRARY_PATH"
         @osx_only ldlp = "DYLD_LIBRARY_PATH"
         for path_name in ["PATH",ldlp,"PYTHONPATH","JANA_PLUGIN_PATH"]
+            if !haskey(env,path_name) continue end
             path = env[path_name]
             for (k,v) in env; if k == "GLUEX_TOP" || k == "CCDB_USER" || contains(k,"PATH") continue end
                 path = replace(path,v,string("\${",k,"}"))

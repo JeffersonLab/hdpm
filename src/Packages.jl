@@ -369,6 +369,9 @@ function check_deps(pkg)
         end
     end # check version compatibility of deps
     if name(pkg) == "sim-recon"
+        if !ispath(joinpath(path(get_package("amptools")),"success.hdpm"))
+            pop!(ENV,"AMPTOOLS"); pop!(ENV,"AMPPLOTTER")
+        end
         shlibs = ["xerces-c","root","ccdb"]
         users = ["amptools","jana","hdds"]
         pkgs = get_packages()
