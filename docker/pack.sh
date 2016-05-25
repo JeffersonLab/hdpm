@@ -12,7 +12,15 @@ mkdir $name-$tag; cd $name-$tag
 if test $tag == c6; then
     mv ../$tag/opt .
 fi
-mv ../$tag/home/hdpm/settings .; mv ../$tag/home/hdpm/pkgs/* .; rm -rf ../$tag
+mv ../$tag/home/hdpm/settings .; mv ../$tag/home/hdpm/pkgs/* .
+if [[ $tag != u14 && $tag != u16 ]]; then
+    mv ../$tag/usr/lib*/libblas.a cernlib/2005/lib/
+    mv ../$tag/usr/lib*/liblapack.a cernlib/2005/lib/liblapack3.a
+else
+    mv ../$tag/usr/lib/*/libblas.a cernlib/2005/lib/
+    mv ../$tag/usr/lib/*/liblapack.a cernlib/2005/lib/liblapack3.a
+fi
+rm -rf ../$tag
 cp -p ../../.id-deps-$tag .; cp -p ../../.log-sim-recon-$tag sim-recon/
 commit=$(echo $(grep -i sim-recon sim-recon/*/success.hdpm) | sed -r 's/sim-recon-//g')
 mkdir $cwd/$name-$tag-tmp
