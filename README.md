@@ -11,5 +11,5 @@ For documentation on how to setup and use `hdpm`, visit the wiki at https://gith
 - CentOS/RHEL 6
 - CentOS/RHEL 7
 - Mac OS X 10.10+
-- Ubuntu 14.04/16.04
-- Fedora 22
+- Ubuntu 14.04 LTS
+- Ubuntu 16.04 LTS

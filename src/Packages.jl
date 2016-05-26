@@ -33,7 +33,7 @@ end
 #
 function select_template(id="master")
     run(`rm -rf $home/settings`)
-    if id in ["master","home-dev","jlab-dev","workshop-2016"] run(`cp -pr $home/templates/$id $home/settings`)
+    if id in ["master","jlab-dev","workshop-2016"] run(`cp -pr $home/templates/$id $home/settings`)
     else run(`cp -pr $home/templates/settings-$id $home/settings`) end
     write_id(id)
 end
@@ -42,7 +42,7 @@ function get_template_ids()
     if !ispath("$home/settings") run(`cp -pr $home/templates/master $home/settings`)
         write_id("master") end
     list = Array(ASCIIString,0)
-    push!(list,"master","home-dev","jlab-dev","workshop-2016")
+    push!(list,"master","jlab-dev","workshop-2016")
     for dir in readdir("$home/templates")
         if contains(dir,"settings") push!(list,split(dir,"settings-")[2]) end
     end
@@ -65,17 +65,11 @@ function rm_regex(regex,path=pwd())
     end
 end
 function mk_template(id)
-    if id in ["master","home-dev","jlab-dev","workshop-2016"] usage_error("'$id' id is reserved. Use another name.") end
+    if id in ["master","jlab-dev","workshop-2016"] usage_error("'$id' id is reserved. Use another name.") end
     if ispath("$home/templates/settings-$id") ts = readchomp(`date "+%Y-%m-%d_%H:%M:%S"`)
         info("Renaming older template with same id to '$id-$ts'.")
         run(`mv $home/templates/settings-$id $home/templates/settings-$id-$ts`) end
-    if id == "dist"
-        top = gettop()
-        if !ispath("$top/.dist") usage_error("'$top/.dist' does not exist.\n\tUse 'hdpm fetch-dist' to fetch the latest distribution.")
-        elseif ispath("$top/.dist/settings") run(`cp -p $home/settings/top.txt top.txt.tmp`)
-            run(`rm -rf $home/settings`); run(`cp -pr $top/.dist/settings $home/settings`); run(`mv top.txt.tmp $home/settings/top.txt`) end
-    end
-    if id == "jlab" || id == "dist" disable_cmds()
+    if id == "jlab" disable_cmds()
         info("Saving '$id' template. All build commands are disabled.") end
     write_settings(id)
     rm_regex(r".+\.txt~$","$home/settings")
@@ -221,16 +215,13 @@ function get_packages(id="")
             if ispath(jpath) path = jpath end
             if name == "cernlib" && ispath(joinpath(jlab_top(),name)) path = joinpath(jlab_top(),name) end
         end
-        if id == "dist"
-            assert(length(cmds[name]) == 0)
-            dpath = joinpath(gettop(),".dist",basename(path))
-            if ispath(dpath) path = dpath end
+        if name == "rcdb" && contains(osrelease(),"gcc4.4")
+            empty!(cmds[name])
         end
         @osx_only begin
-            if name == "xerces-c" && contains(path,"/.dist/xerces-c")
-                assert(length(cmds[name]) == 0)
-                dpath = joinpath("/usr/local/Cellar/xerces-c",version)
-                if ispath(dpath) path = dpath end
+            dpath = joinpath("/usr/local/Cellar/xerces-c",version)
+            if name == "xerces-c" && ispath(dpath) && ispath(gettop(),".dist")
+                empty!(cmds[name]); path = dpath
             end
         end
         if version == "master" && contains(url,"https://github.com/JeffersonLab/$name/archive/")
@@ -248,8 +239,7 @@ function write_settings(id)
     for pkg in get_packages(id)
         println(file["vers"],rpad(name(pkg),w," "),version(pkg))
         if version(pkg) != "NA"
-            PATH = contains(path(pkg),gettop()) && !contains(path(pkg),"/.dist/") ? replace(replace(path(pkg),version(pkg),"[VER]"),string(gettop(),"/"),"") : replace(replace(path(pkg),osrelease(),"[OS]"),version(pkg),"[VER]")
-            if contains(PATH,"/.dist/") PATH = joinpath(".dist",basename(PATH)) end
+            PATH = replace(replace(path(pkg),version(pkg),"[VER]"),string(gettop(),"/"),"")
             println(file["urls"],rpad(name(pkg),w," "),replace(url(pkg),version(pkg),"[VER]"))
             println(file["paths"],rpad(name(pkg),w," "),PATH)
         else
@@ -292,6 +282,7 @@ function get_unpack_file(URL,PATH="")
     file = basename(URL); info("Downloading $file")
     if contains(URL,"https://") || contains(URL,"http://") run(`curl -OL $URL`)
     else run(`cp -p $URL .`) end
+    info("Unpacking $file ...")
     if PATH != ""
         mkpath(PATH); if readchomp(pipeline(`tar tf $file`,`head`))[1] != '.' ncomp = 1 else ncomp = 2 end
         run(`tar xf $file -C $PATH --strip-components=$ncomp`)

@@ -17,23 +17,10 @@ if length(ARGS) == 0 || (length(ARGS) == 1 && ARGS[1] == "help")
     \t clean       Completely remove build products of selected packages
     \t clean-build Clean build of selected packages
     \t v-xml       Replace versions with versions from a version XML file
-    \t fetch-dist  Fetch binary distribution of sim-recon and its deps
+    \t install     Install binary distribution of sim-recon and its deps
     \t run         Run a command in the Hall-D offline environment
 --------------------------------------------------------------------------------
 Use 'hdpm help <command>' to see available arguments."); hz("=")
-end
-const id = readchomp("$home/settings/id.txt")
-if length(ARGS) > 0 && ARGS[1] == "build" && (id == "home-dev" || "home-dev" in ARGS); mkpath(gettop())
-    info("home-dev mode: checking for precompiled dependencies")
-    if id == "home-dev" && !ispath(joinpath(gettop(),".dist")) && ispath(joinpath(home,"pkgs",".dist"))
-        if input("Do you want to satisfy dependencies by creating a link to 'pkgs/.dist' (yes/no)? ") == "yes"
-            run(`ln -s $(joinpath(home,"pkgs",".dist")) $(joinpath(gettop(),".dist"))`)
-        end
-    elseif !ispath(joinpath(home,"pkgs",".dist"))
-        info("fetching precompiled dependencies")
-        run(`julia $home/src/select_template.jl home-dev`)
-        run(`julia $home/src/fetch_dist.jl`)
-    end
 end
 if length(ARGS) == 1 && ARGS[1] != "help"
     if ARGS[1] == "select"
@@ -54,8 +41,9 @@ if length(ARGS) == 1 && ARGS[1] != "help"
         run(`julia $home/src/show_settings.jl`)
     elseif ARGS[1] == "v-xml"
         run(`julia $home/src/versions_from_xml.jl`)
-    elseif ARGS[1] == "fetch-dist"
+    elseif ARGS[1] == "install"
         run(`julia $home/src/fetch_dist.jl`)
+        run(`julia $home/src/install_dist.jl`)
     elseif ARGS[1] == "run"
         run(`julia $home/src/run.jl`)
     elseif ARGS[1] == "save"
@@ -73,11 +61,9 @@ if length(ARGS) == 2 && ARGS[1] == "help"
     elseif ARGS[2] == "save" hz("=")
         println("Save the current settings as a new build template"); hz("-")
         println("usage: hdpm save <template-id>"); hz("-")
-        println("If <template-id> is set to 'jlab' or 'dist',\ngenerate a base template with all package builds disabled")
-        println("1. Create JLab base template to use halld group installations")
-        println("       hdpm save jlab")
-        println("2. Create hdpm-dist base template to use binaries fetched by hdpm")
-        println("       hdpm save dist"); hz("=")
+        println("If <template-id> is set to 'jlab',\ngenerate a base template with all package builds disabled.")
+        println("Create JLab base template to use halld group installations:")
+        println("       hdpm save jlab"); hz("=")
     elseif ARGS[2] == "show" hz("=")
         println("Show the current build settings"); hz("-")
         println("usage:   hdpm show\n\t(show version and path settings)"); hz("-")
@@ -118,13 +104,13 @@ if length(ARGS) == 2 && ARGS[1] == "help"
         println("Replace versions with versions from a version XML file"); hz("-")
         println("usage: hdpm v-xml\n\t(w/ https://halldweb.jlab.org/dist/version.xml)"); hz("-")
         println("usage: hdpm v-xml [<xmlfile-url> | <xmlfile-path>]"); hz("=")
-    elseif ARGS[2] == "fetch-dist" hz("=")
-        println("Fetch binary distribution of sim-recon and its deps"); hz("-")
-        println("usage: hdpm fetch-dist\n\t(fetch latest binary distribution)"); hz("-")
-        println("usage: hdpm fetch-dist [<commit>]"); hz("-")
-        println("usage: hdpm fetch-dist [<tarfile-url> | <tarfile-path>]"); hz("-")
+    elseif ARGS[2] == "install" hz("=")
+        println("Install binary distribution of sim-recon and its deps"); hz("-")
+        println("usage: hdpm install\n\t(install latest binary distribution)"); hz("-")
+        println("usage: hdpm install [<commit>]"); hz("-")
+        println("usage: hdpm install [<tarfile-url> | <tarfile-path>]"); hz("-")
         println("List available binary distribution tarfiles"); hz("-")
-        println("usage: hdpm fetch-dist -l"); hz("=")
+        println("usage: hdpm install -l"); hz("=")
     elseif ARGS[2] == "run" hz("=")
         println("Run a command in the Hall-D offline environment"); hz("-")
         println("usage: hdpm run\n\t(run a bash shell for interactive work)"); hz("-")
@@ -180,8 +166,9 @@ if length(ARGS) == 2 && ARGS[1] != "help"
         run(`julia $home/src/update.jl $(ARGS[2])`)
     elseif ARGS[1] == "v-xml"
         run(`julia $home/src/versions_from_xml.jl $(ARGS[2])`)
-    elseif ARGS[1] == "fetch-dist"
+    elseif ARGS[1] == "install"
         run(`julia $home/src/fetch_dist.jl $(ARGS[2])`)
+        if ARGS[2] != "-l" run(`julia $home/src/install_dist.jl`) end
     elseif ARGS[1] == "run"
         run(`julia $home/src/run.jl $(ARGS[2])`)
     else
