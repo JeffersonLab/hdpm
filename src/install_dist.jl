@@ -3,8 +3,10 @@ const top = gettop()
 const dist_dir = joinpath(top,".dist")
 hz("="); info("Linking binaries into $top ...")
 if !ispath(dist_dir) usage_error("No binary packages available (run 'hdpm install').") end
-BMS_OSNAME = install_dirname()
-commit(a,i) = split(split(readall("$dist_dir/$a/$BMS_OSNAME/success.hdpm"))[1],"-")[i]
+os = replace(osrelease(),"RHEL","CentOS")
+os = replace(os,"LinuxMint17","Ubuntu14")
+os = replace(os,"LinuxMint18","Ubuntu16")
+commit(a,i) = split(split(readall("$dist_dir/$a/$os/success.hdpm"))[1],"-")[i]
 for pkg in get_packages()
     n = name(pkg); v = version(pkg)
     if n=="hdds" v = commit(n,2) end
