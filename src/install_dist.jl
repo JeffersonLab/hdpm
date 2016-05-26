@@ -24,6 +24,6 @@ for pkg in get_packages()
     end
     run(`ln -s $pd $p`)
 end
-run(`rm -f $top/env-setup/dist.sh`); run(`rm -f $top/env-setup/dist.csh`)
+mkpath("$top/env-setup"); run(`rm -f $top/env-setup/dist.sh`); run(`rm -f $top/env-setup/dist.csh`)
 if ispath("$dist_dir/env-setup/hdenv.sh") run(`ln -s $dist_dir/env-setup/hdenv.sh $top/env-setup/dist.sh`) end
 if ispath("$dist_dir/env-setup/hdenv.csh") run(`ln -s $dist_dir/env-setup/hdenv.csh $top/env-setup/dist.csh`) end
