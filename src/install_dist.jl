@@ -11,8 +11,8 @@ for pkg in get_packages()
     n = name(pkg); v = version(pkg)
     if n=="hdds" v = commit(n,2) end
     if n=="sim-recon" v = commit(n,3) end
-    p = joinpath(top,n,v)
-    pd = n=="sim-recon" || n=="hdds" ? joinpath(dist_dir,n):joinpath(dist_dir,string(n,"-",v))
+    p = (n == "cernlib") ? joinpath(top,n):joinpath(top,n,v)
+    pd = (n=="sim-recon" || n=="hdds" || n == "cernlib") ? joinpath(dist_dir,n):joinpath(dist_dir,string(n,"-",v))
     if !ispath(pd) println("\t$n-$v is not included in distribution."); continue end
     if ispath(p) println("\t$n-$v is already installed."); continue end
     mkpath(dirname(p))
