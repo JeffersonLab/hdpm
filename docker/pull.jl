@@ -1,4 +1,4 @@
-dtags = Dict("c6"=>"centos6","c7"=>"centos7","u14"=>"ubuntu14","f22"=>"fedora22")
+dtags = Dict("c6"=>"centos6","c7"=>"centos7","u14"=>"ubuntu14","u16"=>"ubuntu16")
 info("Available OS tags: ",join(keys(dtags),", "))
 if length(ARGS) == 0 println("Usage error: Please provide Docker username as first argument.\n\tSpecify a subset of tags by listing them as additional arguments."); exit() end
 duser = ARGS[1]

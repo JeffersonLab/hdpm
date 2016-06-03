@@ -1,5 +1,5 @@
 # build sim-recon in Docker containers
-dtags = Dict("c6"=>"centos6","c7"=>"centos7","u14"=>"ubuntu14","f22"=>"fedora22")
+dtags = Dict("c6"=>"centos6","c7"=>"centos7","u14"=>"ubuntu14","u16"=>"ubuntu16")
 bstages = ["base","deps","sim-recon"]
 info("Available OS tags: ",join(keys(dtags),", "))
 info("Build stages: ",join(bstages,", "))

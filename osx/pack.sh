@@ -10,10 +10,10 @@ cp -pr ../$top $tag
 mkdir $name-$tag; cd $name-$tag
 cp -pr ../../../settings .; mv ../$tag/* .; rm -rf ../$tag
 cp -p ../../.id-deps-$tag . #; cp -p ../../.log-sim-recon-$tag sim-recon/
-commit=$(echo $(grep -i sim-recon sim-recon/*/success.hdpm) | sed -E 's/sim-recon-//g')
+commit=$(echo $(grep -i sim-recon sim-recon/master/*/success.hdpm) | sed -E 's/sim-recon-//g')
 mkdir $cwd/$name-$tag-tmp
 mv hdds $cwd/$name-$tag-tmp; mv sim-recon $cwd/$name-$tag-tmp
-cp -p .id-deps-$tag $cwd/$name-$tag-tmp/hdds/; cp -p .id-deps-$tag $cwd/$name-$tag-tmp/sim-recon/
+cp -p .id-deps-$tag $cwd/$name-$tag-tmp/hdds/master/; cp -p .id-deps-$tag $cwd/$name-$tag-tmp/sim-recon/master/
 cd $cwd
 mv $name-$tag $name-deps-$tag; mv $name-$tag-tmp $name-$tag
 if ! test -f $target/$name-deps-$id_deps-$tag.tar.gz; then

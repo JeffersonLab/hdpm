@@ -1,4 +1,4 @@
-FROM hdbase:f22
+FROM hdbase:u16
 MAINTAINER Nathan Sparks <nsparks@jlab.org>
 RUN mkdir -p /home/hdpm && groupadd -r hdpm -g 573 && useradd -u 1000 \
     -r -g hdpm -d /home/hdpm -s /sbin/nologin -c "Docker image user" hdpm \
@@ -7,6 +7,5 @@ RUN mkdir -p /home/hdpm && groupadd -r hdpm -g 573 && useradd -u 1000 \
     && chown -R hdpm:hdpm /home/hdpm
 USER hdpm
 WORKDIR /home/hdpm
-ENV CC=/usr/bin/clang CXX=/usr/bin/clang++
 RUN /bin/bash -c "source setup.sh && julia src/hdpm.jl build cernlib amptools evio jana"
 CMD /bin/bash

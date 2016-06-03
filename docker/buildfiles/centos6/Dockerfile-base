@@ -1,11 +1,11 @@
 FROM centos:6
 MAINTAINER Nathan Sparks <nsparks@jlab.org>
-RUN yum update -y && yum install -y centos-release-SCL epel-release \
+RUN yum update -y && yum install -y centos-release-SCL epel-release centos-release-scl-rh \
             && yum install -y python27 git make gcc-c++ gcc binutils \
             libX11-devel libXpm-devel libXft-devel libXext-devel \
             subversion scons cmake gcc-gfortran imake patch expat-devel \
             blas-devel lapack-devel openmotif-devel tcsh tar file clang \
-            mysql-devel sqlite-devel fftw-devel bzip2 bzip2-devel emacs \
+            mysql-devel sqlite-devel fftw-devel bzip2 bzip2-devel emacs devtoolset-3-toolchain \
             && yum clean all \
             && ln -s /usr/lib64/liblapack.a /usr/lib64/liblapack3.a \
             && ln -s /usr/include/freetype2/freetype /usr/include/freetype
