@@ -31,9 +31,9 @@ if test $active == "0"; then
         $JL build.jl sim-recon c7; $JL write_deps_id.jl nathansparks c7
         bash pack.sh c7; $JL cull.jl 10 c7
         cd ../osx && bash ship.sh && cd $cwd; $JL cull.jl 10 osx
-        $JL build.jl sim-recon u14 f22; $JL write_deps_id.jl nathansparks u14 f22
-        bash pack.sh u14; bash pack.sh f22
-        $JL cull.jl 5 u14; $JL cull.jl 5 f22
+        $JL build.jl sim-recon u14 u16; $JL write_deps_id.jl nathansparks u14 u16
+        bash pack.sh u14; bash pack.sh u16
+        $JL cull.jl 5 u14; $JL cull.jl 5 u16
         echo "0" > $cwd/.active
     else
         echo "sim-recon is up-to-date."
