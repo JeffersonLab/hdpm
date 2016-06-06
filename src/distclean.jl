@@ -5,7 +5,7 @@ safe_to_proceed =
 Do you really want to proceed (yes or no)? ") == "yes"
 if safe_to_proceed
     top = gettop()
-    cwd = pwd(); cd(joinpath(top,"sim-recon"))
+    cwd = pwd(); cd(joinpath(top,"sim-recon","master"))
     info("Asserting that working directory of sim-recon is clean ...")
     assert(contains(readall(`git status`),"working directory clean")); cd(cwd)
     rm_regex(r"^julia-.+",top)
