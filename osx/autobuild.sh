@@ -32,7 +32,7 @@ if test $active == "0"; then
         bash -c "source setup.sh && julia src/hdpm.jl select osx \
             && julia src/hdpm.jl build sim-recon && julia src/distclean.jl yes \
             && cd $cwd && julia write_deps_id.jl && bash pack.sh && bash publish.sh \
-            && julia cull.jl 10 osx && rm -rf $top/sim-recon $top/hdds"
+            && julia cull.jl 5 osx && rm -rf $top/sim-recon $top/hdds"
         echo "0" > $cwd/.active
     else
         echo "sim-recon is up-to-date."
