@@ -9,11 +9,11 @@ os = replace(os,"LinuxMint18","Ubuntu16")
 commit(a,i) = split(split(readall("$dist_dir/$a/master/$os/success.hdpm"))[1],"-")[i]
 for pkg in get_packages()
     n = name(pkg); v = version(pkg)
+    pd = (n == "cernlib") ? joinpath(dist_dir,n):joinpath(dist_dir,n,v)
+    if !ispath(pd) println("\t$n-$v is not included in distribution."); continue end
     if n=="hdds" v = commit(n,2) end
     if n=="sim-recon" v = commit(n,3) end
     p = (n == "cernlib") ? joinpath(top,n):joinpath(top,n,v)
-    pd = (n == "cernlib") ? joinpath(dist_dir,n):joinpath(dist_dir,n,v)
-    if !ispath(pd) println("\t$n-$v is not included in distribution."); continue end
     if ispath(p) println("\t$n-$v is already installed."); continue end
     mkpath(dirname(p))
     if n == "hdds" || n == "sim-recon"
