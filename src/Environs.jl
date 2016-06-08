@@ -38,7 +38,7 @@ function getenv()
              "RCDB_CONNECTION" => "mysql://rcdb@hallddb.jlab.org/rcdb",
              "CCDB_HOME" => home["ccdb"],
              "CCDB_CONNECTION" => CCDB_CONNECTION,
-             "CCDB_USER" => "\$USER",
+             "CCDB_USER" => "\${USER}",
              "HDDS_HOME" => home["hdds"],
              "JANA_HOME" => JANA_HOME,
              "JANA_CALIB_URL" => CCDB_CONNECTION,
@@ -113,7 +113,7 @@ function printenv()
         println(file,string("$set GLUEX_TOP$eq",env["GLUEX_TOP"]))
         println(file,string("$set BMS_OSNAME$eq",env["BMS_OSNAME"]))
         for (k,v) in env; if k == "GLUEX_TOP" || k == "BMS_OSNAME" || contains(k,"PATH") continue end
-            v = replace(v,env["GLUEX_TOP"],"\$GLUEX_TOP");v = replace(v,env["BMS_OSNAME"],"\$BMS_OSNAME")
+            v = replace(v,env["GLUEX_TOP"],"\${GLUEX_TOP}");v = replace(v,env["BMS_OSNAME"],"\${BMS_OSNAME}")
             println(file,"$set $k$(eq)$v")
         end
         for (k,v) in myoptenv
@@ -128,9 +128,9 @@ function printenv()
             for (k,v) in env; if k == "GLUEX_TOP" || k == "CCDB_USER" || contains(k,"PATH") continue end
                 path = replace(path,v,string("\${",k,"}"))
             end
-            if haskey(ENV,path_name) path = replace(path,ENV[path_name],string("\$",path_name)) end
-            path = replace(path,env["GLUEX_TOP"],"\$GLUEX_TOP")
-            if haskey(ENV,path_name) println(file,"\n$set $path_name$(eq)$(replace(ENV[path_name],env["GLUEX_TOP"],"\$GLUEX_TOP"))") end
+            if haskey(ENV,path_name) path = replace(path,ENV[path_name],string("\${",path_name,"}")) end
+            path = replace(path,env["GLUEX_TOP"],"\${GLUEX_TOP}")
+            if haskey(ENV,path_name) println(file,"\n$set $path_name$(eq)$(replace(ENV[path_name],env["GLUEX_TOP"],"\${GLUEX_TOP}"))") end
             println(file,"\n$set $path_name$(eq)$path")
         end
         close(file)

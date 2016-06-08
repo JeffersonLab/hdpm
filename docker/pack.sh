@@ -11,6 +11,10 @@ mkdir $tag; tar xf $tag.tar -C $tag; chmod -R u+w $tag; rm -f $tag.tar
 mkdir $name-$tag; cd $name-$tag
 if test $tag == c6; then
     mv ../$tag/opt .
+    cd opt/rh/devtoolset-3/root; mv usr ../; cd ../
+    rm -rf root; mkdir root; mv usr root
+    cd root/usr/bin; rm -f ld; rm -f ../tmp
+    ln -s ld.bfd ld; cd $cwd/$name-$tag
 fi
 mv ../$tag/home/hdpm/settings .; mv ../$tag/home/hdpm/pkgs/* .
 if [[ $tag != u14 && $tag != u16 ]]; then
