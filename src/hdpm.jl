@@ -22,6 +22,17 @@ if length(ARGS) == 0 || (length(ARGS) == 1 && ARGS[1] == "help")
 --------------------------------------------------------------------------------
 Use 'hdpm help <command>' to see available arguments."); hz("=")
 end
+const os = osrelease()
+if contains(os,"CentOS6") || contains(os,"RHEL6") && ispath(joinpath(gettop(),".dist"))
+    p = joinpath(gettop(),".dist")
+    ENV["PATH"] = string("$p/opt/rh/python27/root/usr/bin:$p/opt/rh/devtoolset-3/root/usr/bin:",ENV["PATH"])
+    a = "$p/opt/rh/python27/root/usr/lib64:$p/opt/rh/devtoolset-3/root/usr/lib64:$p/opt/rh/devtoolset-3/root/usr/lib"
+    if !haskey(ENV,"LD_LIBRARY_PATH")
+        ENV["LD_LIBRARY_PATH"] = a
+    else
+        ENV["LD_LIBRARY_PATH"] = string(a,":",ENV["LD_LIBRARY_PATH"])
+    end
+end
 if length(ARGS) == 1 && ARGS[1] != "help"
     if ARGS[1] == "select"
         run(`julia $home/src/select_template.jl`)
