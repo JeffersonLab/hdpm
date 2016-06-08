@@ -23,7 +23,7 @@ if length(ARGS) == 0 || (length(ARGS) == 1 && ARGS[1] == "help")
 Use 'hdpm help <command>' to see available arguments."); hz("=")
 end
 const os = osrelease()
-if contains(os,"CentOS6") || contains(os,"RHEL6") && ispath(joinpath(gettop(),".dist"))
+if (contains(os,"CentOS6") || contains(os,"RHEL6")) && (ispath(joinpath(gettop(),".dist")) || "install" in ARGS)
     p = joinpath(gettop(),".dist")
     ENV["PATH"] = string("$p/opt/rh/python27/root/usr/bin:$p/opt/rh/devtoolset-3/root/usr/bin:",ENV["PATH"])
     a = "$p/opt/rh/python27/root/usr/lib64:$p/opt/rh/devtoolset-3/root/usr/lib64:$p/opt/rh/devtoolset-3/root/usr/lib"
