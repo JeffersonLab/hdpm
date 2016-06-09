@@ -15,10 +15,9 @@ for pkg in get_packages()
     if n=="sim-recon" v = commit(n,3) end
     p = (n == "cernlib") ? joinpath(top,n):joinpath(top,n,v)
     if ispath(p) println("\t$n-$v is already installed."); continue end
-    mkpath(dirname(p))
-    if n == "hdds" || n == "sim-recon"
-        d = dirname(p)
-        for dir in readdir(d); if !islink(joinpath(d,dir)) continue end
+    d = dirname(p); mkpath(d)
+    for dir in readdir(d); if !islink(joinpath(d,dir)) continue end
+        if startswith(readlink(joinpath(d,dir)),joinpath(top,".dist/"))
             rm(joinpath(d,dir))
         end
     end
