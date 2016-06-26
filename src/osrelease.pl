@@ -50,7 +50,11 @@ if ($uname eq 'Linux') {
 	    $release = '_RHEL5';
 	} elsif ($release_string =~ /^Red Hat Enterprise Linux Workstation release 6.*/) {
 	    $release = '_RHEL6';
+	} elsif ($release_string =~ /^Red Hat Enterprise Linux Server release 6.*/) {
+	    $release = '_RHEL6';
 	} elsif ($release_string =~ /^Red Hat Enterprise Linux Workstation release 7.*/) {
+	    $release = '_RHEL7';
+	} elsif ($release_string =~ /^Red Hat Enterprise Linux Server release 7.*/) {
 	    $release = '_RHEL7';
 	} elsif ($release_string =~ /^CentOS release 5.*/) {
 	    $release = '_CentOS5';
@@ -74,7 +78,7 @@ if ($uname eq 'Linux') {
 	$distrib_release =~ s/DISTRIB_RELEASE=//;
 	chomp $distrib_id;
 	chomp $distrib_release;
-	$release = "_${distrib_id}${distrib_release}";	
+	$release = "_${distrib_id}${distrib_release}";
     } else {
 	$release = '';
     }
@@ -129,7 +133,7 @@ if ($compiler_version_str =~ /\sgcc version\s/) {
 	chomp $ccversion;
 
 } elsif ($compiler_version_str =~ /clang version\s+/) {
-	
+
 	# clang seems to report different numbers for the version
 	# if you use "clang -dumpversion" or "clang -v". The former
 	# seems to correspond to the installed gcc version number

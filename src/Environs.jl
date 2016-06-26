@@ -19,10 +19,6 @@ function getenv()
     if is_external(get_package("hdds")) || is_external(get_package("sim-recon")) BMS_OSNAME = osrelease() end
     JANA_HOME = is_external(get_package("jana")) ? string(home["jana"],"/$(osrelease())") : string(home["jana"],"/$BMS_OSNAME")
     @osx_only begin home["cernlib"] = "NA";vers["cernlib"] = "NA" end
-    PYTHON_HOME = "NA"
-    if ispath("/apps/python/PRO/bin/python2.7")
-        PYTHON_HOME = "/apps/python/PRO"
-    end
     CCDB_CONNECTION = "mysql://ccdb_user@hallddb.jlab.org/ccdb"
     env = Dict(
              "GLUEX_TOP" => GLUEX_TOP,
@@ -72,7 +68,6 @@ function getenv()
     else env["JANA_PLUGIN_PATH"] = ENV["JANA_PLUGIN_PATH"] end
     # do PATH
     paths = [joinpath(env["CERN"],env["CERN_LEVEL"]),env["ROOTSYS"],env["XERCESCROOT"],env["EVIOROOT"],joinpath(env["RCDB_HOME"],"cpp"),env["CCDB_HOME"],env["HDDS_HOME"],env["JANA_HOME"],joinpath(env["HALLD_HOME"],env["BMS_OSNAME"]),joinpath(env["ROOT_ANALYSIS_HOME"],env["BMS_OSNAME"])]
-    if PYTHON_HOME != "NA" push!(paths,PYTHON_HOME) end
     for p in paths
         env["PATH"] = add_to_path(env["PATH"],string(p,"/bin"))
     end

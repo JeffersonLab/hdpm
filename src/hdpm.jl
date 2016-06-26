@@ -32,6 +32,15 @@ if (contains(os,"CentOS6") || contains(os,"RHEL6")) && (ispath(joinpath(gettop()
     else
         ENV["LD_LIBRARY_PATH"] = string(a,":",ENV["LD_LIBRARY_PATH"])
     end
+elseif (contains(os,"CentOS6") || contains(os,"RHEL6")) && ispath("/apps/gcc/4.9.2/bin") && ispath("/apps/python/PRO/bin")
+    p = "/apps"
+    ENV["PATH"] = string("$p/python/PRO/bin:$p/gcc/4.9.2/bin:",ENV["PATH"])
+    a = "$p/python/PRO/lib:$p/gcc/4.9.2/lib64:$p/gcc/4.9.2/lib"
+    if !haskey(ENV,"LD_LIBRARY_PATH")
+        ENV["LD_LIBRARY_PATH"] = a
+    else
+        ENV["LD_LIBRARY_PATH"] = string(a,":",ENV["LD_LIBRARY_PATH"])
+    end
 end
 if length(ARGS) == 1 && ARGS[1] != "help"
     if ARGS[1] == "select"
