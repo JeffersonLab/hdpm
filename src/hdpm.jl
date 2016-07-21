@@ -32,6 +32,7 @@ if (contains(os,"CentOS6") || contains(os,"RHEL6")) && (ispath(joinpath(gettop()
     else
         ENV["LD_LIBRARY_PATH"] = string(a,":",ENV["LD_LIBRARY_PATH"])
     end
+    ENV["LDFLAGS"] = "-L$p/opt/rh/python27/root/usr/lib64"
 elseif (contains(os,"CentOS6") || contains(os,"RHEL6")) && ispath("/apps/gcc/4.9.2/bin") && ispath("/apps/python/PRO/bin")
     p = "/apps"
     ENV["PATH"] = string("$p/python/PRO/bin:$p/gcc/4.9.2/bin:",ENV["PATH"])
