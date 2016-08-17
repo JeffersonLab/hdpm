@@ -3,7 +3,7 @@ alias docker-ip="docker inspect --format {{.NetworkSettings.IPAddress}}"
 docker-rm() { docker rm $(docker ps -aq); }
 #docker-rmi() { docker rmi $(docker images -q); }
 alias docker-run="docker run -it --rm"
-DATA_DIR=`pwd`/data
+DATA_DIR=$(pwd)
 dock() { docker run -it --rm -v $DATA_DIR:/home/hdpm/docker/data sim-recon \
-    /bin/bash -c "source /home/hdpm/pkgs/env-setup/hdenv.sh &&
+    /bin/bash -c "source /home/hdpm/pkgs/env-setup/master.sh &&
     export CCDB_USER=$USER && $1"; }

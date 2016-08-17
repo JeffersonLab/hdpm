@@ -31,7 +31,7 @@ if ($uname == "Linux") then
         endif
     endif
 endif
-set VER=0.4.5
+set VER=0.4.6
 set JLPATH=$HDPM_PATH/pkgs/julia-$VER/bin
 if ( -e ${JLPATH}/julia ) then
     echo "julia-$VER directory already exists; nothing to download."

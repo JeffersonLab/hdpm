@@ -30,7 +30,6 @@ if test $active == "0"; then
         bash pack.sh c6; $JL cull.jl 5 c6
         $JL build.jl sim-recon c7; $JL write_deps_id.jl nathansparks c7
         bash pack.sh c7; $JL cull.jl 5 c7
-        #cd ../osx && bash ship.sh && cd $cwd; $JL cull.jl 5 osx
         $JL build.jl sim-recon u14 u16; $JL write_deps_id.jl nathansparks u14 u16
         bash pack.sh u14; bash pack.sh u16
         $JL cull.jl 5 u14; $JL cull.jl 5 u16
