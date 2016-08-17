@@ -4,7 +4,7 @@
 # plugins.txt: list of plugins to test
 LOG=log
 mkdir -p $LOG
-source ../pkgs/env-setup/hdenv.sh
+source ../pkgs/env-setup/master.sh
 EVIO=$1
 EVENTS=500
 THREADS=8
