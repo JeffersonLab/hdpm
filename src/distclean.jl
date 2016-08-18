@@ -16,19 +16,11 @@ if safe_to_proceed
             if !(name(pkg) in ARGS) continue end end
         if !is_external(pkg) && ispath(path(pkg))
             cd(path(pkg))
-            if name(pkg) == "root"
-                run(`make dist`); run(`cp -p success.hdpm ../`); cd("../")
-                run(`rm -rf $(version(pkg))`)
-                for item in filter(r".+gz$",readdir("."))
-                    run(`tar xf $item`); rm("$item")
-                end
-            else
-                run(`rm -rf src`); run(`rm -rf .$BMS_OSNAME`)
-                rm_regex(r".+gz$"); rm_regex(r".+\.contents$")
-                rm_regex(r"^\.g.+"); rm_regex(r"^\.s.+")
-                rm_regex(r"^setenv\..+")
-                rm_regex(r"^setenv\..+",joinpath(pwd(),BMS_OSNAME))
-            end
+            run(`rm -rf src`); run(`rm -rf .$BMS_OSNAME`)
+            rm_regex(r".+gz$"); rm_regex(r".+\.contents$")
+            rm_regex(r"^\.g.+"); rm_regex(r"^\.s.+")
+            rm_regex(r"^setenv\..+")
+            rm_regex(r"^setenv\..+",joinpath(pwd(),BMS_OSNAME))
         end
     end
 end

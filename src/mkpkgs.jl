@@ -20,15 +20,23 @@ for pkg in get_packages(); if length(ARGS) > 0 if !(name(pkg) in ARGS) && !(name
         du = split(readchomp(`du -sh $(path(pkg))`))[1] # src code disk use
         if name(pkg) in ["xerces-c","root","amptools","geant4","evio","rcdb","ccdb","jana","hdds","sim-recon","gluex_root_analysis","gluex_workshops"]
             if name(pkg) == "sim-recon" cd("src") end
-            if name(pkg) == "geant4" mk_cd("../$(name(pkg))_build") end
+            if name(pkg) == "geant4" || name(pkg) == "root"
+                mk_cd("../$(name(pkg))-build")
+                run(`mv ../$(version(pkg)) ../$(name(pkg))`)
+                mkpath("../$(version(pkg))")
+             end
             for cmd in cmds(pkg)
                 run(`sh -c $cmd`)
             end
-            if name(pkg) == "geant4" cd("../");run(`rm -rf $(name(pkg))_build`) end
+            if name(pkg) == "geant4" || name(pkg) == "root"
+                cd("../"); run(`rm -rf $(name(pkg))-build $(name(pkg))`) end
         elseif name(pkg) == "cernlib"
             run(`cp -pr $home/patches $(path(pkg))`)
             run(`sh -c "patch < $(path(pkg))/patches/cernlib/Install_cernlib.patch"`)
             run(`./Install_cernlib`)
+            run(`rm -rf 2005/build 2005/src`)
+            run(`mv 2005 ../`); cd("../"); run(`rm -rf cernlib`)
+            mk_cd(path(pkg)); run(`mv ../2005 .`)
         end # stop timer and write success file
         du_f = split(readchomp(`du -sh $(path(pkg))`))[1]
         success_file = open(path_to_success,"w")
