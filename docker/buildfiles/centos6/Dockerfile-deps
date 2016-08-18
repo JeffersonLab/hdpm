@@ -9,6 +9,6 @@ USER hdpm
 WORKDIR /home/hdpm
 ENV CC=/usr/bin/clang CXX=/usr/bin/clang++
 RUN scl enable devtoolset-3 python27 "source setup.sh \
-    && julia src/hdpm.jl build cernlib amptools evio jana \
+    && julia src/hdpm.jl build cernlib amptools evio jana rcdb \
     && julia src/distclean.jl yes"
 CMD /bin/bash
