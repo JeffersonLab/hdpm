@@ -3,14 +3,13 @@ using Packages
 println("Tarfile base URL:   https://halldweb.jlab.org/dist")
 println("Path on JLab CUE:   /group/halld/www/halldweb/html/dist")
 println("Filename format:    sim-recon-<commit>-<id_deps>-<os_tag>.tar.gz")
-println("Available OS tags:  c6 (CentOS6), c7 (CentOS7), u14 (Ubuntu14),
-                    u16 (Ubuntu16), osx (OSX10.11)"); hz("-")
+println("Available OS tags:  c6 (CentOS 6), c7 (CentOS 7),
+                    u14 (Ubuntu 14.04), u16 (Ubuntu 16.04)"); hz("-")
 os = osrelease()
 if contains(os,"CentOS6") || contains(os,"RHEL6") os_tag = "c6"
 elseif contains(os,"CentOS7") || contains(os,"RHEL7") os_tag = "c7"
 elseif contains(os,"Ubuntu14") || contains(os,"LinuxMint17") os_tag = "u14"
 elseif contains(os,"Ubuntu16") || contains(os,"LinuxMint18") os_tag = "u16"
-elseif contains(os,"Darwin_macosx10.11") os_tag = "osx"
 else usage_error("Unsupported operating system: $os"); os_tag = os end
 PATH = joinpath(gettop(),".dist")
 if length(ARGS) > 1 usage_error("Too many arguments: Use 'hdpm help fetch-dist' to see available arguments.") end

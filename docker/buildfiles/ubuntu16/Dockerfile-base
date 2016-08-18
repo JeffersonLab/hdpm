@@ -4,7 +4,7 @@ RUN apt-get update && apt-get install -y curl git dpkg-dev make g++ gcc binutils
     libx11-dev libxpm-dev libxft-dev libxext-dev libfftw3-dev python-dev cmake \
     scons subversion gfortran xutils-dev libxt-dev liblapack-dev libblas-dev \
     libmotif-dev expect libgl1-mesa-dev libmysqlclient-dev sqlite3 lsb-release \
-    libsqlite3-dev tcsh libbz2-dev emacs file ca-certificates --no-install-recommends \
+    libglew-dev libsqlite3-dev tcsh libbz2-dev emacs file ca-certificates --no-install-recommends \
     && apt-get clean && rm -rf /var/lib/apt/lists/* \
     && ln -s /usr/bin/make /usr/bin/gmake \
     && ln -s /usr/lib/liblapack.a /usr/lib/liblapack3.a
