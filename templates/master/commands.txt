@@ -2,7 +2,7 @@ xerces-c  "./configure --prefix=[PATH]"
 xerces-c  make
 xerces-c  "make install"
 cernlib   NA
-root      "cmake -Droofit=ON -DCMAKE_INSTALL_PREFIX=[PATH] -DCMAKE_CXX_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0 ../root"
+root      "cmake -Droofit=ON -DCMAKE_INSTALL_PREFIX=[PATH] ../root"
 root      "cmake --build . -- -j8"
 root      "cmake --build . --target install"
 amptools  "cd AmpTools && make && cd ../"
