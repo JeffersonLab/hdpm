@@ -1,7 +1,7 @@
 xerces-c  3.1.4
 cernlib   2005
 root      6.06.06
-amptools  master
+amptools  0.9.2
 geant4    10.02.p02
 evio      4.4.6
 rcdb      master

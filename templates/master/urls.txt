@@ -1,7 +1,7 @@
 xerces-c  http://archive.apache.org/dist/xerces/c/3/sources/xerces-c-[VER].tar.gz
 cernlib   http://www-zeuthen.desy.de/linear_collider/cernlib/new/cernlib.2005.corr.2014.04.17.tgz
 root      https://root.cern.ch/download/root_v[VER].source.tar.gz
-amptools  svn://svn.code.sf.net/p/amptools/code/trunk
+amptools  http://downloads.sourceforge.net/project/amptools/AmpTools_v[VER].tgz
 geant4    http://geant4.cern.ch/support/source/geant4.[VER].tar.gz
 evio      https://coda.jlab.org/drupal/system/files/coda/evio/evio-4.4/evio-[VER].tgz
 rcdb      https://github.com/JeffersonLab/rcdb
