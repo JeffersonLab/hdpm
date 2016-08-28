@@ -9,4 +9,4 @@ ccdb      1.06.01
 jana      0.7.5p2
 hdds      master
 sim-recon master
-gluex_root_analysis master
+gluex_root_analysis e0226ff

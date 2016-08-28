@@ -109,7 +109,9 @@ hz("-"); println("Environment setup\nsource $(joinpath(PATH,"env-setup","master.
 for item in readdir("$PATH/sim-recon/master")
     if contains(item,"Linux_") || contains(item,"Darwin_")
         assert(commit==split(split(readall("$PATH/sim-recon/master/$item/success.hdpm"))[1],"-")[3])
-        JANA = joinpath(PATH,"jana",readdir(joinpath(PATH,"jana"))[1])
-        if os != item && !ispath(joinpath(JANA,os)) run(`ln -s $JANA/$item $JANA/$os`) end
+        for n in ["jana", "gluex_root_analysis"]
+            p = joinpath(PATH,n,readdir(joinpath(PATH,n))[1])
+            if os != item && !ispath(joinpath(p,os)) run(`ln -s $p/$item $p/$os`) end
+        end
     end
 end
