@@ -16,11 +16,7 @@ if safe_to_proceed
             if !(name(pkg) in ARGS) continue end end
         if !is_external(pkg) && ispath(path(pkg))
             cd(path(pkg))
-            run(`rm -rf src`); run(`rm -rf .$BMS_OSNAME`)
-            rm_regex(r".+gz$"); rm_regex(r".+\.contents$")
-            rm_regex(r"^\.g.+"); rm_regex(r"^\.s.+")
-            rm_regex(r"^setenv\..+")
-            rm_regex(r"^setenv\..+",joinpath(pwd(),BMS_OSNAME))
+            cleanup(pkg)
         end
     end
 end
