@@ -2,7 +2,7 @@ module Packages
 # organize package information
 export Package,name,version,url,path,cmds,is_external,get_packages,get_package,gettop,osrelease,gettag,select_template,show_settings
 export get_unpack_file,mk_cd,get_template_ids,get_pkg_names,get_deps,tagged_deps,git_version,check_deps,mk_template,install_dirname
-export versions_from_xml,rm_regex,input,hz,usage_error
+export versions_from_xml,rm_regex,input,hz,usage_error,uses_cmake
 immutable Package
     name::ASCIIString
     version::ASCIIString
@@ -18,6 +18,12 @@ path(a::Package) = a.path
 cmds(a::Package) = a.cmds
 deps(a::Package) = a.deps
 is_external(a::Package) = length(cmds(a)) == 0
+function uses_cmake(a::Package)
+    for cmd in a.cmds
+        if contains(cmd, "cmake") return true end
+    end
+    false
+end
 #
 const home = dirname(dirname(@__FILE__))
 function usage_error(str...)
@@ -180,10 +186,9 @@ function get_packages(id="")
         "jana" => "xerces-c,root,ccdb",
         "hdds" => "xerces-c",
         "sim-recon" => "xerces-c,cernlib,root,evio,ccdb,jana,hdds",
-        "gluex_root_analysis" => "xerces-c,cernlib,root,evio,ccdb,jana,hdds,sim-recon",
+        "gluex_root_analysis" => "root,sim-recon",
         "gluex_workshops" => "xerces-c,cernlib,root,evio,ccdb,jana,hdds,sim-recon,gluex_root_analysis")
     @osx_only mydeps["sim-recon"] = "xerces-c,root,evio,ccdb,jana,hdds"
-    @osx_only mydeps["gluex_root_analysis"] = "xerces-c,root,evio,ccdb,jana,hdds,sim-recon"
     @osx_only mydeps["gluex_workshops"] = "xerces-c,root,evio,ccdb,jana,hdds,sim-recon,gluex_root_analysis"
     jsep = Dict("xerces-c"=>"-","cernlib"=>"","root"=>"_","amptools"=>"_","geant4"=>"-","evio"=>"-","rcdb"=>"-","ccdb"=>"_","jana"=>"_","hdds"=>"-","sim-recon"=>"-","gluex_root_analysis"=> "-")
     pkgs = Array(Package,0)
@@ -217,6 +222,12 @@ function get_packages(id="")
         end
         if name == "rcdb" && contains(osrelease(),"gcc4.4")
             empty!(cmds[name])
+        end
+        if name == "root" && major_minor(version)[1] == "6" && contains(ENV["PATH"],"/opt/rh/devtoolset-3/root/usr/bin") && (contains(osrelease(),"CentOS6") || contains(osrelease(),"RHEL6"))
+            if length(cmds[name]) > 0 && !contains(cmds[name][1],"./configure")
+                empty!(cmds[name])
+                push!(cmds[name],"./configure --enable-roofit"); push!(cmds[name],"make -j8 && make clean")
+            end
         end
         @osx_only begin
             dpath = joinpath("/usr/local/Cellar/xerces-c",version)

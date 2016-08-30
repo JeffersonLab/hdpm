@@ -20,15 +20,15 @@ for pkg in get_packages(); if length(ARGS) > 0 if !(name(pkg) in ARGS) && !(name
         du = split(readchomp(`du -sh $(path(pkg))`))[1] # src code disk use
         if name(pkg) in ["xerces-c","root","amptools","geant4","evio","rcdb","ccdb","jana","hdds","sim-recon","gluex_root_analysis","gluex_workshops"]
             if name(pkg) == "sim-recon" cd("src") end
-            if name(pkg) == "geant4" || name(pkg) == "root"
+            if uses_cmake(pkg)
                 mk_cd("../$(name(pkg))-build")
                 run(`mv ../$(version(pkg)) ../$(name(pkg))`)
                 mkpath("../$(version(pkg))")
-             end
+            end
             for cmd in cmds(pkg)
                 run(`sh -c $cmd`)
             end
-            if name(pkg) == "geant4" || name(pkg) == "root"
+            if uses_cmake(pkg)
                 cd("../"); run(`rm -rf $(name(pkg))-build $(name(pkg))`) end
         elseif name(pkg) == "cernlib"
             run(`cp -pr $home/patches $(path(pkg))`)
