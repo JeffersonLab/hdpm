@@ -11,11 +11,16 @@ for pkg in get_packages(); if length(ARGS) > 0 if !(name(pkg) in ARGS) continue 
             cmd = replace(cmds(pkg)[1],"scons","scons -c")
             run(setenv(`sh -c $cmd`,getenv()))
         end
-        if name(pkg) in ["jana","hdds","sim-recon"]
+        if name(pkg) in ["jana","hdds","sim-recon","gluex_root_analysis"]
             run(`rm -f .sconsign.dblite`)
             run(`rm -f src/.sconsign.dblite`)
             run(`rm -f success.hdpm`)
             run(`rm -rf $BMS_OSNAME`)
+            if name(pkg) == "gluex_root_analysis"
+                for dir in ["libraries/DSelector","programs/MakeDSelector","programs/tree_to_amptools"]
+                    run(`rm -rf $dir/$BMS_OSNAME`)
+                end
+            end
             if ispath("src") cd("src") end; run(`rm -rf .$BMS_OSNAME`)
         end
     end
