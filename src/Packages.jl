@@ -18,6 +18,7 @@ path(a::Package) = a.path
 cmds(a::Package) = a.cmds
 deps(a::Package) = a.deps
 is_external(a::Package) = length(cmds(a)) == 0
+const home = dirname(dirname(@__FILE__))
 function uses_cmake(a::Package)
     for cmd in a.cmds
         if contains(cmd, "cmake") return true end
@@ -33,6 +34,7 @@ function cleanup(a::Package)
         end
         run(`mv success.hdpm $(version(a))`)
     else
+        BMS_OSNAME = install_dirname()
         run(`rm -rf src`); run(`rm -rf .$BMS_OSNAME`)
         rm_regex(r".+gz$"); rm_regex(r".+\.contents$")
         rm_regex(r"^\.g.+"); rm_regex(r"^\.s.+")
@@ -41,7 +43,6 @@ function cleanup(a::Package)
     end
 end
 #
-const home = dirname(dirname(@__FILE__))
 function usage_error(str...)
     if length(str) > 1 println("Usage error: ",join(str))
     elseif length(str) == 1 println("Usage error: ",str[1])

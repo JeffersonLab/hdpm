@@ -10,7 +10,6 @@ if safe_to_proceed
         info("Asserting that working directory of sim-recon is clean ...")
         assert(contains(readall(`git status`),"working directory clean")); cd(cwd); rm_regex(r"^julia-.+",top)
     end
-    BMS_OSNAME = install_dirname()
     for pkg in get_packages()
         if length(ARGS) > 0 && !(length(ARGS) == 1 && ARGS[1] == "yes")
             if !(name(pkg) in ARGS) continue end end
