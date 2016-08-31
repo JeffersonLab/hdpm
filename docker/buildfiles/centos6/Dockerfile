@@ -1,6 +1,5 @@
 FROM quay.io/nathansparks/sim-recon-deps:centos6
 MAINTAINER Nathan Sparks <nsparks@jlab.org>
-ENV CC=/usr/bin/clang CXX=/usr/bin/clang++
 RUN scl enable devtoolset-3 python27 "source setup.sh \
     && julia src/hdpm.jl build sim-recon gluex_root_analysis \
     && julia src/distclean.jl yes"
