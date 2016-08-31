@@ -15,7 +15,23 @@ if safe_to_proceed
             if !(name(pkg) in ARGS) continue end end
         if !is_external(pkg) && ispath(path(pkg))
             cd(path(pkg))
-            cleanup(pkg)
+            if name(pkg) == "root" && contains(cmds(pkg)[1],"./configure")
+                if !ispath("Makefile") continue end
+                run(`cp -p success.hdpm ../`)
+                run(`make dist`); cd("../")
+                run(`rm -rf $(version(pkg))`)
+                for item in filter(r".+gz$",readdir("."))
+                    run(`tar xf $item`); rm(item)
+                end
+                run(`mv success.hdpm $(version(pkg))`)
+            else
+                BMS_OSNAME = install_dirname()
+                run(`rm -rf src`); run(`rm -rf .$BMS_OSNAME`)
+                rm_regex(r".+gz$"); rm_regex(r".+\.contents$")
+                rm_regex(r"^\.g.+"); rm_regex(r"^\.s.+")
+                rm_regex(r"^setenv\..+")
+                rm_regex(r"^setenv\..+",joinpath(pwd(),BMS_OSNAME))
+            end
         end
     end
 end

@@ -2,7 +2,7 @@ module Packages
 # organize package information
 export Package,name,version,url,path,cmds,is_external,get_packages,get_package,gettop,osrelease,gettag,select_template,show_settings
 export get_unpack_file,mk_cd,get_template_ids,get_pkg_names,get_deps,tagged_deps,git_version,check_deps,mk_template,install_dirname
-export versions_from_xml,rm_regex,input,hz,usage_error,uses_cmake,cleanup
+export versions_from_xml,rm_regex,input,hz,usage_error,uses_cmake
 immutable Package
     name::ASCIIString
     version::ASCIIString
@@ -18,31 +18,14 @@ path(a::Package) = a.path
 cmds(a::Package) = a.cmds
 deps(a::Package) = a.deps
 is_external(a::Package) = length(cmds(a)) == 0
-const home = dirname(dirname(@__FILE__))
 function uses_cmake(a::Package)
     for cmd in a.cmds
         if contains(cmd, "cmake") return true end
     end
     false
 end
-function cleanup(a::Package)
-    if name(a) == "root" && contains(cmds(a)[1],"./configure")
-        run(`cp -p success.hdpm ../`)
-        run(`make dist && cd ../ && rm -rf $(version(a))`)
-        for item in filter(r".+gz$",readdir("."))
-            run(`tar xf $item`); rm(item)
-        end
-        run(`mv success.hdpm $(version(a))`)
-    else
-        BMS_OSNAME = install_dirname()
-        run(`rm -rf src`); run(`rm -rf .$BMS_OSNAME`)
-        rm_regex(r".+gz$"); rm_regex(r".+\.contents$")
-        rm_regex(r"^\.g.+"); rm_regex(r"^\.s.+")
-        rm_regex(r"^setenv\..+")
-        rm_regex(r"^setenv\..+",joinpath(pwd(),BMS_OSNAME))
-    end
-end
 #
+const home = dirname(dirname(@__FILE__))
 function usage_error(str...)
     if length(str) > 1 println("Usage error: ",join(str))
     elseif length(str) == 1 println("Usage error: ",str[1])
@@ -243,8 +226,7 @@ function get_packages(id="")
         if name == "root" && major_minor(version)[1] == "6" && contains(ENV["PATH"],"/opt/rh/devtoolset-3/root/usr/bin") && (contains(osrelease(),"CentOS6") || contains(osrelease(),"RHEL6"))
             if length(cmds[name]) > 0 && !contains(cmds[name][1],"./configure")
                 empty!(cmds[name])
-                if haskey(ENV,"CC") && contains(ENV["CC"],"clang") push!(cmds[name],"./configure --enable-roofit --with-clang")
-                else push!(cmds[name],"./configure --enable-roofit") end
+                push!(cmds[name],"./configure --enable-roofit")
                 push!(cmds[name],"make -j8 && make clean")
             end
         end
