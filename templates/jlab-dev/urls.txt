@@ -4,7 +4,7 @@ root      https://root.cern.ch/download/root_v[VER].source.tar.gz
 amptools  NA
 geant4    NA
 evio      https://coda.jlab.org/drupal/system/files/coda/evio/evio-4.3/evio-[VER].tgz
-rcdb      https://github.com/JeffersonLab/rcdb
+rcdb      https://github.com/JeffersonLab/rcdb/archive/v[VER].tar.gz
 ccdb      https://github.com/JeffersonLab/ccdb/archive/v[VER].tar.gz
 jana      https://www.jlab.org/JANA/releases/jana_[VER].tgz
 hdds      https://github.com/JeffersonLab/hdds

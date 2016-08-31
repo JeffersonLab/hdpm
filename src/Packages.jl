@@ -190,7 +190,7 @@ function get_packages(id="")
         "gluex_workshops" => "xerces-c,cernlib,root,evio,ccdb,jana,hdds,sim-recon,gluex_root_analysis")
     @osx_only mydeps["sim-recon"] = "xerces-c,root,evio,ccdb,jana,hdds"
     @osx_only mydeps["gluex_workshops"] = "xerces-c,root,evio,ccdb,jana,hdds,sim-recon,gluex_root_analysis"
-    jsep = Dict("xerces-c"=>"-","cernlib"=>"","root"=>"_","amptools"=>"_","geant4"=>"-","evio"=>"-","rcdb"=>"-","ccdb"=>"_","jana"=>"_","hdds"=>"-","sim-recon"=>"-","gluex_root_analysis"=> "-")
+    jsep = Dict("xerces-c"=>"-","cernlib"=>"","root"=>"_","amptools"=>"_","geant4"=>"-","evio"=>"-","rcdb"=>"_","ccdb"=>"_","jana"=>"_","hdds"=>"-","sim-recon"=>"-","gluex_root_analysis"=> "-")
     pkgs = Array(Package,0)
     for i=1:size(paths,1)
         name = pkg_names[i]
@@ -413,7 +413,7 @@ Problems? Try ",joinpath(jlab_top(),"version.xml")) end
     for i=1:size(d,1)
         a[replace(replace(d[i,2],"name=",""),"\"","")] = replace(replace(replace(d[i,3],"version=",""),"/>",""),"\"","")
     end
-    a["amptools"] = "NA"; a["geant4"] = "NA"; a["rcdb"] = "master"
+    a["amptools"] = "NA"; a["geant4"] = "NA"
     a["gluex_root_analysis"] = "master"
     vers = readdlm("$home/settings/versions.txt",ASCIIString,use_mmap=false)
     output = open("$home/settings/versions.txt","w")

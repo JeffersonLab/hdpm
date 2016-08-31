@@ -4,7 +4,7 @@ root      5.34.36
 amptools  0.9.2
 geant4    10.02.p02
 evio      4.4.6
-rcdb      master
+rcdb      0.00
 ccdb      1.06.01
 jana      0.7.5p2
 hdds      master
