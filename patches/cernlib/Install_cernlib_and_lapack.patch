@@ -1,5 +1,5 @@
---- Install_cernlib	2010-07-31 17:16:59.000000000 -0400
-+++ Install_cernlib.patched	2016-09-10 10:09:09.414352008 -0400
+--- Install_cernlib_and_lapack	2010-07-31 17:59:49.000000000 -0400
++++ Install_cernlib_and_lapack.patched	2016-09-10 10:09:27.362671142 -0400
 @@ -1,4 +1,4 @@
 -#!/bin/sh
 +#!/bin/bash
