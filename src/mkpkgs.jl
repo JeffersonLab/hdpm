@@ -32,8 +32,8 @@ for pkg in get_packages(); if length(ARGS) > 0 if !(name(pkg) in ARGS) && !(name
                 cd("../"); run(`rm -rf $(name(pkg))-build $(name(pkg))`) end
         elseif name(pkg) == "cernlib"
             run(`cp -pr $home/patches $(path(pkg))`)
-            run(`sh -c "patch < $(path(pkg))/patches/cernlib/Install_cernlib_and_lapack.patch"`)
-            run(`./Install_cernlib_and_lapack`)
+            run(`sh -c "patch < $(path(pkg))/patches/cernlib/Install_cernlib.patch"`)
+            run(`./Install_cernlib`)
             run(`rm -rf 2005/build 2005/src`)
             run(`mv 2005 ../`); cd("../"); run(`rm -rf cernlib`)
             mk_cd(path(pkg)); run(`mv ../2005 .`)
