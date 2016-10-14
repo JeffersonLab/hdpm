@@ -4,24 +4,22 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/spf13/cobra"
 )
 
 // Create the save command
 var cmdSave = &cobra.Command{
-	Use:   "save TEMPLATE",
-	Short: "Save the current build settings",
+	Use:   "save NAME",
+	Short: "Save the current package settings",
 	Long: `
-Save the current build settings as a new build template.
+Save the current package settings.
 
-This ensures that they are not lost after switching to a different template.
-Switch between templates by using the select command.
+Pass the name of the package settings as the only argument.
 
-Pass the name of the new template as the only argument.
-Names of predefined templates are not allowed.
-
-Predefined templates: master, jlab, workshop-2016
+Saved settings are restored by using the select command.
+hdpm select NAME
 
 Usage examples:
 1. hdpm save test
@@ -40,11 +38,15 @@ func runSave(cmd *cobra.Command, args []string) {
 		fmt.Println("GLUEX_TOP environment variable is not set.\nSaving settings to the current working directory ...")
 	}
 	if len(args) != 1 {
-		fmt.Fprintln(os.Stderr, "Error: Pass name of new template as single argument")
+		fmt.Fprintln(os.Stderr, "Error: Pass name/id of settings as single argument")
 		os.Exit(2)
 	}
 	arg := args[0]
-	dir := filepath.Join(packageDir(), "templates", arg)
+	dir := filepath.Join(packageDir(), ".saved-settings", arg)
+	if isPath(dir) {
+		t := time.Now().Round(time.Second)
+		os.Rename(dir, dir+"_"+t.Format(time.RFC3339))
+	}
 	mk(dir)
 	for _, pkg := range packages {
 		pkg.write(dir)

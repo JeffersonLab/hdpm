@@ -51,7 +51,7 @@ func runShow(cmd *cobra.Command, args []string) {
 		id = readFile(dir + "/.id")
 	}
 	fmt.Println(strings.Repeat("-", 80))
-	fmt.Printf("Template id: %s\n", id)
+	fmt.Printf("Settings id: %s\n", id)
 	fmt.Printf("GLUEX_TOP:   %s\n", packageDir())
 	fmt.Println(strings.Repeat("-", 80))
 	fmt.Printf("%-22s%-22s\n", "package", arg)

@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -21,6 +22,7 @@ ccdb, jana, hdds, sim-recon, gluex_root_analysis
 Usage examples:
 1. hdpm clean
 2. hdpm clean sim-recon
+3. hdpm clean sim-recon/master/src/plugins/Analysis/pi0omega
 `,
 	Run: runClean,
 }
@@ -38,9 +40,21 @@ func runClean(cmd *cobra.Command, args []string) {
 	if os.Getenv("GLUEX_TOP") == "" {
 		fmt.Println("GLUEX_TOP environment variable is not set.\nCleaning packages in the current working directory ...")
 	}
+	// Clean a sim-recon subdirectory if passed as argument
+	cwd, _ := os.Getwd()
+	if len(args) == 1 && isPath(filepath.Join(cwd, args[0])) {
+		dir := filepath.Join(cwd, args[0])
+		if isPath(filepath.Join(dir, "SConstruct")) || isPath(filepath.Join(dir, "SConscript")) {
+			cd(dir)
+			run("scons", "-u", "-c", "install")
+			return
+		}
+	}
+	versions := extractVersions(args)
+	args = extractNames(args)
 	for _, arg := range args {
 		if !in(packageNames, arg) {
-			fmt.Fprintf(os.Stderr, "%s: unknown package name\n", arg)
+			fmt.Fprintf(os.Stderr, "%s: Unknown package name\n", arg)
 			os.Exit(2)
 		}
 	}
@@ -48,9 +62,11 @@ func runClean(cmd *cobra.Command, args []string) {
 		args = packageNames
 	}
 	for _, pkg := range packages {
-		if !pkg.in(args) || !pkg.isFetched() || pkg.IsPrebuilt {
+		if !pkg.in(args) || !pkg.isFetched() || pkg.IsPrebuilt || pkg.inDist() {
 			continue
 		}
+		ver, ok := versions[pkg.Name]
+		pkg.changeVersion(ver, ok)
 		pkg.cd()
 		if obliterate {
 			pkg.distclean()
@@ -62,15 +78,11 @@ func runClean(cmd *cobra.Command, args []string) {
 
 func (p *Package) clean() {
 	if p.Name == "ccdb" {
-		run("rm", "-f", "success.hdpm")
-		run("rm", "-f", ".sconsign.dblite")
-		//run("sh", "-c", "scons -c")
+		run("rm", "-f", "success.hdpm", ".sconsign.dblite")
 		run("scons", "-c")
 	}
 	if p.in([]string{"jana", "hdds", "sim-recon", "gluex_root_analysis"}) {
-		run("rm", "-f", "success.hdpm")
-		run("rm", "-f", ".sconsign.dblite")
-		run("rm", "-f", "src/.sconsign.dblite")
+		run("rm", "-f", "success.hdpm", ".sconsign.dblite", "src/.sconsign.dblite")
 		run("rm", "-rf", OS)
 		if isPath("src") {
 			run("rm", "-rf", "src/."+OS)
@@ -99,8 +111,7 @@ func (p *Package) distclean() {
 		}
 		run("mv", "success.hdpm", p.Version)
 	} else {
-		run("rm", "-rf", "src")
-		run("rm", "-rf", "."+OS)
+		run("rm", "-rf", "src", "."+OS)
 		rmGlob(p.Path + "/*.*gz")
 		rmGlob(p.Path + "/*.contents")
 		rmGlob(p.Path + "/.g*")

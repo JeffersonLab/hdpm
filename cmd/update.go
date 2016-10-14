@@ -32,6 +32,8 @@ func runUpdate(cmd *cobra.Command, args []string) {
 	if os.Getenv("GLUEX_TOP") == "" {
 		fmt.Println("GLUEX_TOP environment variable is not set.\nUpdating packages in the current working directory ...")
 	}
+	versions := extractVersions(args)
+	args = extractNames(args)
 	for _, arg := range args {
 		if !in(packageNames, arg) {
 			fmt.Printf("%s: unknown package name\n", arg)
@@ -48,8 +50,9 @@ func runUpdate(cmd *cobra.Command, args []string) {
 		if !pkg.in(args) {
 			continue
 		}
-		if !pkg.isFetched() {
-			fmt.Printf("%s/%s does not exist\n", pkg.Name, pkg.Version)
+		ver, ok := versions[pkg.Name]
+		pkg.changeVersion(ver, ok)
+		if !pkg.isRepo() {
 			continue
 		}
 		pkg.cd()
@@ -59,7 +62,7 @@ func runUpdate(cmd *cobra.Command, args []string) {
 
 func (p *Package) update() {
 	if strings.Contains(p.URL, "svn") && !strings.Contains(p.URL, "tags") {
-		fmt.Printf("Updating %s to svn revision %s.\n", p.Name, p.Version)
+		fmt.Printf("%s: Updating to svn revision %s ...\n", p.Name, p.Version)
 		if p.Version != "master" {
 			run("svn", "update", "--non-interactive", "-r"+p.Version)
 		} else {
@@ -67,8 +70,12 @@ func (p *Package) update() {
 		}
 	}
 	if strings.Contains(p.URL, "git") && !strings.Contains(p.URL, "archive") {
-		fmt.Printf("\nUpdating %s branch of %s.\n", p.Version, p.Name)
+		fmt.Printf("%s: Updating %s branch ...\n", p.Name, p.Version)
 		run("git", "checkout", p.Version)
 		run("git", "pull")
 	}
+}
+
+func (p *Package) isRepo() bool {
+	return isPath(p.Path+"/.git") || isPath(p.Path+"/.svn")
 }

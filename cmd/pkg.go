@@ -63,8 +63,8 @@ var masterPackages = []Package{
 			"make -j8", "make install"},
 		Deps:       []string{""},
 		IsPrebuilt: false},
-	{Name: "evio", Version: "4.4.6",
-		URL:        "https://coda.jlab.org/drupal/system/files/coda/evio/evio-4.4/evio-[VER].tgz",
+	{Name: "evio", Version: "4.3.1",
+		URL:        "https://coda.jlab.org/drupal/system/files/coda/evio/evio-4.3/evio-[VER].tgz",
 		Path:       "evio/[VER]",
 		Cmds:       []string{"scons --prefix=[PATH] install"},
 		Deps:       []string{""},
@@ -97,55 +97,20 @@ var masterPackages = []Package{
 		URL:        "https://github.com/JeffersonLab/sim-recon/archive/[VER].tar.gz",
 		Path:       "sim-recon/[VER]",
 		Cmds:       []string{"scons -u -j8 install DEBUG=0"},
-		Deps:       []string{"xerces-c", "cernlib", "root", "evio", "ccdb", "jana", "hdds"},
+		Deps:       []string{"xerces-c", "cernlib", "root", "evio", "ccdb", "jana", "hdds", "rcdb"},
 		IsPrebuilt: false},
 	{Name: "gluex_root_analysis", Version: "master",
 		URL:        "https://github.com/JeffersonLab/gluex_root_analysis/archive/[VER].tar.gz",
 		Path:       "gluex_root_analysis/[VER]",
 		Cmds:       []string{"./make_all.sh"},
-		Deps:       []string{"root", "sim-recon"},
+		Deps:       []string{"xerces-c", "cernlib", "root", "evio", "ccdb", "jana", "hdds", "rcdb", "sim-recon"},
 		IsPrebuilt: false},
-}
-
-var jlabVersions = map[string]string{
-	"cmake":               "3.6.2",
-	"xerces-c":            "3.1.2",
-	"cernlib":             "2005",
-	"root":                "5.34.34",
-	"amptools":            "",
-	"geant4":              "",
-	"evio":                "4.3.1",
-	"rcdb":                "0.00",
-	"ccdb":                "1.06.01",
-	"jana":                "0.7.5p2",
-	"hdds":                "master",
-	"sim-recon":           "master",
-	"gluex_root_analysis": "master",
-}
-
-var ws16Package = Package{
-	Name: "gluex_workshops", Version: "master",
-	URL:        "https://github.com/JeffersonLab/gluex_workshops",
-	Path:       "gluex_workshops/[VER]",
-	Cmds:       []string{"cd physics_workshop_2016/session2/omega_ref; scons install", "cd physics_workshop_2016/session2/omega_skim_rest; scons install", "cd physics_workshop_2016/session2/omega_solutions; scons install", "cd physics_workshop_2016/session3b/omega_skim_tree; scons install", "cd physics_workshop_2016/session5b/p2gamma_workshop; scons install"},
-	Deps:       []string{"xerces-c", "cernlib", "root", "evio", "ccdb", "jana", "hdds", "sim-recon", "gluex_root_analysis"},
-	IsPrebuilt: false,
-}
-var ws16Versions = map[string]string{
-	"cmake":               "3.6.2",
-	"xerces-c":            "3.1.3",
-	"cernlib":             "2005",
-	"root":                "5.34.36",
-	"amptools":            "0.9.1",
-	"geant4":              "",
-	"evio":                "4.4.6",
-	"rcdb":                "0.00",
-	"ccdb":                "1.06.01",
-	"jana":                "0.7.5p1",
-	"hdds":                "physics_workshop_2016",
-	"sim-recon":           "physics_workshop_2016",
-	"gluex_root_analysis": "physics_workshop_2016",
-	"gluex_workshops":     "master",
+	{Name: "gluex_workshops", Version: "master",
+		URL:        "https://github.com/JeffersonLab/gluex_workshops",
+		Path:       "gluex_workshops/[VER]",
+		Cmds:       []string{"cd physics_workshop_2016/session2/omega_ref; scons install", "cd physics_workshop_2016/session2/omega_skim_rest; scons install", "cd physics_workshop_2016/session2/omega_solutions; scons install", "cd physics_workshop_2016/session3b/omega_skim_tree; scons install", "cd physics_workshop_2016/session5b/p2gamma_workshop; scons install"},
+		Deps:       []string{"xerces-c", "cernlib", "root", "evio", "ccdb", "jana", "hdds", "rcdb", "sim-recon", "gluex_root_analysis"},
+		IsPrebuilt: false},
 }
 
 var packages []Package
@@ -157,7 +122,12 @@ func init() {
 	dir := filepath.Join(packageDir(), "settings")
 	for _, pkg := range masterPackages {
 		if isPath(dir) {
-			pkg.read()
+			if isPath(dir + "/" + pkg.Name + ".json") {
+				pkg.read()
+				pkg.config("master")
+				packages = append(packages, pkg)
+			}
+			continue
 		}
 		pkg.config("master")
 		packages = append(packages, pkg)
@@ -206,7 +176,7 @@ var jsep = map[string]string{
 	"cmake":               "-",
 	"xerces-c":            "-",
 	"cernlib":             "",
-	"root":                "_",
+	"root":                "-",
 	"amptools":            "_",
 	"geant4":              "-",
 	"evio":                "-",
@@ -216,6 +186,7 @@ var jsep = map[string]string{
 	"hdds":                "-",
 	"sim-recon":           "-",
 	"gluex_root_analysis": "-",
+	"gluex_workshops":     "-",
 }
 
 func ver_i(ver string, i int) string {
@@ -234,6 +205,9 @@ func (p *Package) config(arg string) {
 	if p.Version == "" {
 		p.URL = ""
 		p.Path = ""
+		p.Cmds = []string{""}
+		p.IsPrebuilt = true
+		return
 	}
 	if p.Version == "latest" {
 		p.Version = "master"
@@ -245,6 +219,10 @@ func (p *Package) config(arg string) {
 	}
 	if p.Name == "evio" {
 		major_minor := ver_i(p.Version, 0) + "." + ver_i(p.Version, 1)
+		if runtime.GOOS == "darwin" && major_minor == "4.3" {
+			p.Version = "4.4.6"
+			major_minor = "4.4"
+		}
 		re := regexp.MustCompile("4.[0-9]")
 		if !strings.Contains(p.URL, major_minor) {
 			p.URL = re.ReplaceAllString(p.URL, major_minor)
@@ -252,9 +230,7 @@ func (p *Package) config(arg string) {
 	}
 	p.URL = strings.Replace(p.URL, "[VER]", p.Version, -1)
 
-	// Template-dependent config.
 	if arg == "jlab" {
-		p.Version = jlabVersions[p.Name]
 		jp := filepath.Join(jlabPackageDir(), p.Name, p.Name+jsep[p.Name]+p.Version)
 		if isPath(jp) {
 			p.Path = jp
@@ -264,9 +240,6 @@ func (p *Package) config(arg string) {
 			p.Path = filepath.Join(jlabPackageDir(), p.Name)
 			p.IsPrebuilt = true
 		}
-	}
-	if arg == "workshop-2016" {
-		p.Version = ws16Versions[p.Name]
 	}
 
 	if p.Name == "rcdb" && strings.Contains(OS, "gcc4.4") {
@@ -292,12 +265,13 @@ func (p *Package) config(arg string) {
 			p.Cmds = append(p.Cmds, "make -j8 && make clean")
 		}
 	}
-	if runtime.GOOS == "darwin" {
-		path := filepath.Join("/usr/local/Cellar/xerces-c", p.Version)
-		if p.Name == "xerces-c" && isPath(path) && isPath(packageDir()+"/dist") {
-			p.IsPrebuilt = true
-			p.Path = path
-		}
+}
+
+func (p *Package) changeVersion(ver string, ok bool) {
+	if ok && ver != "" {
+		p.template()
+		p.Version = ver
+		p.config("master")
 	}
 }
 
@@ -308,8 +282,7 @@ func (p *Package) template() {
 		cmds = append(cmds, strings.Replace(cmd, p.Path, "[PATH]", -1))
 	}
 	p.Cmds = cmds
-	p.Path = strings.Replace(p.Path, packageDir(), "", -1)
-	p.Path = strings.Replace(p.Path, "/"+p.Name, p.Name, -1)
+	p.Path = strings.Replace(p.Path, packageDir()+"/", "", -1)
 	p.Path = strings.Replace(p.Path, p.Version, "[VER]", -1)
 }
 
@@ -323,7 +296,9 @@ func write_text(fname, text string) {
 }
 
 func (p *Package) write(dir string) {
-	p.template()
+	if p.Version != "" {
+		p.template()
+	}
 	f, err := os.Create(dir + "/" + p.Name + ".json")
 	if err != nil {
 		log.Fatalln(err)
@@ -338,6 +313,9 @@ func (p *Package) write(dir string) {
 
 func (p *Package) read() {
 	dir := filepath.Join(packageDir(), "settings")
+	if !isPath(dir + "/" + p.Name + ".json") {
+		return
+	}
 	b, err := ioutil.ReadFile(dir + "/" + p.Name + ".json")
 	if err != nil {
 		log.Fatalln(err)
@@ -347,6 +325,38 @@ func (p *Package) read() {
 		fmt.Fprintf(os.Stderr, "%s: unknown package name\n", p.Name)
 		os.Exit(2)
 	}
+}
+
+func extractVersion(arg string) string {
+	ver := ""
+	if strings.Contains(arg, "@") {
+		ver = strings.Split(arg, "@")[1]
+	}
+	return ver
+}
+
+func extractNames(args []string) []string {
+	var names []string
+	for _, arg := range args {
+		if strings.Contains(arg, "@") {
+			names = append(names, strings.Split(arg, "@")[0])
+		} else {
+			names = append(names, arg)
+		}
+	}
+	return names
+}
+
+func extractVersions(args []string) map[string]string {
+	versions := make(map[string]string)
+	for _, arg := range args {
+		if strings.Contains(arg, "@") {
+			versions[strings.Split(arg, "@")[0]] = strings.Split(arg, "@")[1]
+		} else {
+			versions[arg] = ""
+		}
+	}
+	return versions
 }
 
 func versionXML(file string) {
@@ -359,6 +369,16 @@ Path: /group/halld/www/halldweb/html/dist
 	if file == "latest" {
 		file = "https://halldweb.jlab.org/dist/version.xml"
 	}
+	jlab := strings.HasPrefix(file, "jlab")
+	jdev := strings.HasPrefix(file, "jlab-dev")
+	if jlab || jdev {
+		ver := extractVersion(file)
+		if ver != "" {
+			file = "https://halldweb.jlab.org/dist/version_" + ver + "_jlab.xml"
+		} else {
+			file = "https://halldweb.jlab.org/dist/version_jlab.xml"
+		}
+	}
 	wasurl := false
 	if strings.Contains(file, "https://") || strings.Contains(file, "http://") {
 		wasurl = true
@@ -370,6 +390,7 @@ Path: /group/halld/www/halldweb/html/dist
 		Name       string `xml:"name,attr"`
 		Version    string `xml:"version,attr"`
 		WordLength string `xml:"word_length,attr"`
+		DirTag     string `xml:"dirtag,attr"`
 	}
 	type vXML struct {
 		XMLName xml.Name `xml:"gversions"`
@@ -386,10 +407,25 @@ Path: /group/halld/www/halldweb/html/dist
 		for _, p2 := range v.Packs {
 			if p1.Name == p2.Name {
 				p1.Version = p2.Version
+				if jlab || jdev {
+					if jdev && (p1.Name == "hdds" || p1.Name == "sim-recon") {
+						p1.Version = "master"
+					}
+					p1.config("jlab")
+					if p2.DirTag != "" && p1.Version != "master" {
+						p1.Path += "^" + p2.DirTag
+					}
+				} else {
+					p1.config("master")
+					if p2.DirTag != "" {
+						p1.Path += "^" + p2.DirTag
+					}
+				}
 			}
 		}
 		p1.write(dir)
 	}
+	fmt.Println("\nThe XMLfile versions have been applied to your current settings.")
 	if wasurl {
 		os.Remove(file)
 	}
@@ -456,6 +492,15 @@ func (p *Package) cd() {
 	cd(p.Path)
 }
 
+func (p *Package) inDist() bool {
+	if isSymLink(p.Path) {
+		if strings.HasPrefix(readLink(p.Path), packageDir()+"/.dist/") {
+			return true
+		}
+	}
+	return false
+}
+
 func isPath(path string) bool {
 	_, err := os.Stat(path)
 	if err != nil {
@@ -465,6 +510,9 @@ func isPath(path string) bool {
 }
 
 func isSymLink(path string) bool {
+	if !isPath(path) {
+		return false
+	}
 	stat, err := os.Lstat(path)
 	if err != nil {
 		log.Fatalln(err)
@@ -585,10 +633,10 @@ func osrelease() string {
 			s := make([]string, 2)
 			for _, l := range strings.Split(rs, "\n") {
 				if strings.HasPrefix(l, "DISTRIB_ID=") {
-					s = append(s, strings.TrimLeft(l, "DISTRIB_ID="))
+					s = append(s, strings.TrimPrefix(l, "DISTRIB_ID="))
 				}
 				if strings.HasPrefix(l, "DISTRIB_RELEASE=") {
-					s = append(s, strings.TrimLeft(l, "DISTRIB_RELEASE="))
+					s = append(s, strings.TrimPrefix(l, "DISTRIB_RELEASE="))
 				}
 			}
 			release = "_" + s[0] + s[1]

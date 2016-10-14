@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"runtime"
 
@@ -32,18 +33,22 @@ func init() {
 
 func runRun(cmd *cobra.Command, args []string) {
 	if runtime.GOOS == "darwin" {
-		fmt.Fprintln(os.Stderr, "Info: macOS is unsupported.")
+		fmt.Fprintln(os.Stderr, "macOS is unsupported.")
 		os.Exit(2)
 	}
 	if len(args) > 1 {
-		fmt.Fprintln(os.Stderr, "Error: Enclose multi-word commands in double quotes.")
+		fmt.Fprintln(os.Stderr, "Usage Error: Enclose multi-word commands in double quotes.")
 		os.Exit(2)
 	}
+	env("")
 	setenv("CCDB_USER", os.Getenv("USER"))
 	arg := "bash"
 	if len(args) == 1 {
 		arg = args[0]
 	}
-	env("")
-	run("sh", "-c", arg)
+	c := command("sh", "-c", arg)
+	c.Stdin = os.Stdin
+	if err := c.Run(); err != nil {
+		log.Fatalln(err)
+	}
 }

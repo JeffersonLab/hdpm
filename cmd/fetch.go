@@ -27,7 +27,7 @@ no arguments are given.
 
 Usage examples:
 1. hdpm fetch
-2. hdpm fetch root sim-recon gluex_root_analysis amptools
+2. hdpm fetch root cmake
 `,
 	Run: runFetch,
 }
@@ -45,9 +45,11 @@ func runFetch(cmd *cobra.Command, args []string) {
 	if os.Getenv("GLUEX_TOP") == "" {
 		fmt.Println("GLUEX_TOP environment variable is not set.\nInstalling packages to the current working directory ...")
 	}
+	versions := extractVersions(args)
+	args = extractNames(args)
 	for _, arg := range args {
 		if !in(packageNames, arg) {
-			fmt.Fprintf(os.Stderr, "%s: unknown package name\n", arg)
+			fmt.Fprintf(os.Stderr, "%s: Unknown package name\n", arg)
 			os.Exit(2)
 		}
 	}
@@ -66,9 +68,11 @@ func runFetch(cmd *cobra.Command, args []string) {
 		if !pkg.in(args) {
 			continue
 		}
+		ver, ok := versions[pkg.Name]
+		pkg.changeVersion(ver, ok)
 		if runtime.GOOS == "darwin" &&
 			(pkg.Name == "cernlib" || pkg.Name == "cmake") {
-			fmt.Printf("macOS detected: skipping %s\n", pkg.Name)
+			fmt.Printf("macOS detected: Skipping %s\n", pkg.Name)
 			continue
 		}
 		if pkg.isFetched() {

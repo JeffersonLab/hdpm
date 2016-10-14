@@ -50,11 +50,10 @@ func runInstall(cmd *cobra.Command, args []string) {
 	top := packageDir()
 	distDir := filepath.Join(top, ".dist")
 	fetchDist(arg)
-	os.Exit(0)
 	OS = strings.Replace(OS, "RHEL", "CentOS", -1)
 	OS = strings.Replace(OS, "LinuxMint17", "Ubuntu14", -1)
 	OS = strings.Replace(OS, "LinuxMint18", "Ubuntu16", -1)
-	fmt.Println("Linking distribution binaries into " + top + " ...")
+	fmt.Println("\nLinking distribution binaries into " + top + " ...")
 	for _, pkg := range packages {
 		pkg.install()
 	}
@@ -63,7 +62,7 @@ func runInstall(cmd *cobra.Command, args []string) {
 	rmGlob(top + "/env-setup/dist.*")
 	for _, sh := range []string{"sh", "csh"} {
 		if isPath(distDir + "/env-setup/master." + sh) {
-			run("ln", "-s", distDir+"/env-setup/master."+sh, top+"/env-setup/master."+sh)
+			run("ln", "-s", distDir+"/env-setup/master."+sh, top+"/env-setup/dist."+sh)
 		}
 	}
 }
@@ -86,7 +85,7 @@ func (p *Package) install() {
 	}
 	pi := filepath.Join(packageDir(), p.Name, v)
 	if p.Name == "cernlib" {
-		pi = filepath.Dir(pd)
+		pi = filepath.Dir(pi)
 	}
 	if isPath(pi) {
 		fmt.Printf("%s/%s is already installed.\n", p.Name, v)
@@ -140,7 +139,7 @@ Available OS tags:  c6 (CentOS 6), c7 (CentOS 7),
 		tag = "u16"
 	}
 	if tag == "" {
-		fmt.Fprintf(os.Stderr, "%s: unsupported operating system\n", OS)
+		fmt.Fprintf(os.Stderr, "%s: Unsupported operating system\n", OS)
 		os.Exit(2)
 	}
 	dir := filepath.Join(packageDir(), ".dist")
@@ -173,7 +172,7 @@ Available OS tags:  c6 (CentOS 6), c7 (CentOS 7),
 	deps := []string{"xerces-c", "cernlib", "root", "evio", "ccdb", "jana"}
 	updateDeps := !contains(readDir(dir), deps)
 	update := !isPath(filepath.Join(dir, "sim-recon")) || !isPath(filepath.Join(dir, "hdds"))
-	//
+
 	if updateDeps || (isPath(dir+"/.id-deps-"+tag2) && idDeps != readFile(dir+"/.id-deps-"+tag2)) {
 		os.RemoveAll(dir)
 		updateDeps = true
@@ -223,7 +222,7 @@ func currentCommit(path string) string {
 	commit := ""
 	for _, file := range readDir(path) {
 		if strings.HasPrefix(file, "version_sim-recon-") {
-			commit = strings.TrimLeft(file, "version_sim-recon-")
+			commit = strings.TrimPrefix(file, "version_sim-recon-")
 			commit = strings.Split(commit, "_")[0]
 			break
 		}

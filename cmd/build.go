@@ -22,7 +22,6 @@ var cmdBuild = &cobra.Command{
 Display build information if a package is already built.
 
 Alternate usage:
-hdpm build TEMPLATE
 hdpm build --xml XMLFILE-URL | XMLFILE-PATH
 hdpm build [-c] DIRECTORY
 
@@ -31,10 +30,9 @@ no arguments are given.
 
 Usage examples:
 1. hdpm build
-2. hdpm build root gluex_root_analysis amptools
-3. hdpm build jlab-dev
-4. hdpm build https://halldweb.jlab.org/dist/version.xml
-5. hdpm build sim-recon/master/src/plugins/Analysis/pi0omega
+2. hdpm build geant4 amptools
+3. hdpm build --xml https://halldweb.jlab.org/dist/version.xml
+4. hdpm build sim-recon/master/src/plugins/Analysis/pi0omega
 `,
 	Run: runBuild,
 }
@@ -59,18 +57,16 @@ func runBuild(cmd *cobra.Command, args []string) {
 		dir := filepath.Join(cwd, args[0])
 		if isPath(filepath.Join(dir, "SConstruct")) || isPath(filepath.Join(dir, "SConscript")) {
 			cd(dir)
-			cmd := "scons -u install"
-			/*if flag {
-				cmd = "scons -u -c install"
-			}*/
-			run("sh", "-c", cmd)
+			run("scons", "-u", "install")
 			return
 		}
 	}
+	versions := extractVersions(args)
+	args = extractNames(args)
 	// Fetch and build packages
 	for _, arg := range args {
 		if !in(packageNames, arg) {
-			fmt.Fprintf(os.Stderr, "%s: unknown package name\n", arg)
+			fmt.Fprintf(os.Stderr, "%s: Unknown package name\n", arg)
 			os.Exit(2)
 		}
 	}
@@ -85,9 +81,11 @@ func runBuild(cmd *cobra.Command, args []string) {
 		if !pkg.in(args) {
 			continue
 		}
+		ver, ok := versions[pkg.Name]
+		pkg.changeVersion(ver, ok)
 		if runtime.GOOS == "darwin" &&
 			(pkg.Name == "cernlib" || pkg.Name == "cmake") {
-			fmt.Printf("macOS detected: skipping %s\n", pkg.Name)
+			fmt.Printf("macOS detected: Skipping %s\n", pkg.Name)
 			continue
 		}
 		if pkg.IsPrebuilt {
@@ -109,7 +107,7 @@ func (p *Package) build(isBuilt *bool) {
 		printStats(fname, isBuilt)
 		return
 	}
-	fmt.Printf("\n%s: checking dependencies ...\n", p.Name)
+	fmt.Printf("\n%s: Checking dependencies ...\n", p.Name)
 	p.checkDeps()
 	fmt.Printf("Building %s-%s ...\n", p.Name, p.gitVersion())
 	p.cd()
@@ -165,7 +163,7 @@ func printStats(fname string, isBuilt *bool) {
 	if strings.HasPrefix(d[0], "gluex_root_analysis") {
 		d[0] = strings.Replace(d[0], "gluex_root_analysis", "gxRootAna", -1)
 	}
-	fmt.Printf("%-18s%-18s%-18s%-18s\n", d[0], d[3], d[5], d[1]) //22, 16, 19
+	fmt.Printf("%-18s%-18s%-18s%-18s\n", d[0], d[3], d[5], d[1])
 	*isBuilt = true
 }
 

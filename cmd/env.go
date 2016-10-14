@@ -156,8 +156,6 @@ func getEnv() map[string]string {
 		"CERN":        path["cernlib"],
 		"CERN_LEVEL":  ver["cernlib"],
 		"ROOTSYS":     path["root"],
-		"AMPTOOLS":    filepath.Join(path["amptools"], "AmpTools"),
-		"AMPPLOTTER":  filepath.Join(path["amptools"], "AmpPlotter"),
 		"XERCESCROOT": path["xerces-c"],
 		"EVIOROOT": filepath.Join(path["evio"], output("uname", "-s")+"-"+
 			output("uname", "-m")),
@@ -176,6 +174,10 @@ func getEnv() map[string]string {
 	}
 	if !isPath(ENV["JANA_RESOURCE_DIR"]) {
 		ENV["JANA_RESOURCE_DIR"] = ""
+	}
+	if path["amptools"] != "" {
+		ENV["AMPTOOLS"] = filepath.Join(path["amptools"], "AmpTools")
+		ENV["AMPPLOTTER"] = filepath.Join(path["amptools"], "AmpPlotter")
 	}
 	enames := []string{"HALLD_MY", "PATH", "LD_LIBRARY_PATH", "PYTHONPATH", "JANA_PLUGIN_PATH"}
 	if runtime.GOOS == "darwin" {
@@ -198,7 +200,7 @@ func getEnv() map[string]string {
 		ENV["PATH"] = addPath(ENV["PATH"], filepath.Join(ENV["RCDB_HOME"], "bin"))
 		ENV["PATH"] = ENV["RCDB_HOME"] + ":" + ENV["PATH"]
 	}
-	if path["cmake"] != "" {
+	if isPath(path["cmake"]) {
 		ENV["PATH"] = addPath(ENV["PATH"], filepath.Join(path["cmake"], "bin"))
 	}
 	// PYTHONPATH
