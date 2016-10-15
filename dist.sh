@@ -1,8 +1,12 @@
 # Build and ship hdpm distribution to JLab CUE
-target=/group/halld/www/halldweb/html/dist/
-target2=/group/halld/Software/
 name=hdpm
 ver=$(hdpm version | awk '{print $3}')
+
+target=/group/halld/www/halldweb/html/dist/${name}
+mkdir -p ${target}
+
+target2=/group/halld/Software/${name}
+mkdir -p ${target2}
 
 # Build for 64-bit Linux
 GOOS=linux GOARCH=amd64 go build
@@ -14,14 +18,13 @@ mv hdpm ${dir}/bin
 cp -p README.md ${dir}
 tarfile=${dir}.linux.tar.gz
 tar czf ${tarfile} ${dir}
-chgrp halld ${tarfile}
 mv ${tarfile} ${target}
+chgrp -R halld ${target}
 
-if [[ ! -f "${target2}/${name}/${ver}" ]]; then
-	mkdir -p ${target2}/${name}
+if [[ ! -f "${target2}/${ver}" ]]; then
 	mv ${dir} ${ver}
-	mv ${ver} ${target2}/${name}
-	chgrp -R halld ${target2}/${name}
+	mv ${ver} ${target2}
+	chgrp -R halld ${target2}
 else
 	rm -rf ${dir}
 fi
@@ -36,6 +39,6 @@ mv hdpm ${dir}/bin
 cp -p README.md ${dir}
 tarfile=${dir}.macOS.tar.gz
 tar czf ${tarfile} ${dir}
-chgrp halld ${tarfile}
 rm -rf ${dir}
 mv ${tarfile} ${target}
+chgrp -R halld ${target}
