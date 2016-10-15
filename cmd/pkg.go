@@ -212,11 +212,7 @@ func (p *Package) config(arg string) {
 	if p.Version == "latest" {
 		p.Version = "master"
 	}
-	p.Path = strings.Replace(p.Path, "[OS]", OS, -1)
-	p.Path = strings.Replace(p.Path, "[VER]", p.Version, -1)
-	if !strings.HasPrefix(p.Path, "/") && p.Path != "" {
-		p.Path = filepath.Join(packageDir(), p.Path)
-	}
+	
 	if p.Name == "evio" {
 		major_minor := ver_i(p.Version, 0) + "." + ver_i(p.Version, 1)
 		if runtime.GOOS == "darwin" && major_minor == "4.3" {
@@ -229,6 +225,12 @@ func (p *Package) config(arg string) {
 		}
 	}
 	p.URL = strings.Replace(p.URL, "[VER]", p.Version, -1)
+	
+	p.Path = strings.Replace(p.Path, "[OS]", OS, -1)
+	p.Path = strings.Replace(p.Path, "[VER]", p.Version, -1)
+	if !strings.HasPrefix(p.Path, "/") && p.Path != "" {
+		p.Path = filepath.Join(packageDir(), p.Path)
+	}
 
 	if arg == "jlab" {
 		jp := filepath.Join(jlabPackageDir(), p.Name, p.Name+jsep[p.Name]+p.Version)

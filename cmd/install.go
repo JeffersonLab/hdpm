@@ -68,20 +68,17 @@ func runInstall(cmd *cobra.Command, args []string) {
 }
 
 func (p *Package) install() {
-	pd := filepath.Join(packageDir(), ".dist", p.Name, p.Version)
-	if p.Name == "cernlib" {
-		pd = filepath.Dir(pd)
-	}
+	pd := filepath.Join(packageDir(), ".dist", p.Name)
 	if !isPath(pd) {
-		fmt.Printf("%s/%s is not included in distribution.\n", p.Name, p.Version)
+		fmt.Printf("%s is not included in distribution.\n", p.Name)
 		return
 	}
-	v := p.Version
+	v := dirVersion(pd); vd := v
 	if p.Name == "hdds" || p.Name == "sim-recon" {
-		v = distVersion(pd + "/" + OS)
+		v = distVersion(pd + "/" + v + "/" + OS)
 	}
 	if p.Name == "gluex_root_analysis" {
-		v = distVersion(pd)
+		v = distVersion(pd + "/" + v)
 	}
 	pi := filepath.Join(packageDir(), p.Name, v)
 	if p.Name == "cernlib" {
@@ -94,7 +91,7 @@ func (p *Package) install() {
 	d := filepath.Dir(pi)
 	mk(d)
 	removeSymLinks(d)
-	run("ln", "-s", pd, pi)
+	run("ln", "-s", pd + "/" + vd, pi)
 }
 
 func removeSymLinks(dir string) {
@@ -115,6 +112,16 @@ func distVersion(dir string) string {
 	return a[len(a)-1]
 }
 
+func dirVersion(dir string) string {
+	ver := ""
+	for _, v := range readDir(dir) {
+		if v != "success.hdpm" {
+			ver = v
+		}
+	}
+	return ver
+}
+
 func fetchDist(arg string) {
 	msg :=
 		`Tarfile base URL:   https://halldweb.jlab.org/dist
@@ -125,7 +132,7 @@ Available OS tags:  c6 (CentOS 6), c7 (CentOS 7),
 `
 	fmt.Print(msg)
 	fmt.Println(strings.Repeat("-", 80))
-	tag := "u14"
+	tag := ""
 	if strings.Contains(OS, "CentOS6") || strings.Contains(OS, "RHEL6") {
 		tag = "c6"
 	}
