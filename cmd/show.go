@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"runtime"
 	"strings"
 
@@ -13,12 +12,13 @@ import (
 // Create the show command
 var cmdShow = &cobra.Command{
 	Use:   "show [FIELD]",
-	Short: "Show the current build settings",
+	Short: "Show the current package settings",
 	Long: `
-Show the current build settings.
+Show the current package settings.
 
 The package names and versions are printed by default.
-Use "url", "path", "cmds", or "deps" field to show those settings.
+
+fields: version, url, path, cmds, deps, isPrebuilt
 
 Usage examples:
 1. hdpm show
@@ -45,10 +45,9 @@ func runShow(cmd *cobra.Command, args []string) {
 		prereqs(arg)
 		return
 	}
-	dir := filepath.Join(packageDir(), "settings")
 	id := "master"
-	if isPath(dir) {
-		id = readFile(dir + "/.id")
+	if isPath(SD + "/.id") {
+		id = readFile(SD + "/.id")
 	}
 	fmt.Println(strings.Repeat("-", 80))
 	fmt.Printf("Settings id: %s\n", id)
@@ -74,6 +73,8 @@ func (p *Package) show(arg string) {
 		}
 	case "deps":
 		fmt.Printf("%-22s%-22s\n", p.Name, strings.Join(p.Deps, ","))
+	case "isPrebuilt":
+		fmt.Printf("%-22s%-22t\n", p.Name, p.IsPrebuilt)
 	default:
 		fmt.Printf("%-22s%-22s\n", p.Name, p.Version)
 	}
@@ -106,7 +107,8 @@ func prereqs(arg string) {
 	var msg string
 	switch {
 	case tag == "c6":
-		msg = `CentOS/RHEL 6 prerequisites
+		msg = `# CentOS/RHEL 6 prerequisites
+
 yum update -y && yum install -y centos-release-SCL epel-release \
 	centos-release-scl-rh \
 	&& yum install -y python27 git make gcc-c++ gcc binutils \
@@ -117,7 +119,8 @@ yum update -y && yum install -y centos-release-SCL epel-release \
 	&& ln -s /usr/lib64/liblapack.a /usr/lib64/liblapack3.a
 `
 	case tag == "c7":
-		msg = `CentOS/RHEL 7 prerequisites
+		msg = `# CentOS/RHEL 7 prerequisites
+
 yum update -y && yum install -y epel-release && yum install -y \
 	git make gcc-c++ gcc binutils python-devel \
 	libX11-devel libXpm-devel libXft-devel libXext-devel \
@@ -127,7 +130,8 @@ yum update -y && yum install -y epel-release && yum install -y \
 	&& ln -s /usr/lib64/liblapack.a /usr/lib64/liblapack3.a
 `
 	case tag == "u14" || tag == "u16":
-		msg = `Ubuntu 14.04/16.04 LTS prerequisites
+		msg = `# Ubuntu 14.04/16.04 LTS prerequisites
+
 apt-get update && apt-get install -y curl git dpkg-dev make g++ gcc \
 	binutils libx11-dev libxpm-dev libxft-dev libxext-dev libfftw3-dev \
 	python-dev cmake scons subversion gfortran xutils-dev libxt-dev \
@@ -137,7 +141,8 @@ apt-get update && apt-get install -y curl git dpkg-dev make g++ gcc \
 	&& ln -s /usr/lib/liblapack.a /usr/lib/liblapack3.a
 `
 	case tag == "macOS":
-		msg = `macOS prerequisites
+		msg = `# macOS prerequisites
+
 xcode-select --install
 Install XQuartz (https://www.xquartz.org)
 Install Homebrew (http://brew.sh)

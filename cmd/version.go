@@ -16,7 +16,7 @@ Show the hdpm version number.
 	Run: runVersion,
 }
 
-const VERSION = "0.2.0"
+const VERSION = "0.2.1"
 
 func init() {
 	cmdHDPM.AddCommand(cmdVersion)

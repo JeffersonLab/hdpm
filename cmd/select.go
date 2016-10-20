@@ -12,9 +12,9 @@ import (
 // Create the select command
 var cmdSelect = &cobra.Command{
 	Use:   "select [NAME]",
-	Short: "Select package settings by NAME",
+	Short: "Select package settings",
 	Long: `
-Select package settings by NAME.
+Select package settings.
 
 Default settings:
 hdpm select master
@@ -23,21 +23,22 @@ hdpm select
 Alternate usage:
 hdpm select --xml XMLFILE-URL | XMLFILE-PATH
 
-The XMLfile versions are applied on top of the default settings.
+The XMLfile versions are applied on top of the current settings.
+
 Shortcut URL ids:
 latest   : https://halldweb.jlab.org/dist/version.xml
 jlab-dev : https://halldweb.jlab.org/dist/version_jlab.xml
 jlab     : https://halldweb.jlab.org/dist/version_jlab.xml
 
-The jlab shortcuts will also set the paths of dependencies to the halld
+The JLab shortcuts will also set the paths of dependencies to the halld
 group installations on the JLab CUE.
 
 JLab development settings (for JLab CUE use only):
 hdpm select --xml jlab-dev
 
 If you use "jlab" instead of "jlab-dev", hdds and sim-recon will also
-be set to prebuilt packages on the JLab CUE.
-Run "hdpm env" to write the environment variables to the env-setup directory.
+be set to the latest prebuilt packages on the JLab CUE.
+Run "hdpm env" to write the env-setup scripts to the env-setup directory.
 
 Usage examples:
 1. hdpm select my-saved-settings
@@ -48,8 +49,6 @@ Usage examples:
 }
 
 var XML string
-var JLab bool
-var Dev bool
 
 func init() {
 	cmdHDPM.AddCommand(cmdSelect)
@@ -61,20 +60,20 @@ func runSelect(cmd *cobra.Command, args []string) {
 	if os.Getenv("GLUEX_TOP") == "" {
 		fmt.Println("GLUEX_TOP environment variable is not set.\nWriting settings to the current working directory ...")
 	}
+	if XML != "" {
+		versionXML(XML)
+		return
+	}
 	arg := "master"
 	if len(args) == 1 {
 		arg = args[0]
 	}
-	dir := filepath.Join(packageDir(), "settings")
-	switch {
-	case arg == "master":
-		packages = masterPackages
-	default:
+	if arg != "master" {
 		tdir := filepath.Join(packageDir(), ".saved-settings")
 		if isPath(tdir + "/" + arg) {
-			os.RemoveAll(dir)
-			run("cp", "-pr", tdir+"/"+arg, dir)
-			write_text(dir+"/.id", arg)
+			os.RemoveAll(SD)
+			run("cp", "-pr", tdir+"/"+arg, SD)
+			write_text(SD+"/.id", arg)
 			return
 		} else {
 			fmt.Fprintf(os.Stderr, "\nError:\n%s does not exist.\n",
@@ -83,13 +82,9 @@ func runSelect(cmd *cobra.Command, args []string) {
 			os.Exit(2)
 		}
 	}
-	mk(dir)
-	write_text(dir+"/.id", arg)
-	for _, pkg := range packages {
-		pkg.config(arg)
-		pkg.write(dir)
-	}
-	if XML != "" {
-		versionXML(XML)
+	mk(SD)
+	write_text(SD+"/.id", arg)
+	for _, pkg := range masterPackages {
+		pkg.write(SD)
 	}
 }

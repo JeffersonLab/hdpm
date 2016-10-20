@@ -14,10 +14,13 @@ var cmdClean = &cobra.Command{
 	Use:   "clean [PACKAGE...]",
 	Short: "Clean build products of selected packages",
 	Long: `
-Clean build products of selected packages.
+Clean/remove build products of selected packages.
 
 If no arguments are given, the following packages will be cleaned:
 ccdb, jana, hdds, sim-recon, gluex_root_analysis
+
+Alternate usage:
+hdpm clean DIRECTORY
 
 Usage examples:
 1. hdpm clean
@@ -36,7 +39,6 @@ func init() {
 }
 
 func runClean(cmd *cobra.Command, args []string) {
-	env("")
 	if os.Getenv("GLUEX_TOP") == "" {
 		fmt.Println("GLUEX_TOP environment variable is not set.\nCleaning packages in the current working directory ...")
 	}
@@ -46,10 +48,12 @@ func runClean(cmd *cobra.Command, args []string) {
 		dir := filepath.Join(cwd, args[0])
 		if isPath(filepath.Join(dir, "SConstruct")) || isPath(filepath.Join(dir, "SConscript")) {
 			cd(dir)
+			env("")
 			run("scons", "-u", "-c", "install")
 			return
 		}
 	}
+	// Parse args
 	versions := extractVersions(args)
 	args = extractNames(args)
 	for _, arg := range args {
@@ -61,12 +65,14 @@ func runClean(cmd *cobra.Command, args []string) {
 	if len(args) == 0 {
 		args = packageNames
 	}
+	// Change package versions to versions passed on command line
+	changeVersions(args, versions)
+	// Set environment variables
+	env("")
 	for _, pkg := range packages {
 		if !pkg.in(args) || !pkg.isFetched() || pkg.IsPrebuilt || pkg.inDist() {
 			continue
 		}
-		ver, ok := versions[pkg.Name]
-		pkg.changeVersion(ver, ok)
 		pkg.cd()
 		if obliterate {
 			pkg.distclean()

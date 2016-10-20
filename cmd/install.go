@@ -27,16 +27,19 @@ Alternate Usage:
 Usage Examples:
 1. hdpm install -l
 2. hdpm install
+3. hdpm install -c
 `,
 	Run: runInstall,
 }
 
 var showList bool
+var cleanLinks bool
 
 func init() {
 	cmdHDPM.AddCommand(cmdInstall)
 
 	cmdInstall.Flags().BoolVarP(&showList, "list", "l", false, "List available binary distribution tarfiles.")
+	cmdInstall.Flags().BoolVarP(&cleanLinks, "clean", "c", false, "Clean/remove symbolic links.")
 }
 
 func runInstall(cmd *cobra.Command, args []string) {
@@ -49,17 +52,26 @@ func runInstall(cmd *cobra.Command, args []string) {
 	}
 	top := packageDir()
 	distDir := filepath.Join(top, ".dist")
-	fetchDist(arg)
+	if !cleanLinks {
+		fetchDist(arg)
+	}
 	OS = strings.Replace(OS, "RHEL", "CentOS", -1)
 	OS = strings.Replace(OS, "LinuxMint17", "Ubuntu14", -1)
 	OS = strings.Replace(OS, "LinuxMint18", "Ubuntu16", -1)
-	fmt.Println("\nLinking distribution binaries into " + top + " ...")
+	if !cleanLinks {
+		fmt.Println("\nLinking distribution binaries into " + top + " ...")
+	} else {
+		fmt.Println("Removing symlinks in " + top + " ...")
+	}
 	for _, pkg := range packages {
 		pkg.install()
 	}
 	// Link env-setup scripts
 	mk(top + "/env-setup")
 	rmGlob(top + "/env-setup/dist.*")
+	if cleanLinks {
+		return
+	}
 	for _, sh := range []string{"sh", "csh"} {
 		if isPath(distDir + "/env-setup/master." + sh) {
 			run("ln", "-s", distDir+"/env-setup/master."+sh, top+"/env-setup/dist."+sh)
@@ -73,7 +85,8 @@ func (p *Package) install() {
 		fmt.Printf("%s is not included in distribution.\n", p.Name)
 		return
 	}
-	v := dirVersion(pd); vd := v
+	v := dirVersion(pd)
+	vd := v
 	if p.Name == "hdds" || p.Name == "sim-recon" {
 		v = distVersion(pd + "/" + v + "/" + OS)
 	}
@@ -84,14 +97,18 @@ func (p *Package) install() {
 	if p.Name == "cernlib" {
 		pi = filepath.Dir(pi)
 	}
+	d := filepath.Dir(pi)
+	if cleanLinks && isPath(d) {
+		removeSymLinks(d)
+		return
+	}
 	if isPath(pi) {
 		fmt.Printf("%s/%s is already installed.\n", p.Name, v)
 		return
 	}
-	d := filepath.Dir(pi)
 	mk(d)
 	removeSymLinks(d)
-	run("ln", "-s", pd + "/" + vd, pi)
+	run("ln", "-s", pd+"/"+vd, pi)
 }
 
 func removeSymLinks(dir string) {

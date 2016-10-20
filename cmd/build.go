@@ -23,9 +23,9 @@ Display build information if a package is already built.
 
 Alternate usage:
 hdpm build --xml XMLFILE-URL | XMLFILE-PATH
-hdpm build [-c] DIRECTORY
+hdpm build DIRECTORY
 
-All packages in the build template will be built if
+All packages in the package settings will be built if
 no arguments are given.
 
 Usage examples:
@@ -44,10 +44,6 @@ func init() {
 }
 
 func runBuild(cmd *cobra.Command, args []string) {
-	if XML != "" {
-		versionXML(XML)
-	}
-	env("")
 	if os.Getenv("GLUEX_TOP") == "" {
 		fmt.Println("GLUEX_TOP environment variable is not set.\nInstalling packages to the current working directory ...")
 	}
@@ -57,13 +53,14 @@ func runBuild(cmd *cobra.Command, args []string) {
 		dir := filepath.Join(cwd, args[0])
 		if isPath(filepath.Join(dir, "SConstruct")) || isPath(filepath.Join(dir, "SConscript")) {
 			cd(dir)
+			env("")
 			run("scons", "-u", "install")
 			return
 		}
 	}
+	// Parse args
 	versions := extractVersions(args)
 	args = extractNames(args)
-	// Fetch and build packages
 	for _, arg := range args {
 		if !in(packageNames, arg) {
 			fmt.Fprintf(os.Stderr, "%s: Unknown package name\n", arg)
@@ -75,24 +72,30 @@ func runBuild(cmd *cobra.Command, args []string) {
 	} else {
 		args = addDeps(args)
 	}
+	// Change package versions to XMLfile versions
+	if XML != "" {
+		versionXML(XML)
+	}
+	// Change package versions to versions passed on command line
+	changeVersions(args, versions)
+	// Set environment variables
+	env("")
+	// Fetch and build packages
 	mkcd(packageDir())
 	isBuilt := false
 	for _, pkg := range packages {
 		if !pkg.in(args) {
 			continue
 		}
-		ver, ok := versions[pkg.Name]
-		pkg.changeVersion(ver, ok)
-		if runtime.GOOS == "darwin" &&
-			(pkg.Name == "cernlib" || pkg.Name == "cmake") {
+		if runtime.GOOS == "darwin" && pkg.Name == "cernlib" {
 			fmt.Printf("macOS detected: Skipping %s\n", pkg.Name)
 			continue
 		}
+		pkg.fetch()
 		if pkg.IsPrebuilt {
-			fmt.Printf("%s/%s exists\n", pkg.Name, pkg.Version)
+			fmt.Printf("Skipping prebuilt package: %s\n", pkg.Name)
 			continue
 		}
-		pkg.fetch()
 		pkg.build(&isBuilt)
 	}
 }
@@ -101,7 +104,7 @@ func (p *Package) build(isBuilt *bool) {
 	ti := time.Now().Round(time.Second)
 	fname := p.Path + "/success.hdpm"
 	if p.in([]string{"jana", "hdds", "sim-recon"}) {
-		fname = p.Path + "/" + osrelease() + "/success.hdpm"
+		fname = p.Path + "/" + OS + "/success.hdpm"
 	}
 	if isPath(fname) {
 		printStats(fname, isBuilt)
@@ -117,6 +120,7 @@ func (p *Package) build(isBuilt *bool) {
 			cd("src")
 		}
 		if p.usesCMake() {
+			setenvPath(getPackage("cmake").Path)
 			mkcd("../" + p.Name + "-build")
 			run("mv", p.Path, "../"+p.Name)
 			mk(p.Path)
@@ -202,7 +206,7 @@ func addDeps(args []string) []string {
 		}
 	}
 	if len(deps) > 0 {
-		fmt.Printf("Dependencies: %s\n", strings.Join(deps, ","))
+		fmt.Printf("Dependencies: %s\n", strings.Join(deps, ", "))
 	}
 	deps = append(deps, args...)
 	return deps
@@ -240,7 +244,7 @@ func (p *Package) checkDeps() {
 		"rcdb":                commande("rcdb"),
 		"ccdb":                commande("ccdb"),
 		"jana":                commande("jana"),
-		"hdds":                commande(ldd, hdds.Path+"/"+osrelease()+"/"+"/lib/libhdds.so"),
+		"hdds":                commande(ldd, hdds.Path+"/"+OS+"/"+"/lib/libhdds.so"),
 		"sim-recon":           commande("hd_root"),
 		"gluex_root_analysis": commande("root", "-b", "-q", "-l"),
 	}
@@ -275,7 +279,7 @@ func (p *Package) checkDeps() {
 			}
 			path := user.Path
 			if user.Name != "amptools" {
-				path = filepath.Join(path, osrelease())
+				path = filepath.Join(path, OS)
 			}
 			if !isPath(filepath.Join(path, "success.hdpm")) {
 				continue

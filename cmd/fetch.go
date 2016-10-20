@@ -39,12 +39,10 @@ func init() {
 }
 
 func runFetch(cmd *cobra.Command, args []string) {
-	if XML != "" {
-		versionXML(XML)
-	}
 	if os.Getenv("GLUEX_TOP") == "" {
 		fmt.Println("GLUEX_TOP environment variable is not set.\nInstalling packages to the current working directory ...")
 	}
+	// Parse args
 	versions := extractVersions(args)
 	args = extractNames(args)
 	for _, arg := range args {
@@ -58,25 +56,29 @@ func runFetch(cmd *cobra.Command, args []string) {
 	} else {
 		args = addDeps(args)
 	}
+	// Change package versions to XMLfile versions
+	if XML != "" {
+		versionXML(XML)
+	}
+	// Change package versions to versions passed on command line
+	changeVersions(args, versions)
 	// Set http proxy env. variable if on JLab CUE
 	if isPath("/w/work/halld/home") {
 		setenv("http_proxy", "http://jprox.jlab.org:8081")
 		setenv("https_proxy", "https://jprox.jlab.org:8081")
 	}
+	// Fetch packages
 	mkcd(packageDir())
 	for _, pkg := range packages {
 		if !pkg.in(args) {
 			continue
 		}
-		ver, ok := versions[pkg.Name]
-		pkg.changeVersion(ver, ok)
-		if runtime.GOOS == "darwin" &&
-			(pkg.Name == "cernlib" || pkg.Name == "cmake") {
+		if runtime.GOOS == "darwin" && pkg.Name == "cernlib" {
 			fmt.Printf("macOS detected: Skipping %s\n", pkg.Name)
 			continue
 		}
 		if pkg.isFetched() {
-			fmt.Printf("%s/%s exists\n", pkg.Name, pkg.Version)
+			fmt.Printf("%s exists\n", pkg.Path)
 			continue
 		}
 		pkg.fetch()

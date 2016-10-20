@@ -32,6 +32,7 @@ func runUpdate(cmd *cobra.Command, args []string) {
 	if os.Getenv("GLUEX_TOP") == "" {
 		fmt.Println("GLUEX_TOP environment variable is not set.\nUpdating packages in the current working directory ...")
 	}
+	// Parse args
 	versions := extractVersions(args)
 	args = extractNames(args)
 	for _, arg := range args {
@@ -45,14 +46,12 @@ func runUpdate(cmd *cobra.Command, args []string) {
 	} else {
 		args = addDeps(args)
 	}
+	// Change package versions to versions passed on command line
+	changeVersions(args, versions)
+	// Update packages
 	mkcd(packageDir())
 	for _, pkg := range packages {
-		if !pkg.in(args) {
-			continue
-		}
-		ver, ok := versions[pkg.Name]
-		pkg.changeVersion(ver, ok)
-		if !pkg.isRepo() {
+		if !pkg.in(args) || !pkg.isRepo() {
 			continue
 		}
 		pkg.cd()

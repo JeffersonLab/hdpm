@@ -22,7 +22,7 @@ Print GlueX environment variables in "key=value" format.
 Pass an environment variable name as an argument to print it.
 
 bash and tcsh environment-setup scripts are written to
-$GLUEX_TOP/env-setup/<template-id>.[c]sh.
+$GLUEX_TOP/env-setup/<settings-id>.[c]sh.
 `,
 	Run: runEnv,
 }
@@ -143,7 +143,7 @@ func printEnv(arg string, ENV map[string]string) {
 
 func getEnv() map[string]string {
 	GLUEX_TOP := packageDir()
-	BMS_OSNAME := osrelease()
+	BMS_OSNAME := OS
 	path, ver := make(map[string]string), make(map[string]string)
 	for _, p := range packages {
 		path[p.Name] = p.Path
@@ -234,8 +234,17 @@ func addPath(path, new_path string) string {
 	return path
 }
 
+func setenvPath(path string) {
+	if isPath(path) {
+		p := os.Getenv("PATH")
+		if !strings.Contains(p, path) {
+			setenv("PATH", filepath.Join(path, "bin:")+p)
+		}
+	}
+}
+
 func envInit() {
-	osr := osrelease()
+	osr := OS
 	if (strings.Contains(osr, "CentOS6") || strings.Contains(osr, "RHEL6")) && (isPath(filepath.Join(packageDir(), ".dist")) || in(os.Args, "install")) {
 		p := filepath.Join(packageDir(), ".dist")
 		setenv("PATH", p+"/opt/rh/python27/root/usr/bin:"+p+"/opt/rh/devtoolset-3/root/usr/bin:"+os.Getenv("PATH"))

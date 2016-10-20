@@ -25,7 +25,13 @@ type Package struct {
 }
 
 // Default package settings
-var masterPackages = []Package{
+var masterPackages = [...]Package{
+	{Name: "hdpm", Version: "0.2.0",
+		URL:        "https://halldweb.jlab.org/dist/hdpm/hdpm-[VER].linux.tar.gz",
+		Path:       "hdpm/[VER]",
+		Cmds:       []string{""},
+		Deps:       []string{""},
+		IsPrebuilt: true},
 	{Name: "cmake", Version: "3.6.2",
 		URL:        "https://cmake.org/files/v3.6/cmake-[VER]-Linux-x86_64.tar.gz",
 		Path:       "cmake/[VER]",
@@ -61,10 +67,10 @@ var masterPackages = []Package{
 		Path: "geant4/[VER]",
 		Cmds: []string{"cmake -DCMAKE_INSTALL_PREFIX=[PATH] ../geant4",
 			"make -j8", "make install"},
-		Deps:       []string{""},
+		Deps:       []string{"cmake"},
 		IsPrebuilt: false},
-	{Name: "evio", Version: "4.3.1",
-		URL:        "https://coda.jlab.org/drupal/system/files/coda/evio/evio-4.3/evio-[VER].tgz",
+	{Name: "evio", Version: "4.4.6",
+		URL:        "https://coda.jlab.org/drupal/system/files/coda/evio/evio-4.4/evio-[VER].tgz",
 		Path:       "evio/[VER]",
 		Cmds:       []string{"scons --prefix=[PATH] install"},
 		Deps:       []string{""},
@@ -113,25 +119,42 @@ var masterPackages = []Package{
 		IsPrebuilt: false},
 }
 
+// Packages after init/config
 var packages []Package
+
+// OS release
 var OS string
+
+// Settings directory
+var SD string
 
 func init() {
 	envInit()
 	OS = osrelease()
-	dir := filepath.Join(packageDir(), "settings")
+	SD = filepath.Join(packageDir(), "settings")
+	rsd := isPath(SD)
 	for _, pkg := range masterPackages {
-		if isPath(dir) {
-			if isPath(dir + "/" + pkg.Name + ".json") {
-				pkg.read()
+		if rsd {
+			if isPath(SD + "/" + pkg.Name + ".json") {
+				pkg = read(pkg.Name)
 				pkg.config("master")
 				packages = append(packages, pkg)
 			}
-			continue
+		} else {
+			pkg.config("master")
+			packages = append(packages, pkg)
 		}
-		pkg.config("master")
-		packages = append(packages, pkg)
 	}
+}
+
+func read(name string) (p Package) {
+	b, err := ioutil.ReadFile(SD + "/" + name + ".json")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	json.Unmarshal(b, &p)
+	p.Name = name
+	return p
 }
 
 func getPackage(name string) Package {
@@ -144,6 +167,7 @@ func getPackage(name string) Package {
 }
 
 var packageNames = []string{
+	"hdpm",
 	"cmake",
 	"xerces-c",
 	"cernlib",
@@ -173,6 +197,7 @@ func jlabPackageDir() string {
 }
 
 var jsep = map[string]string{
+	"hdpm":                "-",
 	"cmake":               "-",
 	"xerces-c":            "-",
 	"cernlib":             "",
@@ -212,7 +237,7 @@ func (p *Package) config(arg string) {
 	if p.Version == "latest" {
 		p.Version = "master"
 	}
-	
+
 	if p.Name == "evio" {
 		major_minor := ver_i(p.Version, 0) + "." + ver_i(p.Version, 1)
 		if runtime.GOOS == "darwin" && major_minor == "4.3" {
@@ -224,8 +249,14 @@ func (p *Package) config(arg string) {
 			p.URL = re.ReplaceAllString(p.URL, major_minor)
 		}
 	}
+	if p.Name == "hdpm" && runtime.GOOS == "darwin" {
+		p.URL = strings.Replace(p.URL, "linux", "macOS", -1)
+	}
+	if p.Name == "cmake" && runtime.GOOS == "darwin" {
+		p.URL = strings.Replace(p.URL, "Linux", "Darwin", -1)
+	}
 	p.URL = strings.Replace(p.URL, "[VER]", p.Version, -1)
-	
+
 	p.Path = strings.Replace(p.Path, "[OS]", OS, -1)
 	p.Path = strings.Replace(p.Path, "[VER]", p.Version, -1)
 	if !strings.HasPrefix(p.Path, "/") && p.Path != "" {
@@ -264,16 +295,8 @@ func (p *Package) config(arg string) {
 		if len(p.Cmds) > 0 && !strings.Contains(p.Cmds[0], "./configure") {
 			p.Cmds = nil
 			p.Cmds = append(p.Cmds, "./configure --enable-roofit")
-			p.Cmds = append(p.Cmds, "make -j8 && make clean")
+			p.Cmds = append(p.Cmds, "make -j8; make clean")
 		}
-	}
-}
-
-func (p *Package) changeVersion(ver string, ok bool) {
-	if ok && ver != "" {
-		p.template()
-		p.Version = ver
-		p.config("master")
 	}
 }
 
@@ -286,6 +309,7 @@ func (p *Package) template() {
 	p.Cmds = cmds
 	p.Path = strings.Replace(p.Path, packageDir()+"/", "", -1)
 	p.Path = strings.Replace(p.Path, p.Version, "[VER]", -1)
+	p.Path = strings.Replace(p.Path, OS, "[OS]", -1)
 }
 
 func write_text(fname, text string) {
@@ -313,30 +337,6 @@ func (p *Package) write(dir string) {
 	f.Close()
 }
 
-func (p *Package) read() {
-	dir := filepath.Join(packageDir(), "settings")
-	if !isPath(dir + "/" + p.Name + ".json") {
-		return
-	}
-	b, err := ioutil.ReadFile(dir + "/" + p.Name + ".json")
-	if err != nil {
-		log.Fatalln(err)
-	}
-	json.Unmarshal(b, &p)
-	if !in(packageNames, p.Name) {
-		fmt.Fprintf(os.Stderr, "%s: unknown package name\n", p.Name)
-		os.Exit(2)
-	}
-}
-
-func extractVersion(arg string) string {
-	ver := ""
-	if strings.Contains(arg, "@") {
-		ver = strings.Split(arg, "@")[1]
-	}
-	return ver
-}
-
 func extractNames(args []string) []string {
 	var names []string
 	for _, arg := range args {
@@ -351,14 +351,70 @@ func extractNames(args []string) []string {
 
 func extractVersions(args []string) map[string]string {
 	versions := make(map[string]string)
+	unchanged := true
 	for _, arg := range args {
 		if strings.Contains(arg, "@") {
 			versions[strings.Split(arg, "@")[0]] = strings.Split(arg, "@")[1]
+			unchanged = false
 		} else {
 			versions[arg] = ""
 		}
 	}
+	if unchanged {
+		versions = nil
+	}
 	return versions
+}
+
+func changeVersions(names []string, versions map[string]string) {
+	if len(versions) == 0 {
+		return
+	}
+	dir := settingsDir()
+	var pkgs []Package
+	for _, pkg := range packages {
+		if !pkg.in(names) {
+			pkgs = append(pkgs, pkg)
+			pkg.write(dir)
+			continue
+		}
+		ver, ok := versions[pkg.Name]
+		pkg.changeVersion(ver, ok)
+		pkgs = append(pkgs, pkg)
+		pkg.write(dir)
+	}
+	packages = pkgs
+}
+
+func (p *Package) changeVersion(ver string, ok bool) {
+	if ok && ver != "" {
+		jlab := strings.HasPrefix(p.Path, jlabPackageDir())
+		p.template()
+		p.Version = ver
+		if jlab {
+			p.Path = filepath.Join(p.Name, p.Version)
+			p.IsPrebuilt = false
+		}
+		p.config("master")
+	}
+}
+
+func settingsDir() string {
+	mk(SD)
+	id := "master"
+	if isPath(SD + "/.id") {
+		id = readFile(SD + "/.id")
+	}
+	write_text(SD+"/.id", id)
+	return SD
+}
+
+func extractVersion(arg string) string {
+	ver := ""
+	if strings.Contains(arg, "@") {
+		ver = strings.Split(arg, "@")[1]
+	}
+	return ver
 }
 
 func versionXML(file string) {
@@ -404,10 +460,12 @@ Path: /group/halld/www/halldweb/html/dist
 	}
 	var v *vXML
 	xml.Unmarshal(b, &v)
-	dir := filepath.Join(packageDir(), "settings")
+	dir := settingsDir()
+	var pkgs []Package
 	for _, p1 := range packages {
 		for _, p2 := range v.Packs {
 			if p1.Name == p2.Name {
+				p1.template()
 				p1.Version = p2.Version
 				if jlab || jdev {
 					if jdev && (p1.Name == "hdds" || p1.Name == "sim-recon") {
@@ -425,8 +483,10 @@ Path: /group/halld/www/halldweb/html/dist
 				}
 			}
 		}
+		pkgs = append(pkgs, p1)
 		p1.write(dir)
 	}
+	packages = pkgs
 	fmt.Println("\nThe XMLfile versions have been applied to your current settings.")
 	if wasurl {
 		os.Remove(file)
