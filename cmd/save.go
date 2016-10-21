@@ -16,9 +16,9 @@ var cmdSave = &cobra.Command{
 	Long: `
 Save the current package settings.
 
-Pass the name of the package settings as the only argument.
+Give a name for the package settings as the only argument.
 
-Saved settings are restored by using the select command.
+Saved settings are restored by using the select command:
 hdpm select NAME
 
 Usage examples:

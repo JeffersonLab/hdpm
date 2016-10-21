@@ -11,7 +11,7 @@ mkdir -p ${target2}
 # Build for 64-bit Linux
 GOOS=linux GOARCH=amd64 go build
 
-# Pack and ship to targets
+# Pack and ship to halldweb
 dir=${name}-${ver}
 mkdir -p ${dir}/bin
 mv hdpm ${dir}/bin
@@ -21,7 +21,8 @@ tar czf ${tarfile} ${dir}
 mv ${tarfile} ${target}
 chgrp -R halld ${target}
 
-if [[ ! -f "${target2}/${ver}" ]]; then
+# If it's a release, move it to halld software folder
+if [[ ! -d "${target2}/${ver}" && "${ver}" != "dev" ]]; then
 	mv ${dir} ${ver}
 	mv ${ver} ${target2}
 	chgrp -R halld ${target2}
@@ -32,7 +33,7 @@ fi
 # Build for 64-bit macOS
 GOOS=darwin GOARCH=amd64 go build
 
-# Pack and ship to target
+# Pack and ship to halldweb
 dir=${name}-${ver}
 mkdir -p ${dir}/bin
 mv hdpm ${dir}/bin

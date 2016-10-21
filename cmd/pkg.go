@@ -26,7 +26,7 @@ type Package struct {
 
 // Default package settings
 var masterPackages = [...]Package{
-	{Name: "hdpm", Version: "0.2.0",
+	{Name: "hdpm", Version: "latest",
 		URL:        "https://halldweb.jlab.org/dist/hdpm/hdpm-[VER].linux.tar.gz",
 		Path:       "hdpm/[VER]",
 		Cmds:       []string{""},
@@ -54,7 +54,7 @@ var masterPackages = [...]Package{
 		URL:        "https://root.cern.ch/download/root_v[VER].source.tar.gz",
 		Path:       "root/[VER]",
 		Cmds:       []string{"cmake -Droofit=ON -DCMAKE_INSTALL_PREFIX=[PATH] ../root", "cmake --build . -- -j8", "cmake --build . --target install"},
-		Deps:       []string{""},
+		Deps:       []string{"cmake"},
 		IsPrebuilt: false},
 	{Name: "amptools", Version: "0.9.2",
 		URL:        "http://downloads.sourceforge.net/project/amptools/AmpTools_v[VER].tgz",
@@ -137,11 +137,11 @@ func init() {
 		if rsd {
 			if isPath(SD + "/" + pkg.Name + ".json") {
 				pkg = read(pkg.Name)
-				pkg.config("master")
+				pkg.config()
 				packages = append(packages, pkg)
 			}
 		} else {
-			pkg.config("master")
+			pkg.config()
 			packages = append(packages, pkg)
 		}
 	}
@@ -226,16 +226,13 @@ func ver_i(ver string, i int) string {
 	return ver
 }
 
-func (p *Package) config(arg string) {
+func (p *Package) config() {
 	if p.Version == "" {
 		p.URL = ""
 		p.Path = ""
-		p.Cmds = []string{""}
+		p.Cmds, p.Deps = []string{""}, []string{""}
 		p.IsPrebuilt = true
 		return
-	}
-	if p.Version == "latest" {
-		p.Version = "master"
 	}
 
 	if p.Name == "evio" {
@@ -252,27 +249,12 @@ func (p *Package) config(arg string) {
 	if p.Name == "hdpm" && runtime.GOOS == "darwin" {
 		p.URL = strings.Replace(p.URL, "linux", "macOS", -1)
 	}
-	if p.Name == "cmake" && runtime.GOOS == "darwin" {
-		p.URL = strings.Replace(p.URL, "Linux", "Darwin", -1)
-	}
 	p.URL = strings.Replace(p.URL, "[VER]", p.Version, -1)
 
 	p.Path = strings.Replace(p.Path, "[OS]", OS, -1)
 	p.Path = strings.Replace(p.Path, "[VER]", p.Version, -1)
 	if !strings.HasPrefix(p.Path, "/") && p.Path != "" {
 		p.Path = filepath.Join(packageDir(), p.Path)
-	}
-
-	if arg == "jlab" {
-		jp := filepath.Join(jlabPackageDir(), p.Name, p.Name+jsep[p.Name]+p.Version)
-		if isPath(jp) {
-			p.Path = jp
-			p.IsPrebuilt = true
-		}
-		if p.Name == "cernlib" && isPath(filepath.Join(jlabPackageDir(), p.Name)) {
-			p.Path = filepath.Join(jlabPackageDir(), p.Name)
-			p.IsPrebuilt = true
-		}
 	}
 
 	if p.Name == "rcdb" && strings.Contains(OS, "gcc4.4") {
@@ -284,29 +266,35 @@ func (p *Package) config(arg string) {
 	if p.Name == "jana" && p.Version == "master" {
 		p.URL = "https://phys12svn.jlab.org/repos/JANA"
 	}
-	var cmds []string
-	for _, cmd := range p.Cmds {
-		if p.Path != "" {
-			cmds = append(cmds, strings.Replace(cmd, "[PATH]", p.Path, -1))
-		}
-	}
-	p.Cmds = cmds
+
+	p.configCmds("[PATH]", p.Path)
+
 	if p.Name == "root" && ver_i(p.Version, 0) == "6" && strings.Contains(os.Getenv("PATH"), "/opt/rh/devtoolset-3/root/usr/bin") && (strings.Contains(OS, "CentOS6") || strings.Contains(OS, "RHEL6")) {
 		if len(p.Cmds) > 0 && !strings.Contains(p.Cmds[0], "./configure") {
 			p.Cmds = nil
 			p.Cmds = append(p.Cmds, "./configure --enable-roofit")
 			p.Cmds = append(p.Cmds, "make -j8; make clean")
+			p.Deps = []string{""}
 		}
 	}
 }
 
-func (p *Package) template() {
-	p.URL = strings.Replace(p.URL, p.Version, "[VER]", -1)
+func (p *Package) configCmds(oldPath, newPath string) {
 	var cmds []string
 	for _, cmd := range p.Cmds {
-		cmds = append(cmds, strings.Replace(cmd, p.Path, "[PATH]", -1))
+		if p.Path != "" {
+			cmds = append(cmds, strings.Replace(cmd, oldPath, newPath, -1))
+		}
 	}
 	p.Cmds = cmds
+}
+
+func (p *Package) template() {
+	if p.Version == "" {
+		return
+	}
+	p.URL = strings.Replace(p.URL, p.Version, "[VER]", -1)
+	p.configCmds(p.Path, "[PATH]")
 	p.Path = strings.Replace(p.Path, packageDir()+"/", "", -1)
 	p.Path = strings.Replace(p.Path, p.Version, "[VER]", -1)
 	p.Path = strings.Replace(p.Path, OS, "[OS]", -1)
@@ -322,9 +310,7 @@ func write_text(fname, text string) {
 }
 
 func (p *Package) write(dir string) {
-	if p.Version != "" {
-		p.template()
-	}
+	p.template()
 	f, err := os.Create(dir + "/" + p.Name + ".json")
 	if err != nil {
 		log.Fatalln(err)
@@ -395,7 +381,7 @@ func (p *Package) changeVersion(ver string, ok bool) {
 			p.Path = filepath.Join(p.Name, p.Version)
 			p.IsPrebuilt = false
 		}
-		p.config("master")
+		p.config()
 	}
 }
 
@@ -415,6 +401,24 @@ func extractVersion(arg string) string {
 		ver = strings.Split(arg, "@")[1]
 	}
 	return ver
+}
+
+func (p *Package) jlabPathConfig(dirtag string) {
+	dir := filepath.Join(jlabPackageDir(), p.Name)
+	jp := filepath.Join(dir, p.Name+jsep[p.Name]+p.Version)
+	if dirtag != "" && p.Version != "master" {
+		jp += "^" + dirtag
+	}
+	path := p.Path
+	if isPath(jp) {
+		p.Path = jp
+		p.IsPrebuilt = true
+	}
+	if p.Name == "cernlib" && isPath(dir+"/"+p.Version) {
+		p.Path = dir
+		p.IsPrebuilt = true
+	}
+	p.configCmds(path, p.Path)
 }
 
 func versionXML(file string) {
@@ -471,12 +475,10 @@ Path: /group/halld/www/halldweb/html/dist
 					if jdev && (p1.Name == "hdds" || p1.Name == "sim-recon") {
 						p1.Version = "master"
 					}
-					p1.config("jlab")
-					if p2.DirTag != "" && p1.Version != "master" {
-						p1.Path += "^" + p2.DirTag
-					}
+					p1.config()
+					p1.jlabPathConfig(p2.DirTag)
 				} else {
-					p1.config("master")
+					p1.config()
 					if p2.DirTag != "" {
 						p1.Path += "^" + p2.DirTag
 					}
@@ -674,11 +676,11 @@ func osrelease() string {
 			rs := readFile("/etc/redhat-release")
 			if strings.HasPrefix(rs, "Red Hat Enterprise Linux Workstation release 6.") {
 				release = "_RHEL6"
-			} else if strings.HasPrefix(rs, "Red Hat Enterprise Linux Server release 6.*") {
+			} else if strings.HasPrefix(rs, "Red Hat Enterprise Linux Server release 6.") {
 				release = "_RHEL6"
 			} else if strings.HasPrefix(rs, "Red Hat Enterprise Linux Workstation release 7.") {
 				release = "_RHEL7"
-			} else if strings.HasPrefix(rs, "Red Hat Enterprise Linux Server release 7.*") {
+			} else if strings.HasPrefix(rs, "Red Hat Enterprise Linux Server release 7.") {
 				release = "_RHEL7"
 			} else if strings.HasPrefix(rs, "CentOS release 6.") {
 				release = "_CentOS6"

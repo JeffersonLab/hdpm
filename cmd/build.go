@@ -87,13 +87,14 @@ func runBuild(cmd *cobra.Command, args []string) {
 		if !pkg.in(args) {
 			continue
 		}
-		if runtime.GOOS == "darwin" && pkg.Name == "cernlib" {
+		if runtime.GOOS == "darwin" &&
+			(pkg.Name == "cernlib" || pkg.Name == "cmake") {
 			fmt.Printf("macOS detected: Skipping %s\n", pkg.Name)
 			continue
 		}
 		pkg.fetch()
 		if pkg.IsPrebuilt {
-			fmt.Printf("Skipping prebuilt package: %s\n", pkg.Name)
+			fmt.Printf("Prebuilt package: %s\n", pkg.Name)
 			continue
 		}
 		pkg.build(&isBuilt)
@@ -199,7 +200,7 @@ func addDeps(args []string) []string {
 				continue
 			}
 			for _, dep := range pkg.Deps {
-				if !in(args, dep) && dep != "" {
+				if dep != "" && !in(args, dep) && !in(deps, dep) {
 					deps = append(deps, dep)
 				}
 			}

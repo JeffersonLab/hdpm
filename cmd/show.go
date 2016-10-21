@@ -24,6 +24,7 @@ Usage examples:
 1. hdpm show
 2. hdpm show url
 3. hdpm show cmds
+4. hdpm show -p
 `,
 	Run: runShow,
 }
@@ -113,7 +114,7 @@ yum update -y && yum install -y centos-release-SCL epel-release \
 	centos-release-scl-rh \
 	&& yum install -y python27 git make gcc-c++ gcc binutils \
 	libX11-devel libXpm-devel libXft-devel libXext-devel \
-	subversion scons cmake gcc-gfortran imake patch expat-devel \
+	subversion scons gcc-gfortran imake patch expat-devel \
 	blas-devel lapack-devel openmotif-devel mysql-devel sqlite-devel \
 	fftw-devel bzip2 bzip2-devel tcsh devtoolset-3-toolchain \
 	&& ln -s /usr/lib64/liblapack.a /usr/lib64/liblapack3.a
@@ -124,7 +125,7 @@ yum update -y && yum install -y centos-release-SCL epel-release \
 yum update -y && yum install -y epel-release && yum install -y \
 	git make gcc-c++ gcc binutils python-devel \
 	libX11-devel libXpm-devel libXft-devel libXext-devel \
-	subversion scons cmake gcc-gfortran imake patch expat-devel \
+	subversion scons gcc-gfortran imake patch expat-devel \
 	mysql-devel sqlite-devel fftw-devel bzip2 bzip2-devel tcsh  \
 	blas-devel blas-static lapack-devel lapack-static openmotif-devel \
 	&& ln -s /usr/lib64/liblapack.a /usr/lib64/liblapack3.a
@@ -134,7 +135,7 @@ yum update -y && yum install -y epel-release && yum install -y \
 
 apt-get update && apt-get install -y curl git dpkg-dev make g++ gcc \
 	binutils libx11-dev libxpm-dev libxft-dev libxext-dev libfftw3-dev \
-	python-dev cmake scons subversion gfortran xutils-dev libxt-dev \
+	python-dev scons subversion gfortran xutils-dev libxt-dev \
 	liblapack-dev libblas-dev libmotif-dev expect libgl1-mesa-dev \
 	libglew-dev libmysqlclient-dev sqlite3 libsqlite3-dev tcsh libbz2-dev \
 	&& ln -s /usr/bin/make /usr/bin/gmake \
@@ -143,10 +144,10 @@ apt-get update && apt-get install -y curl git dpkg-dev make g++ gcc \
 	case tag == "macOS":
 		msg = `# macOS prerequisites
 
-xcode-select --install
-Install XQuartz (https://www.xquartz.org)
-Install Homebrew (http://brew.sh)
-brew install scons cmake gcc xerces-c mariadb
+1. xcode-select --install
+2. Install XQuartz (https://www.xquartz.org)
+3. Install Homebrew (http://brew.sh)
+4. brew install scons cmake gcc mariadb
 `
 	}
 	fmt.Print(msg)
