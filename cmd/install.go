@@ -96,6 +96,8 @@ func (p *Package) install() {
 	pi := filepath.Join(packageDir(), p.Name, v)
 	if p.Name == "cernlib" {
 		pi = filepath.Dir(pi)
+	} else {
+		pd += "/"+vd
 	}
 	d := filepath.Dir(pi)
 	if cleanLinks && isPath(d) {
@@ -108,7 +110,7 @@ func (p *Package) install() {
 	}
 	mk(d)
 	removeSymLinks(d)
-	run("ln", "-s", pd+"/"+vd, pi)
+	run("ln", "-s", pd, pi)
 }
 
 func removeSymLinks(dir string) {
