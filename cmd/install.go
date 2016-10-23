@@ -82,7 +82,7 @@ func runInstall(cmd *cobra.Command, args []string) {
 func (p *Package) install() {
 	pd := filepath.Join(packageDir(), ".dist", p.Name)
 	if !isPath(pd) {
-		fmt.Printf("%s is not included in distribution.\n", p.Name)
+		fmt.Printf("Not in distribution: %s\n", p.Name)
 		return
 	}
 	v := dirVersion(pd)
@@ -97,7 +97,7 @@ func (p *Package) install() {
 	if p.Name == "cernlib" {
 		pi = filepath.Dir(pi)
 	} else {
-		pd += "/"+vd
+		pd += "/" + vd
 	}
 	d := filepath.Dir(pi)
 	if cleanLinks && isPath(d) {
@@ -105,7 +105,7 @@ func (p *Package) install() {
 		return
 	}
 	if isPath(pi) {
-		fmt.Printf("%s/%s is already installed.\n", p.Name, v)
+		fmt.Printf("  Already installed: %s/%s\n", p.Name, v)
 		return
 	}
 	mk(d)

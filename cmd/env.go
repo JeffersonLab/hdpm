@@ -244,7 +244,7 @@ func setenvPath(path string) {
 }
 
 func envInit() {
-	osr := OS
+	osr := osrelease()
 	if (strings.Contains(osr, "CentOS6") || strings.Contains(osr, "RHEL6")) && (isPath(filepath.Join(packageDir(), ".dist")) || in(os.Args, "install")) {
 		p := filepath.Join(packageDir(), ".dist")
 		setenv("PATH", p+"/opt/rh/python27/root/usr/bin:"+p+"/opt/rh/devtoolset-3/root/usr/bin:"+os.Getenv("PATH"))
