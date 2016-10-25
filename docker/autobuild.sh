@@ -15,7 +15,6 @@ fi
 if ! test -f $cwd/.active; then
     echo "0" > $cwd/.active
 fi
-JL=/group/halld/Software/ExternalPackages/julia-latest/bin/julia
 active=$(cat $cwd/.active)
 if test $active == "0"; then
     git pull
@@ -26,13 +25,10 @@ if test $active == "0"; then
         echo "1" > $cwd/.active
         echo "Triggering build of sim-recon-$c (prev: $c_old)."
         cd $cwd
-        $JL build.jl sim-recon c6; $JL write_deps_id.jl nathansparks c6
-        bash pack.sh c6; $JL cull.jl 5 c6
-        $JL build.jl sim-recon c7; $JL write_deps_id.jl nathansparks c7
-        bash pack.sh c7; $JL cull.jl 5 c7
-        $JL build.jl sim-recon u14 u16; $JL write_deps_id.jl nathansparks u14 u16
-        bash pack.sh u14; bash pack.sh u16
-        $JL cull.jl 5 u14; $JL cull.jl 5 u16
+        for tag in c6 c7 u14; do
+             gxd build sim-recon $tag; gxd write -u nathansparks $tag
+             bash pack.sh $tag; gxd cull -n 5 $tag
+        done
         echo "0" > $cwd/.active
     else
         echo "sim-recon is up-to-date."
