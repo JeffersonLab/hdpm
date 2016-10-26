@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -32,8 +31,8 @@ func init() {
 
 func runBuild(cmd *cobra.Command, args []string) {
 	var names = map[string]string{
-		"c6": "centos6",
-		"c7": "centos7",
+		"c6":  "centos6",
+		"c7":  "centos7",
 		"u14": "ubuntu14",
 		"u16": "ubuntu16",
 	}
@@ -64,7 +63,7 @@ func runBuild(cmd *cobra.Command, args []string) {
 
 	wd := workDir()
 	for _, tag := range ts {
-		dir := wd+"/buildfiles/"+names[tag]
+		dir := wd + "/buildfiles/" + names[tag]
 		for _, stage := range ss {
 			name, file := stage, "Dockerfile"
 			if in([]string{"base", "deps"}, stage) {

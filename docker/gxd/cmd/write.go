@@ -11,12 +11,12 @@ import (
 // Create the write command
 var cmdWrite = &cobra.Command{
 	Use:   "write [TAG...]",
-	Short: "Write id of docker images",
-	Long: `Write id of docker images.
+	Short: "Write the docker-image id",
+	Long: `Write the docker-image id.
 	
 tags: c6, c7, u14, u16
 
-All tags will be written if no arguments are given.
+The ids of all tags will be written if no arguments are given.
 
 Usage examples:
 1. gxd write -u USER c6
@@ -36,8 +36,8 @@ func runWrite(cmd *cobra.Command, args []string) {
 		os.Exit(2)
 	}
 	var names = map[string]string{
-		"c6": "centos6",
-		"c7": "centos7",
+		"c6":  "centos6",
+		"c7":  "centos7",
 		"u14": "ubuntu14",
 		"u16": "ubuntu16",
 	}
@@ -66,6 +66,6 @@ func runWrite(cmd *cobra.Command, args []string) {
 			repo = USER + "/" + name + ":" + names[tag]
 		}
 		s := output("docker", "inspect", "--format='{{.Id}}'", repo)
-		write_text(wd+"/.id-deps-"+tag, strings.Split(s, ":")[1][0 : 5])
+		write_text(wd+"/.id-deps-"+tag, strings.Split(s, ":")[1][0:5])
 	}
 }

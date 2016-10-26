@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -38,8 +37,8 @@ func runPush(cmd *cobra.Command, args []string) {
 		os.Exit(2)
 	}
 	var names = map[string]string{
-		"c6": "centos6",
-		"c7": "centos7",
+		"c6":  "centos6",
+		"c7":  "centos7",
 		"u14": "ubuntu14",
 		"u16": "ubuntu16",
 	}

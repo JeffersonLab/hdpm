@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
-	"time"
 	"regexp"
 	"sort"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 )
