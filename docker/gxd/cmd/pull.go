@@ -27,6 +27,7 @@ func init() {
 	cmdGXD.AddCommand(cmdPull)
 
 	cmdPull.Flags().StringVarP(&USER, "user", "u", "", "Docker username")
+	cmdPull.Flags().BoolVarP(&rmi, "rmi", "", false, "Remove old image before pull.")
 }
 
 func runPull(cmd *cobra.Command, args []string) {
@@ -64,7 +65,9 @@ func runPull(cmd *cobra.Command, args []string) {
 			repo = USER + "/" + name + ":" + names[tag]
 		}
 		run("docker", "pull", repo)
-		run("docker", "rmi", name+":"+tag)
+		if rmi {
+			run("docker", "rmi", name+":"+tag)
+		}
 		run("docker", "tag", repo, name+":"+tag)
 		run("docker", "rmi", repo)
 	}

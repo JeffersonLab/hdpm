@@ -25,8 +25,12 @@ Usage examples:
 	Run: runBuild,
 }
 
+var rmi bool
+
 func init() {
 	cmdGXD.AddCommand(cmdBuild)
+
+	cmdBuild.Flags().BoolVarP(&rmi, "rmi", "", false, "Remove old image before build.")
 }
 
 func runBuild(cmd *cobra.Command, args []string) {
@@ -69,7 +73,9 @@ func runBuild(cmd *cobra.Command, args []string) {
 			if in([]string{"base", "deps"}, stage) {
 				name, file = "hd"+stage, "Dockerfile-"+stage
 			}
-			run("docker", "rmi", name+":"+tag)
+			if rmi {
+				run("docker", "rmi", name+":"+tag)
+			}
 			log := output("docker", "build", "--no-cache", "-t", name+":"+tag, "-f", dir+"/"+file, dir)
 			write_text(wd+"/.log-"+name+"-"+tag, log)
 		}

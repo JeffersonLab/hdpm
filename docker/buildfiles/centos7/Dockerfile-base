@@ -3,7 +3,7 @@ MAINTAINER Nathan Sparks <nsparks@jlab.org>
 RUN yum update -y && yum install -y epel-release && yum install -y \
             git make gcc-c++ gcc binutils clang \
             libX11-devel libXpm-devel libXft-devel libXext-devel \
-            subversion scons cmake gcc-gfortran imake patch expat-devel \
+            subversion scons gcc-gfortran imake patch expat-devel \
             mysql-devel fftw-devel bzip2-devel emacs file tar python-devel \
             blas-devel blas-static lapack-devel lapack-static openmotif-devel \
             bzip2 tcsh sqlite-devel && yum clean all \
