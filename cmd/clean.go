@@ -70,6 +70,7 @@ func runClean(cmd *cobra.Command, args []string) {
 	// Set environment variables
 	env("")
 	for _, pkg := range packages {
+		pkg.config()
 		if !pkg.in(args) || !pkg.isFetched() || pkg.IsPrebuilt || pkg.inDist() {
 			continue
 		}
@@ -110,14 +111,18 @@ func (p *Package) distclean() {
 		run("make", "dist")
 		cd("../")
 		run("rm", "-rf", p.Version)
-		files := glob(p.Path + "/*.tar.gz")
+		files := glob(filepath.Dir(p.Path) + "/*.tar.gz")
 		for _, file := range files {
 			run("tar", "xf", file)
 			os.Remove(file)
 		}
 		run("mv", "success.hdpm", p.Version)
 	} else {
-		run("rm", "-rf", "src", "."+OS)
+		if p.Name == "sim-recon" {
+			run("rm", "-rf", "src/."+OS, "src/.sconsign.dblite", "."+OS)
+		} else {
+			run("rm", "-rf", "src", "."+OS)
+		}
 		rmGlob(p.Path + "/*.*gz")
 		rmGlob(p.Path + "/*.contents")
 		rmGlob(p.Path + "/.g*")

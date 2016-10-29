@@ -81,7 +81,7 @@ var masterPackages = [...]Package{
 		Cmds:       []string{"cd cpp; scons"},
 		Deps:       []string{""},
 		IsPrebuilt: false},
-	{Name: "ccdb", Version: "1.06.01",
+	{Name: "ccdb", Version: "1.06.02",
 		URL:        "https://github.com/JeffersonLab/ccdb/archive/v[VER].tar.gz",
 		Path:       "ccdb/[VER]",
 		Cmds:       []string{"scons"},
@@ -119,29 +119,40 @@ var masterPackages = [...]Package{
 		IsPrebuilt: false},
 }
 
-// Packages after init/config
+// Packages to use
 var packages []Package
 
 // OS release
 var OS string
 
+// Package directory
+var PD string
+
+// JLab package directory
+const JPD = "/group/halld/Software/builds"
+
 // Settings directory
 var SD string
 
 func init() {
+	PD = os.Getenv("GLUEX_TOP")
+	if PD == "" {
+		PD, _ = os.Getwd()
+	}
+
 	envInit()
 	OS = osrelease()
-	SD = filepath.Join(packageDir(), "settings")
+
+	SD = filepath.Join(PD, "settings")
+
 	rsd := isPath(SD)
 	for _, pkg := range masterPackages {
 		if rsd {
 			if isPath(SD + "/" + pkg.Name + ".json") {
 				pkg = read(pkg.Name)
-				pkg.config()
 				packages = append(packages, pkg)
 			}
 		} else {
-			pkg.config()
 			packages = append(packages, pkg)
 		}
 	}
@@ -160,6 +171,7 @@ func read(name string) (p Package) {
 func getPackage(name string) Package {
 	for _, p := range packages {
 		if name == p.Name {
+			p.config()
 			return p
 		}
 	}
@@ -182,18 +194,6 @@ var packageNames = []string{
 	"sim-recon",
 	"gluex_root_analysis",
 	"gluex_workshops",
-}
-
-func packageDir() string {
-	pdir := os.Getenv("GLUEX_TOP")
-	if pdir == "" {
-		pdir, _ = os.Getwd()
-	}
-	return pdir
-}
-
-func jlabPackageDir() string {
-	return "/group/halld/Software/builds/" + OS
 }
 
 var jsep = map[string]string{
@@ -235,16 +235,8 @@ func (p *Package) config() {
 		return
 	}
 
-	if p.Name == "evio" {
-		major_minor := ver_i(p.Version, 0) + "." + ver_i(p.Version, 1)
-		if runtime.GOOS == "darwin" && major_minor == "4.3" {
-			p.Version = "4.4.6"
-			major_minor = "4.4"
-		}
-		re := regexp.MustCompile("4.[0-9]")
-		if !strings.Contains(p.URL, major_minor) {
-			p.URL = re.ReplaceAllString(p.URL, major_minor)
-		}
+	if p.Name == "evio" || p.Name == "cmake" {
+		p.configMajorMinorInURL()
 	}
 	if p.Name == "hdpm" && runtime.GOOS == "darwin" {
 		p.URL = strings.Replace(p.URL, "linux", "macOS", -1)
@@ -254,12 +246,9 @@ func (p *Package) config() {
 	p.Path = strings.Replace(p.Path, "[OS]", OS, -1)
 	p.Path = strings.Replace(p.Path, "[VER]", p.Version, -1)
 	if !strings.HasPrefix(p.Path, "/") && p.Path != "" {
-		p.Path = filepath.Join(packageDir(), p.Path)
+		p.Path = filepath.Join(PD, p.Path)
 	}
 
-	if p.Name == "rcdb" && strings.Contains(OS, "gcc4.4") {
-		p.IsPrebuilt = true
-	}
 	if p.Version == "master" && strings.Contains(p.URL, "https://github.com/JeffersonLab/"+p.Name+"/archive/") {
 		p.URL = "https://github.com/JeffersonLab/" + p.Name
 	}
@@ -279,6 +268,15 @@ func (p *Package) config() {
 	}
 }
 
+func (p *Package) configMajorMinorInURL() {
+	major := ver_i(p.Version, 0)
+	major_minor := major + "." + ver_i(p.Version, 1)
+	re := regexp.MustCompile(major + ".[0-9]")
+	if !strings.Contains(p.URL, major_minor) {
+		p.URL = re.ReplaceAllString(p.URL, major_minor)
+	}
+}
+
 func (p *Package) configCmds(oldPath, newPath string) {
 	var cmds []string
 	for _, cmd := range p.Cmds {
@@ -295,7 +293,7 @@ func (p *Package) template() {
 	}
 	p.URL = strings.Replace(p.URL, p.Version, "[VER]", -1)
 	p.configCmds(p.Path, "[PATH]")
-	p.Path = strings.Replace(p.Path, packageDir()+"/", "", -1)
+	p.Path = strings.Replace(p.Path, PD+"/", "", -1)
 	p.Path = strings.Replace(p.Path, p.Version, "[VER]", -1)
 	p.Path = strings.Replace(p.Path, OS, "[OS]", -1)
 }
@@ -310,7 +308,6 @@ func write_text(fname, text string) {
 }
 
 func (p *Package) write(dir string) {
-	p.template()
 	f, err := os.Create(dir + "/" + p.Name + ".json")
 	if err != nil {
 		log.Fatalln(err)
@@ -374,14 +371,11 @@ func changeVersions(names []string, versions map[string]string) {
 
 func (p *Package) changeVersion(ver string, ok bool) {
 	if ok && ver != "" {
-		jlab := strings.HasPrefix(p.Path, jlabPackageDir())
-		p.template()
 		p.Version = ver
-		if jlab {
-			p.Path = filepath.Join(p.Name, p.Version)
+		if strings.HasPrefix(p.Path, JPD) {
+			p.Path = filepath.Join(p.Name, "[VER]")
 			p.IsPrebuilt = false
 		}
-		p.config()
 	}
 }
 
@@ -404,12 +398,11 @@ func extractVersion(arg string) string {
 }
 
 func (p *Package) jlabPathConfig(dirtag string) {
-	dir := filepath.Join(jlabPackageDir(), p.Name)
+	dir := filepath.Join(JPD, OS, p.Name)
 	jp := filepath.Join(dir, p.Name+jsep[p.Name]+p.Version)
 	if dirtag != "" && p.Version != "master" {
 		jp += "^" + dirtag
 	}
-	path := p.Path
 	if isPath(jp) {
 		p.Path = jp
 		p.IsPrebuilt = true
@@ -418,7 +411,7 @@ func (p *Package) jlabPathConfig(dirtag string) {
 		p.Path = dir
 		p.IsPrebuilt = true
 	}
-	p.configCmds(path, p.Path)
+	p.template()
 }
 
 func versionXML(file string) {
@@ -469,16 +462,13 @@ Path: /group/halld/www/halldweb/html/dist
 	for _, p1 := range packages {
 		for _, p2 := range v.Packs {
 			if p1.Name == p2.Name {
-				p1.template()
 				p1.Version = p2.Version
 				if jlab || jdev {
 					if jdev && (p1.Name == "hdds" || p1.Name == "sim-recon") {
 						p1.Version = "master"
 					}
-					p1.config()
 					p1.jlabPathConfig(p2.DirTag)
 				} else {
-					p1.config()
 					if p2.DirTag != "" {
 						p1.Path += "^" + p2.DirTag
 					}
@@ -558,7 +548,7 @@ func (p *Package) cd() {
 
 func (p *Package) inDist() bool {
 	if isSymLink(p.Path) {
-		if strings.HasPrefix(readLink(p.Path), packageDir()+"/.dist/") {
+		if strings.HasPrefix(readLink(p.Path), PD+"/.dist/") {
 			return true
 		}
 	}

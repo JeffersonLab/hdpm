@@ -49,8 +49,9 @@ func runUpdate(cmd *cobra.Command, args []string) {
 	// Change package versions to versions passed on command line
 	changeVersions(args, versions)
 	// Update packages
-	mkcd(packageDir())
+	mkcd(PD)
 	for _, pkg := range packages {
+		pkg.config()
 		if !pkg.in(args) || !pkg.isRepo() {
 			continue
 		}

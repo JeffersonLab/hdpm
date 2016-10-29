@@ -50,8 +50,7 @@ func runInstall(cmd *cobra.Command, args []string) {
 	if len(args) >= 1 {
 		arg = args[0]
 	}
-	top := packageDir()
-	distDir := filepath.Join(top, ".dist")
+	distDir := filepath.Join(PD, ".dist")
 	if !cleanLinks {
 		fetchDist(arg)
 	}
@@ -59,28 +58,28 @@ func runInstall(cmd *cobra.Command, args []string) {
 	OS = strings.Replace(OS, "LinuxMint17", "Ubuntu14", -1)
 	OS = strings.Replace(OS, "LinuxMint18", "Ubuntu16", -1)
 	if !cleanLinks {
-		fmt.Println("\nLinking distribution binaries into " + top + " ...")
+		fmt.Println("\nLinking distribution binaries into " + PD + " ...")
 	} else {
-		fmt.Println("Removing symlinks in " + top + " ...")
+		fmt.Println("Removing symlinks in " + PD + " ...")
 	}
 	for _, pkg := range packages {
 		pkg.install()
 	}
 	// Link env-setup scripts
-	mk(top + "/env-setup")
-	rmGlob(top + "/env-setup/dist.*")
+	mk(PD + "/env-setup")
+	rmGlob(PD + "/env-setup/dist.*")
 	if cleanLinks {
 		return
 	}
 	for _, sh := range []string{"sh", "csh"} {
 		if isPath(distDir + "/env-setup/master." + sh) {
-			run("ln", "-s", distDir+"/env-setup/master."+sh, top+"/env-setup/dist."+sh)
+			run("ln", "-s", distDir+"/env-setup/master."+sh, PD+"/env-setup/dist."+sh)
 		}
 	}
 }
 
 func (p *Package) install() {
-	pd := filepath.Join(packageDir(), ".dist", p.Name)
+	pd := filepath.Join(PD, ".dist", p.Name)
 	if !isPath(pd) {
 		fmt.Printf("Not in distribution: %s\n", p.Name)
 		return
@@ -93,7 +92,7 @@ func (p *Package) install() {
 	if p.Name == "gluex_root_analysis" {
 		v = distVersion(pd + "/" + v)
 	}
-	pi := filepath.Join(packageDir(), p.Name, v)
+	pi := filepath.Join(PD, p.Name, v)
 	if p.Name == "cernlib" {
 		pi = filepath.Dir(pi)
 	} else {
@@ -117,7 +116,7 @@ func removeSymLinks(dir string) {
 	for _, lc := range readDir(dir) {
 		file := dir + "/" + lc
 		if isSymLink(file) {
-			if strings.HasPrefix(readLink(file), packageDir()+"/.dist/") {
+			if strings.HasPrefix(readLink(file), PD+"/.dist/") {
 				os.Remove(file)
 			}
 		}
@@ -168,7 +167,7 @@ Available OS tags:  c6 (CentOS 6), c7 (CentOS 7),
 		fmt.Fprintf(os.Stderr, "%s: Unsupported operating system\n", OS)
 		os.Exit(2)
 	}
-	dir := filepath.Join(packageDir(), ".dist")
+	dir := filepath.Join(PD, ".dist")
 	if showList {
 		fmt.Println("Available tarfiles")
 	}
@@ -260,19 +259,19 @@ func updateEnvScript(path string) {
 	data := readFile(path)
 	gx := filepath.Dir(filepath.Dir(path))
 	set := "export"
-	top_i := "GLUEX_TOP=.+"
-	top_f := "GLUEX_TOP=" + gx
+	top_i, top_f := "GLUEX_TOP=.+", "GLUEX_TOP="+gx
+	jli, jlf := "\\${GLUEX_TOP}/julia-.{5,7}/bin:", ""
 	if strings.HasSuffix(path, ".csh") {
 		set = "setenv"
-		top_i = "GLUEX_TOP .+"
-		top_f = "GLUEX_TOP " + gx
+		top_i, top_f = "GLUEX_TOP .+", "GLUEX_TOP "+gx
 	}
-	tobeReplaced := [3]string{top_i, "=.+/julia-.{5,7}/bin:", "/opt/rh/"}
-	replacement := [3]string{top_f, "=", "${GLUEX_TOP}/opt/rh/"}
+	tobeReplaced := [2]string{top_i, jli}
+	replacement := [2]string{top_f, jlf}
 	for i := 0; i < len(tobeReplaced); i++ {
 		re := regexp.MustCompile(tobeReplaced[i])
 		data = re.ReplaceAllString(data, replacement[i])
 	}
+	data = strings.Replace(data, "/opt/rh/", "${GLUEX_TOP}/opt/rh/", -1)
 	res_path := "/u/group/halld/www/halldweb/html/resources"
 	if isPath(res_path) {
 		data = strings.Replace(data, "#"+set+" JANA_RES", set+" JANA_RES", -1)

@@ -69,7 +69,7 @@ func runSelect(cmd *cobra.Command, args []string) {
 		arg = args[0]
 	}
 	if arg != "master" {
-		tdir := filepath.Join(packageDir(), ".saved-settings")
+		tdir := filepath.Join(PD, ".saved-settings")
 		if isPath(tdir + "/" + arg) {
 			os.RemoveAll(SD)
 			run("cp", "-pr", tdir+"/"+arg, SD)

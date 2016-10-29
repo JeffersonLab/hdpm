@@ -42,7 +42,7 @@ func runSave(cmd *cobra.Command, args []string) {
 		os.Exit(2)
 	}
 	arg := args[0]
-	dir := filepath.Join(packageDir(), ".saved-settings", arg)
+	dir := filepath.Join(PD, ".saved-settings", arg)
 	if isPath(dir) {
 		t := time.Now().Round(time.Second)
 		os.Rename(dir, dir+"_"+t.Format(time.RFC3339))

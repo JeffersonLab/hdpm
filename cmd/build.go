@@ -81,7 +81,7 @@ func runBuild(cmd *cobra.Command, args []string) {
 	// Set environment variables
 	env("")
 	// Fetch and build packages
-	mkcd(packageDir())
+	mkcd(PD)
 	isBuilt := false
 	for _, pkg := range packages {
 		if !pkg.in(args) {
@@ -92,6 +92,7 @@ func runBuild(cmd *cobra.Command, args []string) {
 			fmt.Printf("macOS detected: Skipping %s\n", pkg.Name)
 			continue
 		}
+		pkg.config()
 		pkg.fetch()
 		if pkg.IsPrebuilt {
 			fmt.Printf("Prebuilt package: %s\n", pkg.Name)

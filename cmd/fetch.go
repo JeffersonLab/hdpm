@@ -24,7 +24,7 @@ Download and unpack packages into the $GLUEX_TOP directory.
 If GLUEX_TOP is not set, packages are unpacked into the
 current working directory.
 
-All packages in the build template will be fetched if
+All packages in the package settings will be fetched if
 no arguments are given.
 
 Usage examples:
@@ -70,7 +70,7 @@ func runFetch(cmd *cobra.Command, args []string) {
 		setenv("https_proxy", "https://jprox.jlab.org:8081")
 	}
 	// Fetch packages
-	mkcd(packageDir())
+	mkcd(PD)
 	for _, pkg := range packages {
 		if !pkg.in(args) {
 			continue
@@ -80,6 +80,7 @@ func runFetch(cmd *cobra.Command, args []string) {
 			fmt.Printf("macOS detected: Skipping %s\n", pkg.Name)
 			continue
 		}
+		pkg.config()
 		if pkg.isFetched() {
 			fmt.Printf("Path exists: %s\n", pkg.Path)
 			continue

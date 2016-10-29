@@ -142,10 +142,11 @@ func printEnv(arg string, ENV map[string]string) {
 }
 
 func getEnv() map[string]string {
-	GLUEX_TOP := packageDir()
+	GLUEX_TOP := PD
 	BMS_OSNAME := OS
 	path, ver := make(map[string]string), make(map[string]string)
 	for _, p := range packages {
+		p.config()
 		path[p.Name] = p.Path
 		ver[p.Name] = p.Version
 	}
@@ -245,8 +246,8 @@ func setenvPath(path string) {
 
 func envInit() {
 	osr := osrelease()
-	if (strings.Contains(osr, "CentOS6") || strings.Contains(osr, "RHEL6")) && (isPath(filepath.Join(packageDir(), ".dist")) || in(os.Args, "install")) {
-		p := filepath.Join(packageDir(), ".dist")
+	if (strings.Contains(osr, "CentOS6") || strings.Contains(osr, "RHEL6")) && (isPath(filepath.Join(PD, ".dist")) || in(os.Args, "install")) {
+		p := filepath.Join(PD, ".dist")
 		setenv("PATH", p+"/opt/rh/python27/root/usr/bin:"+p+"/opt/rh/devtoolset-3/root/usr/bin:"+os.Getenv("PATH"))
 		a := p + "/opt/rh/python27/root/usr/lib64:" + p + "/opt/rh/devtoolset-3/root/usr/lib64:" + p + "/opt/rh/devtoolset-3/root/usr/lib"
 		if os.Getenv("LD_LIBRARY_PATH") == "" {

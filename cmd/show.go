@@ -52,17 +52,18 @@ func runShow(cmd *cobra.Command, args []string) {
 	}
 	fmt.Println(strings.Repeat("-", 80))
 	fmt.Printf("Settings id: %s\n", id)
-	fmt.Printf("GLUEX_TOP:   %s\n", packageDir())
+	fmt.Printf("GLUEX_TOP:   %s\n", PD)
 	fmt.Println(strings.Repeat("-", 80))
 	fmt.Printf("%-22s%-22s\n", "package", arg)
 	fmt.Println(strings.Repeat("-", 80))
 	for _, pkg := range packages {
+		pkg.config()
+		pkg.template()
 		pkg.show(arg)
 	}
 }
 
 func (p *Package) show(arg string) {
-	p.template()
 	switch arg {
 	case "url":
 		fmt.Printf("%-22s%-22s\n", p.Name, p.URL)
