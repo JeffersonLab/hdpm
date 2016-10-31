@@ -72,14 +72,19 @@ func runBuild(cmd *cobra.Command, args []string) {
 	} else {
 		args = addDeps(args)
 	}
+
 	// Change package versions to XMLfile versions
 	if XML != "" {
 		versionXML(XML)
 	}
 	// Change package versions to versions passed on command line
 	changeVersions(args, versions)
+
 	// Set environment variables
 	env("")
+	// Set proxy env. variables if on JLab CUE
+	setenvJLabProxy()
+
 	// Fetch and build packages
 	mkcd(PD)
 	isBuilt := false

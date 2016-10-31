@@ -16,6 +16,7 @@ if test $tag == c6; then
     cd root/usr/bin; rm -f ld; rm -f ../tmp
     ln -s ld.bfd ld; cd $cwd/$name-$tag
 fi
+rm -rf ../$tag/home/gx/.*
 mv ../$tag/home/gx/* .
 if [[ $tag != u14 && $tag != u16 ]]; then
     mv ../$tag/usr/lib*/libblas.a cernlib/2005/lib/

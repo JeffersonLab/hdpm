@@ -58,17 +58,17 @@ func runFetch(cmd *cobra.Command, args []string) {
 	} else {
 		args = addDeps(args)
 	}
+
 	// Change package versions to XMLfile versions
 	if XML != "" {
 		versionXML(XML)
 	}
 	// Change package versions to versions passed on command line
 	changeVersions(args, versions)
-	// Set http proxy env. variable if on JLab CUE
-	if isPath("/w/work/halld/home") {
-		setenv("http_proxy", "http://jprox.jlab.org:8081")
-		setenv("https_proxy", "https://jprox.jlab.org:8081")
-	}
+
+	// Set proxy env. variables if on JLab CUE
+	setenvJLabProxy()
+
 	// Fetch packages
 	mkcd(PD)
 	for _, pkg := range packages {
@@ -144,13 +144,13 @@ func fetchTarfile(url, path string) {
 	if path != "" {
 		mk(path)
 		tar := exec.Command("tar", "tf", file)
-		head := exec.Command("head")
+		head := exec.Command("head", "-n1")
 		tarOut, _ := tar.StdoutPipe()
 		tar.Start()
 		head.Stdin = tarOut
 		headOut, _ := head.Output()
 		ncomp := "2"
-		if !strings.HasPrefix(string(headOut), ".") {
+		if !strings.HasPrefix(string(headOut), "./") {
 			ncomp = "1"
 		}
 		run("tar", "xf", file, "-C", path, "--strip-components="+ncomp)

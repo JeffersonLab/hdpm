@@ -9,6 +9,7 @@ RUN mkdir -p /home/gx && groupadd -r gx -g 573 && useradd -u 1000 \
 USER gx
 WORKDIR /home/gx
 ENV CC=/usr/bin/clang-3.5 CXX=/usr/bin/clang++-3.5
-RUN /bin/bash -c "hdpm build cernlib amptools evio jana rcdb \
+RUN /bin/bash -c "hdpm fetch cernlib root amptools evio jana rcdb \
+    && hdpm build cernlib root amptools evio jana rcdb \
     && hdpm clean --obliterate"
 CMD /bin/bash

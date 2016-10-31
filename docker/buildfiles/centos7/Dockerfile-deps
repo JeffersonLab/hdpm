@@ -8,6 +8,7 @@ RUN mkdir -p /home/gx && groupadd -r gx -g 573 && useradd -u 1000 \
     && rm -rf hdpm-dev hdpm-dev.linux.tar.gz && chown -R gx:gx /home/gx
 USER gx
 WORKDIR /home/gx
-RUN /bin/bash -c "hdpm build cernlib amptools evio jana rcdb \
+RUN /bin/bash -c "hdpm fetch cernlib root amptools evio jana rcdb \
+    && hdpm build cernlib root amptools evio jana rcdb \
     && hdpm clean --obliterate"
 CMD /bin/bash

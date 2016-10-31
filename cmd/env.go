@@ -244,6 +244,13 @@ func setenvPath(path string) {
 	}
 }
 
+func setenvJLabProxy() {
+	if isPath("/w/work/halld/home") {
+		setenv("http_proxy", "http://jprox.jlab.org:8081")
+		setenv("https_proxy", "https://jprox.jlab.org:8081")
+	}
+}
+
 func envInit() {
 	osr := osrelease()
 	if (strings.Contains(osr, "CentOS6") || strings.Contains(osr, "RHEL6")) && (isPath(filepath.Join(PD, ".dist")) || in(os.Args, "install")) {

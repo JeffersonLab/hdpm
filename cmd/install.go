@@ -184,7 +184,7 @@ Available OS tags:  c6 (CentOS 6), c7 (CentOS 7),
 	}
 	parts := strings.Split(URL, "-")
 	if len(parts) != 5 || !strings.Contains(URL, "sim-recon") {
-		fmt.Fprintf(os.Stderr, "%s: unsupported filename format.\n", URL)
+		fmt.Fprintf(os.Stderr, "%s: Unsupported filename format\n", URL)
 		os.Exit(2)
 	}
 	commit := parts[2]
@@ -226,8 +226,9 @@ Available OS tags:  c6 (CentOS 6), c7 (CentOS 7),
 	fmt.Println("Environment setup")
 	fmt.Println("source " + dir + "/env-setup/master.[c]sh")
 	// Check consistency between commit records
+	OS = osrelease()
 	for _, d := range readDir(dir + "/sim-recon/master") {
-		if strings.Contains(d, "Linux_") || strings.Contains(d, "Darwin_") {
+		if strings.HasPrefix(d, "Linux_") || strings.HasPrefix(d, "Darwin_") {
 			v := distVersion(dir + "/sim-recon/master/" + d)
 			if commit != v {
 				fmt.Fprintf(os.Stderr, "Inconsistent commits: %s and %s\n", commit, v)
@@ -260,13 +261,13 @@ func updateEnvScript(path string) {
 	gx := filepath.Dir(filepath.Dir(path))
 	set := "export"
 	top_i, top_f := "GLUEX_TOP=.+", "GLUEX_TOP="+gx
-	jli, jlf := "\\${GLUEX_TOP}/julia-.{5,7}/bin:", ""
+	ci, cf := "\\${GLUEX_TOP}/cmake/.{5,7}/bin:", ""
 	if strings.HasSuffix(path, ".csh") {
 		set = "setenv"
 		top_i, top_f = "GLUEX_TOP .+", "GLUEX_TOP "+gx
 	}
-	tobeReplaced := [2]string{top_i, jli}
-	replacement := [2]string{top_f, jlf}
+	tobeReplaced := [2]string{top_i, ci}
+	replacement := [2]string{top_f, cf}
 	for i := 0; i < len(tobeReplaced); i++ {
 		re := regexp.MustCompile(tobeReplaced[i])
 		data = re.ReplaceAllString(data, replacement[i])
@@ -295,9 +296,10 @@ func latestURL(tag string, arg string) string {
 		file := r[6 : len(r)-1]
 		ok := false
 		if arg != "" {
-			ok = strings.Contains(file, "-"+tag+".t") && strings.Contains(file, arg)
+			ok = strings.HasPrefix(file, "sim-recon-"+arg) && strings.HasSuffix(file, "-"+tag+".tar.gz")
 		} else {
-			ok = strings.Contains(file, "-"+tag+".t") && !strings.Contains(file, "deps")
+			ok = strings.HasPrefix(file, "sim-recon-") && strings.HasSuffix(file, "-"+tag+".tar.gz") &&
+				!strings.HasPrefix(file, "sim-recon-deps-")
 		}
 		if ok {
 			re = regexp.MustCompile("(\\d{4})-(\\d{2})-(\\d{2})")
