@@ -30,12 +30,13 @@ Usage examples:
 	Run: runClean,
 }
 
-var obliterate bool
+var obliterate, rm bool
 
 func init() {
 	cmdHDPM.AddCommand(cmdClean)
 
-	cmdClean.Flags().BoolVarP(&obliterate, "obliterate", "", false, "Clean for distribution, obliterate source code!")
+	cmdClean.Flags().BoolVarP(&obliterate, "obliterate", "", false, "Clean packages for distribution, obliterate source code!")
+	cmdClean.Flags().BoolVarP(&rm, "rm", "", false, "Remove packages not under Git/SVN version control.")
 }
 
 func runClean(cmd *cobra.Command, args []string) {
@@ -53,6 +54,9 @@ func runClean(cmd *cobra.Command, args []string) {
 			return
 		}
 	}
+	if obliterate {
+		os.RemoveAll(PD + "/cmake")
+	}
 	// Parse args
 	versions := extractVersions(args)
 	args = extractNames(args)
@@ -65,8 +69,26 @@ func runClean(cmd *cobra.Command, args []string) {
 	if len(args) == 0 {
 		args = packageNames
 	}
+
 	// Change package versions to versions passed on command line
 	changeVersions(args, versions)
+
+	// Remove packages not under Git/SVN version control and return
+	if rm {
+		for _, pkg := range packages {
+			pkg.config()
+			if !pkg.in(args) || !pkg.isFetched() || pkg.IsPrebuilt || pkg.inDist() {
+				continue
+			}
+			if isPath(pkg.Path+"/.git") || isPath(pkg.Path+"/.svn") {
+				continue
+			}
+			os.RemoveAll(pkg.Path)
+			fmt.Printf("Removed: %s\n", pkg.Path)
+		}
+		return
+	}
+
 	// Set environment variables
 	env("")
 	for _, pkg := range packages {
@@ -99,6 +121,7 @@ func (p *Package) clean() {
 				run("rm", "-rf", dir+"/"+OS)
 			}
 		}
+		fmt.Printf("Cleaned: %s\n", p.Path)
 	}
 }
 
