@@ -131,6 +131,7 @@ func (p *Package) build(isBuilt *bool) {
 			run("sh", "-c", cmd)
 		}
 		if p.usesCMake() {
+			p.cd()
 			run("rm", "-rf", "../"+p.Name+"-build", "../"+p.Name)
 		}
 	} else {
