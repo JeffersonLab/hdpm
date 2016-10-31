@@ -684,16 +684,15 @@ func osrelease() string {
 			}
 		} else if isPath("/etc/lsb-release") {
 			rs := readFile("/etc/lsb-release")
-			s := make([]string, 2)
+			release = "_"
 			for _, l := range strings.Split(rs, "\n") {
 				if strings.HasPrefix(l, "DISTRIB_ID=") {
-					s = append(s, strings.TrimPrefix(l, "DISTRIB_ID="))
+					release += strings.TrimPrefix(l, "DISTRIB_ID=")
 				}
 				if strings.HasPrefix(l, "DISTRIB_RELEASE=") {
-					s = append(s, strings.TrimPrefix(l, "DISTRIB_RELEASE="))
+					release += strings.TrimPrefix(l, "DISTRIB_RELEASE=")
 				}
 			}
-			release = "_" + s[0] + s[1]
 		} else {
 			fmt.Fprintln(os.Stderr, "unrecognized Linux release")
 			release = "_Linux"
