@@ -134,14 +134,18 @@ const JPD = "/group/halld/Software/builds"
 // Settings directory
 var SD string
 
-func init() {
+func pkgInit() {
 	PD = os.Getenv("GLUEX_TOP")
 	if PD == "" {
 		PD, _ = os.Getwd()
 	}
 
-	envInit()
 	OS = osrelease()
+	if strings.Contains(OS, "CentOS6") || strings.Contains(OS, "RHEL6") {
+		if strings.Contains(OS, "gcc") {
+			setenvGCC()
+		}
+	}
 
 	SD = filepath.Join(PD, "settings")
 

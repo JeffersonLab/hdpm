@@ -40,6 +40,7 @@ func init() {
 }
 
 func runClean(cmd *cobra.Command, args []string) {
+	pkgInit()
 	if os.Getenv("GLUEX_TOP") == "" {
 		fmt.Println("GLUEX_TOP environment variable is not set.\nCleaning packages in the current working directory ...")
 	}

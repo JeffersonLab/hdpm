@@ -34,13 +34,17 @@ Usage examples:
 	Run: runFetch,
 }
 
+var force bool
+
 func init() {
 	cmdHDPM.AddCommand(cmdFetch)
 
 	cmdFetch.Flags().StringVarP(&XML, "xml", "", "", "Version XMLfile URL or path")
+	cmdFetch.Flags().BoolVarP(&force, "force", "f", false, "Do not skip cernlib/CMake on macOS")
 }
 
 func runFetch(cmd *cobra.Command, args []string) {
+	pkgInit()
 	if os.Getenv("GLUEX_TOP") == "" {
 		fmt.Println("GLUEX_TOP environment variable is not set.\nInstalling packages to the current working directory ...")
 	}
@@ -75,7 +79,7 @@ func runFetch(cmd *cobra.Command, args []string) {
 		if !pkg.in(args) {
 			continue
 		}
-		if runtime.GOOS == "darwin" &&
+		if runtime.GOOS == "darwin" && !force &&
 			(pkg.Name == "cernlib" || pkg.Name == "cmake") {
 			fmt.Printf("macOS detected: Skipping %s\n", pkg.Name)
 			continue

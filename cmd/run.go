@@ -40,6 +40,7 @@ func runRun(cmd *cobra.Command, args []string) {
 		fmt.Fprintln(os.Stderr, "Usage Error: Enclose multi-word commands in double quotes.")
 		os.Exit(2)
 	}
+	pkgInit()
 	env("")
 	setenv("CCDB_USER", os.Getenv("USER"))
 	arg := "bash"

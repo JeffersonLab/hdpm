@@ -32,6 +32,7 @@ func init() {
 }
 
 func runEnv(cmd *cobra.Command, args []string) {
+	pkgInit()
 	arg := "ALL"
 	if len(args) >= 1 {
 		arg = args[0]
@@ -251,10 +252,10 @@ func setenvJLabProxy() {
 	}
 }
 
-func envInit() {
-	osr := osrelease()
-	if (strings.Contains(osr, "CentOS6") || strings.Contains(osr, "RHEL6")) && (isPath(filepath.Join(PD, ".dist")) || in(os.Args, "install")) {
+func setenvGCC() {
+	if isPath(filepath.Join(PD, ".dist")) || in(os.Args, "install") {
 		p := filepath.Join(PD, ".dist")
+		v := output("gcc", "-dumpversion")
 		setenv("PATH", p+"/opt/rh/python27/root/usr/bin:"+p+"/opt/rh/devtoolset-3/root/usr/bin:"+os.Getenv("PATH"))
 		a := p + "/opt/rh/python27/root/usr/lib64:" + p + "/opt/rh/devtoolset-3/root/usr/lib64:" + p + "/opt/rh/devtoolset-3/root/usr/lib"
 		if os.Getenv("LD_LIBRARY_PATH") == "" {
@@ -263,8 +264,10 @@ func envInit() {
 			setenv("LD_LIBRARY_PATH", a+":"+os.Getenv("LD_LIBRARY_PATH"))
 		}
 		setenv("LDFLAGS", "-L"+p+"/opt/rh/python27/root/usr/lib64")
-	} else if (strings.Contains(osr, "CentOS6") || strings.Contains(osr, "RHEL6")) && isPath("/apps/gcc/4.9.2/bin") && isPath("/apps/python/PRO/bin") {
+		OS = strings.Replace(OS, v, "4.9.2", 1)
+	} else if isPath("/apps/gcc/4.9.2/bin") && isPath("/apps/python/PRO/bin") {
 		p := "/apps"
+		v := output("gcc", "-dumpversion")
 		setenv("PATH", p+"/python/PRO/bin:"+p+"/gcc/4.9.2/bin:"+os.Getenv("PATH"))
 		a := p + "/python/PRO/lib:" + p + "/gcc/4.9.2/lib64:" + p + "/gcc/4.9.2/lib"
 		if os.Getenv("LD_LIBRARY_PATH") == "" {
@@ -272,5 +275,6 @@ func envInit() {
 		} else {
 			setenv("LD_LIBRARY_PATH", a+":"+os.Getenv("LD_LIBRARY_PATH"))
 		}
+		OS = strings.Replace(OS, v, "4.9.2", 1)
 	}
 }

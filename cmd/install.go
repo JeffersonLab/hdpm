@@ -43,6 +43,7 @@ func init() {
 }
 
 func runInstall(cmd *cobra.Command, args []string) {
+	pkgInit()
 	if os.Getenv("GLUEX_TOP") == "" {
 		fmt.Println("GLUEX_TOP environment variable is not set.\nInstalling packages to the current working directory ...")
 	}
@@ -226,7 +227,6 @@ Available OS tags:  c6 (CentOS 6), c7 (CentOS 7),
 	fmt.Println("Environment setup")
 	fmt.Println("source " + dir + "/env-setup/master.[c]sh")
 	// Check consistency between commit records
-	OS = osrelease()
 	for _, d := range readDir(dir + "/sim-recon/master") {
 		if strings.HasPrefix(d, "Linux_") || strings.HasPrefix(d, "Darwin_") {
 			v := distVersion(dir + "/sim-recon/master/" + d)

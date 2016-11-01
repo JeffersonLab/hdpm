@@ -38,6 +38,7 @@ func init() {
 }
 
 func runShow(cmd *cobra.Command, args []string) {
+	pkgInit()
 	arg := "version"
 	if len(args) == 1 {
 		arg = args[0]

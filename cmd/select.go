@@ -57,6 +57,7 @@ func init() {
 }
 
 func runSelect(cmd *cobra.Command, args []string) {
+	pkgInit()
 	if os.Getenv("GLUEX_TOP") == "" {
 		fmt.Println("GLUEX_TOP environment variable is not set.\nWriting settings to the current working directory ...")
 	}
