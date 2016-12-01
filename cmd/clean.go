@@ -16,16 +16,17 @@ var cmdClean = &cobra.Command{
 	Long: `
 Clean/remove build products of selected packages.
 
-If no arguments are given, the following packages will be cleaned:
+The following packages are supported:
 ccdb, jana, hdds, sim-recon, gluex_root_analysis
 
 Alternate usage:
 hdpm clean DIRECTORY
 
 Usage examples:
-1. hdpm clean
-2. hdpm clean sim-recon
-3. hdpm clean sim-recon/master/src/plugins/Analysis/pi0omega
+1. hdpm clean sim-recon
+2. hdpm clean --all
+3. hdpm clean sim-recon --deps
+4. hdpm clean sim-recon/master/src/plugins/Analysis/pi0omega
 `,
 	Run: runClean,
 }
@@ -36,7 +37,9 @@ func init() {
 	cmdHDPM.AddCommand(cmdClean)
 
 	cmdClean.Flags().BoolVarP(&obliterate, "obliterate", "", false, "Clean packages for distribution, obliterate source code!")
-	cmdClean.Flags().BoolVarP(&rm, "rm", "", false, "Remove packages not under Git/SVN version control.")
+	cmdClean.Flags().BoolVarP(&rm, "rm", "", false, "Remove packages not under Git/SVN version control")
+	cmdClean.Flags().BoolVarP(&deps, "deps", "d", false, "Include dependencies")
+	cmdClean.Flags().BoolVarP(&all, "all", "a", false, "Clean all packages in the package settings")
 }
 
 func runClean(cmd *cobra.Command, args []string) {
@@ -67,8 +70,18 @@ func runClean(cmd *cobra.Command, args []string) {
 			os.Exit(2)
 		}
 	}
-	if len(args) == 0 {
+	if len(args) == 0 && !all {
+		fmt.Fprintln(os.Stderr, `No packages were specified on the command line.
+
+To clean a package use "hdpm clean PACKAGE".
+
+See usage for more options: hdpm clean -h`)
+		os.Exit(2)
+	}
+	if all {
 		args = packageNames
+	} else if deps {
+		args = addDeps(args)
 	}
 
 	// Change package versions to versions passed on command line
@@ -78,7 +91,7 @@ func runClean(cmd *cobra.Command, args []string) {
 	if rm {
 		for _, pkg := range packages {
 			pkg.config()
-			if !pkg.in(args) || !pkg.isFetched() || pkg.IsPrebuilt || pkg.inDist() {
+			if !pkg.in(args) || !pkg.isFetched() || pkg.IsPrebuilt {
 				continue
 			}
 			if isPath(pkg.Path+"/.git") || isPath(pkg.Path+"/.svn") {
@@ -94,7 +107,7 @@ func runClean(cmd *cobra.Command, args []string) {
 	env("")
 	for _, pkg := range packages {
 		pkg.config()
-		if !pkg.in(args) || !pkg.isFetched() || pkg.IsPrebuilt || pkg.inDist() {
+		if !pkg.in(args) || !pkg.isFetched() || pkg.IsPrebuilt {
 			continue
 		}
 		pkg.cd()
@@ -113,7 +126,7 @@ func (p *Package) clean() {
 	}
 	if p.in([]string{"jana", "hdds", "sim-recon", "gluex_root_analysis"}) {
 		run("rm", "-f", "success.hdpm", ".sconsign.dblite", "src/.sconsign.dblite")
-		run("rm", "-rf", OS)
+		run("rm", "-rf", OS, "."+OS)
 		if isPath("src") {
 			run("rm", "-rf", "src/."+OS)
 		}
@@ -131,9 +144,9 @@ func (p *Package) distclean() {
 		if !isPath("Makefile") {
 			return
 		}
-		run("cp", "-p", "success.hdpm", "../")
+		run("cp", "-p", "success.hdpm", "..")
 		run("make", "dist")
-		cd("../")
+		cd("..")
 		run("rm", "-rf", p.Version)
 		files := glob(filepath.Dir(p.Path) + "/*.tar.gz")
 		for _, file := range files {

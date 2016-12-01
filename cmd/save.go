@@ -39,7 +39,7 @@ func runSave(cmd *cobra.Command, args []string) {
 		fmt.Println("GLUEX_TOP environment variable is not set.\nSaving settings to the current working directory ...")
 	}
 	if len(args) != 1 {
-		fmt.Fprintln(os.Stderr, "Error: Pass name/id of settings as single argument")
+		fmt.Fprintln(os.Stderr, "Give a name for the package settings as the only argument: hdpm save NAME")
 		os.Exit(2)
 	}
 	arg := args[0]

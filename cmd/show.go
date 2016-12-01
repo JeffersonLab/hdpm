@@ -34,7 +34,7 @@ var showPrereqs bool
 func init() {
 	cmdHDPM.AddCommand(cmdShow)
 
-	cmdShow.Flags().BoolVarP(&showPrereqs, "prereqs", "p", false, "Show GlueX offline software prerequisites.")
+	cmdShow.Flags().BoolVarP(&showPrereqs, "prereqs", "p", false, "Show GlueX offline software prerequisites")
 }
 
 func runShow(cmd *cobra.Command, args []string) {
@@ -104,7 +104,7 @@ func prereqs(arg string) {
 		tag = arg
 	}
 	if tag == "" {
-		fmt.Fprintf(os.Stderr, "%s: unsupported operating system\n", OS)
+		fmt.Fprintf(os.Stderr, "%s: Unsupported operating system\n", OS)
 		os.Exit(2)
 	}
 	var msg string

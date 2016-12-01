@@ -14,18 +14,20 @@ var cmdUpdate = &cobra.Command{
 	Short: "Update selected Git/SVN repositories",
 	Long: `Update selected Git/SVN repositories.
 
-Update all repos if no arguments are given.
-
 Usage examples:
-1. hdpm update
-2. hdpm update sim-recon
-3. hdpm update rcdb hdds
+1. hdpm update sim-recon
+2. hdpm update --all
+3. hdpm update sim-recon --deps
+4. hdpm update rcdb hdds
 `,
 	Run: runUpdate,
 }
 
 func init() {
 	cmdHDPM.AddCommand(cmdUpdate)
+
+	cmdUpdate.Flags().BoolVarP(&deps, "deps", "d", false, "Include dependencies")
+	cmdUpdate.Flags().BoolVarP(&all, "all", "a", false, "Update all Git/SVN repos in the package settings")
 }
 
 func runUpdate(cmd *cobra.Command, args []string) {
@@ -38,12 +40,22 @@ func runUpdate(cmd *cobra.Command, args []string) {
 	args = extractNames(args)
 	for _, arg := range args {
 		if !in(packageNames, arg) {
-			fmt.Printf("%s: unknown package name\n", arg)
+			fmt.Fprintf(os.Stderr, "%s: Unknown package name\n", arg)
 			os.Exit(2)
 		}
 	}
-	if len(args) == 0 {
+	if len(args) == 0 && !all {
+		fmt.Fprintln(os.Stderr, `No packages were specified on the command line.
+
+To update a package use "hdpm update PACKAGE".
+
+See usage for more options: hdpm update -h`)
+		os.Exit(2)
+	}
+	if all {
 		args = packageNames
+	} else if deps {
+		args = addDeps(args)
 	}
 
 	// Change package versions to versions passed on command line
@@ -63,7 +75,7 @@ func runUpdate(cmd *cobra.Command, args []string) {
 
 func (p *Package) update() {
 	if strings.Contains(p.URL, "svn") && !strings.Contains(p.URL, "tags") {
-		fmt.Printf("%s: Updating to svn revision %s ...\n", p.Name, p.Version)
+		fmt.Printf("\n%s: Updating to svn revision %s ...\n", p.Name, p.Version)
 		if p.Version != "master" {
 			run("svn", "update", "--non-interactive", "-r"+p.Version)
 		} else {
@@ -71,7 +83,7 @@ func (p *Package) update() {
 		}
 	}
 	if strings.Contains(p.URL, "git") && !strings.Contains(p.URL, "archive") {
-		fmt.Printf("%s: Updating %s branch ...\n", p.Name, p.Version)
+		fmt.Printf("\n%s: Updating %s branch ...\n", p.Name, p.Version)
 		run("git", "checkout", p.Version)
 		run("git", "pull")
 	}

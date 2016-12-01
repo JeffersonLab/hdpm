@@ -25,9 +25,9 @@ if test $active == "0"; then
         echo "1" > $cwd/.active
         echo "Triggering build of sim-recon-$c (prev: $c_old)."
         cd $cwd
-        for tag in c6 c7 u14; do
+        for tag in c6 c7 u14 u16; do
              gxd build --rmi sim-recon $tag; gxd write -u nathansparks $tag
-             bash pack.sh $tag; gxd cull -n 5 $tag
+             bash pack.sh $tag; gxd cull -n 3 $tag
         done
         echo "0" > $cwd/.active
     else

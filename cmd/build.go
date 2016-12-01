@@ -19,20 +19,18 @@ var cmdBuild = &cobra.Command{
 	Short: "Build packages and dependencies",
 	Long: `Build packages and dependencies.
 	
-Display build information if a package is already built.
+Display build information if a package has already been built by hdpm.
 
 Alternate usage:
-hdpm build --xml XMLFILE-URL | XMLFILE-PATH
-hdpm build DIRECTORY
-
-All packages in the package settings will be built if
-no arguments are given.
+1. hdpm build DIRECTORY
+2. hdpm build (PACKAGE... | --all) --xml XMLFILE-URL | XMLFILE-PATH
 
 Usage examples:
-1. hdpm build
-2. hdpm build geant4 amptools
-3. hdpm build --xml https://halldweb.jlab.org/dist/version.xml
-4. hdpm build sim-recon/master/src/plugins/Analysis/pi0omega
+1. hdpm build sim-recon
+2. hdpm build sim-recon/master/src/plugins/Analysis/pi0omega
+3. hdpm build geant4 amptools xerces-c
+4. hdpm build sim-recon --xml https://halldweb.jlab.org/dist/version.xml
+5. hdpm build --all
 `,
 	Run: runBuild,
 }
@@ -41,6 +39,7 @@ func init() {
 	cmdHDPM.AddCommand(cmdBuild)
 
 	cmdBuild.Flags().StringVarP(&XML, "xml", "", "", "Version XMLfile URL or path")
+	cmdBuild.Flags().BoolVarP(&all, "all", "a", false, "Build all packages in the package settings")
 }
 
 func runBuild(cmd *cobra.Command, args []string) {
@@ -68,7 +67,15 @@ func runBuild(cmd *cobra.Command, args []string) {
 			os.Exit(2)
 		}
 	}
-	if len(args) == 0 {
+	if len(args) == 0 && !all {
+		fmt.Fprintln(os.Stderr, `No packages were specified on the command line.
+
+To build a package use "hdpm build PACKAGE".
+
+See usage for more options: hdpm build -h`)
+		os.Exit(2)
+	}
+	if all {
 		args = packageNames
 	} else {
 		args = addDeps(args)
@@ -129,24 +136,22 @@ func (p *Package) build(isBuilt *bool) {
 		}
 		if p.usesCMake() {
 			setenvPath(getPackage("cmake").Path)
-			mkcd("../" + p.Name + "-build")
-			run("mv", p.Path, "../"+p.Name)
-			mk(p.Path)
+			if p.Name == "geant4" && isPath("src/LICENSE") {
+				run("cp", "-p", "src/LICENSE", ".")
+			}
+			mkcd("build")
 		}
 		for _, cmd := range p.Cmds {
 			run("sh", "-c", cmd)
 		}
-		if p.usesCMake() {
-			p.cd()
-			run("rm", "-rf", "../"+p.Name+"-build", "../"+p.Name)
-		}
+		p.cd()
 	} else {
 		prep_cernlib_patches()
 		run("sh", "-c", "patch < Install_cernlib.patch")
 		run("./Install_cernlib")
 		run("rm", "-rf", "2005/build", "2005/src")
-		run("mv", "2005", "../")
-		cd("../")
+		run("mv", "2005", "..")
+		cd("..")
 		run("rm", "-rf", "cernlib")
 		p.mkcd()
 		run("mv", "../2005", ".")

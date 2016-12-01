@@ -65,6 +65,9 @@ func runSelect(cmd *cobra.Command, args []string) {
 		versionXML(XML)
 		return
 	}
+	if len(args) > 1 {
+		return
+	}
 	arg := "master"
 	if len(args) == 1 {
 		arg = args[0]
@@ -77,7 +80,7 @@ func runSelect(cmd *cobra.Command, args []string) {
 			write_text(SD+"/.id", arg)
 			return
 		} else {
-			fmt.Fprintf(os.Stderr, "\nError:\n%s does not exist.\n",
+			fmt.Fprintf(os.Stderr, "Unknown settings id:\n%s does not exist.\n",
 				tdir+"/"+arg)
 			fmt.Fprintf(os.Stderr, "\nSaved settings: %v\n", strings.Join(readDir(tdir), ", "))
 			os.Exit(2)

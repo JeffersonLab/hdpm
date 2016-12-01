@@ -17,7 +17,7 @@ var cmdRun = &cobra.Command{
 Run a command in the GlueX offline environment.
 
 A bash shell is started by default.
-Enclose multi-word commands in double quotes.
+Enclose multi-word commands in quotes.
 
 Usage examples:
 1. hdpm run
@@ -37,7 +37,7 @@ func runRun(cmd *cobra.Command, args []string) {
 		os.Exit(2)
 	}
 	if len(args) > 1 {
-		fmt.Fprintln(os.Stderr, "Usage Error: Enclose multi-word commands in double quotes.")
+		fmt.Fprintln(os.Stderr, "Too many arguments: Enclose multi-word commands in quotes.")
 		os.Exit(2)
 	}
 	pkgInit()

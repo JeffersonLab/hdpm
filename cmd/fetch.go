@@ -17,30 +17,30 @@ import (
 // Create the fetch command
 var cmdFetch = &cobra.Command{
 	Use:   "fetch [PACKAGE...]",
-	Short: "Fetch packages and dependencies",
-	Long: `Fetch packages and dependencies.
+	Short: "Fetch packages",
+	Long: `Fetch packages.
 	
 Download and unpack packages into the $GLUEX_TOP directory.
 If GLUEX_TOP is not set, packages are unpacked into the
 current working directory.
 
-All packages in the package settings will be fetched if
-no arguments are given.
-
 Usage examples:
-1. hdpm fetch
-2. hdpm fetch root cmake
+1. hdpm fetch sim-recon --deps
+2. hdpm fetch root geant4
+3. hdpm fetch --all
 `,
 	Run: runFetch,
 }
 
-var force bool
+var force, deps, all bool
 
 func init() {
 	cmdHDPM.AddCommand(cmdFetch)
 
 	cmdFetch.Flags().StringVarP(&XML, "xml", "", "", "Version XMLfile URL or path")
 	cmdFetch.Flags().BoolVarP(&force, "force", "f", false, "Do not skip cernlib/CMake on macOS")
+	cmdFetch.Flags().BoolVarP(&deps, "deps", "d", false, "Include dependencies")
+	cmdFetch.Flags().BoolVarP(&all, "all", "a", false, "Fetch all packages in the package settings")
 }
 
 func runFetch(cmd *cobra.Command, args []string) {
@@ -57,9 +57,17 @@ func runFetch(cmd *cobra.Command, args []string) {
 			os.Exit(2)
 		}
 	}
-	if len(args) == 0 {
+	if len(args) == 0 && !all {
+		fmt.Fprintln(os.Stderr, `No packages were specified on the command line.
+
+To fetch a package use "hdpm fetch PACKAGE".
+
+See usage for more options: hdpm fetch -h`)
+		os.Exit(2)
+	}
+	if all {
 		args = packageNames
-	} else {
+	} else if deps {
 		args = addDeps(args)
 	}
 
@@ -109,7 +117,11 @@ func (p *Package) fetch() {
 					return
 				}
 			}
-			fetchTarfile(p.URL, p.Path)
+			if p.usesCMake() {
+				fetchTarfile(p.URL, p.Path+"/src")
+			} else {
+				fetchTarfile(p.URL, p.Path)
+			}
 		} else if p.Version == "2005" {
 			p.mkcd()
 			fetchTarfile(strings.Replace(p.URL, ".2005.corr.2014.04.17", "-2005-all-new", 1), "") // get the "all" file

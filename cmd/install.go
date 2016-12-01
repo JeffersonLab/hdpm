@@ -229,13 +229,17 @@ Available OS tags:  c6 (CentOS 6), c7 (CentOS 7),
 	// Check consistency between commit records
 	for _, d := range readDir(dir + "/sim-recon/master") {
 		if strings.HasPrefix(d, "Linux_") || strings.HasPrefix(d, "Darwin_") {
-			v := distVersion(dir + "/sim-recon/master/" + d)
-			if commit != v {
-				fmt.Fprintf(os.Stderr, "Inconsistent commits: %s and %s\n", commit, v)
+			c := distVersion(dir + "/sim-recon/master/" + d)
+			if commit != c {
+				fmt.Fprintf(os.Stderr, "Inconsistent commits: %s and %s\n", commit, c)
 				os.Exit(2)
 			}
 			for _, n := range []string{"jana", "hdds", "sim-recon", "gluex_root_analysis"} {
-				p := filepath.Join(dir, n, readDir(filepath.Join(dir, n))[0])
+				v := dirVersion(filepath.Join(dir, n))
+				if v == "" {
+					continue
+				}
+				p := filepath.Join(dir, n, v)
 				if OS != d && !isPath(filepath.Join(p, OS)) {
 					run("ln", "-s", p+"/"+d, p+"/"+OS)
 				}
