@@ -32,7 +32,7 @@ var masterPackages = [...]Package{
 		Cmds:       []string{""},
 		Deps:       []string{""},
 		IsPrebuilt: true},
-	{Name: "cmake", Version: "3.6.2",
+	{Name: "cmake", Version: "3.6.3",
 		URL:        "https://cmake.org/files/v3.6/cmake-[VER]-Linux-x86_64.tar.gz",
 		Path:       "cmake/[VER]",
 		Cmds:       []string{""},
@@ -50,23 +50,24 @@ var masterPackages = [...]Package{
 		Cmds:       []string{""},
 		Deps:       []string{""},
 		IsPrebuilt: false},
-	{Name: "root", Version: "6.06.08",
-		URL:        "https://root.cern.ch/download/root_v[VER].source.tar.gz",
-		Path:       "root/[VER]",
-		Cmds:       []string{"cmake -Droofit=ON -DCMAKE_INSTALL_PREFIX=[PATH] ../root", "cmake --build . -- -j8", "cmake --build . --target install"},
+	{Name: "root", Version: "6.08.00",
+		URL:  "https://root.cern.ch/download/root_v[VER].source.tar.gz",
+		Path: "root/[VER]",
+		Cmds: []string{"cmake -Droofit=ON -DCMAKE_INSTALL_PREFIX=[PATH] ../src", "cmake --build . -- -j8",
+			"cmake --build . --target install", "cd ..; rm -rf build src"},
 		Deps:       []string{"cmake"},
 		IsPrebuilt: false},
 	{Name: "amptools", Version: "0.9.2",
 		URL:        "http://downloads.sourceforge.net/project/amptools/AmpTools_v[VER].tgz",
 		Path:       "amptools/[VER]",
-		Cmds:       []string{"cd AmpTools; make; cd ../", "cd AmpPlotter; make"},
+		Cmds:       []string{"cd AmpTools; make", "cd AmpPlotter; make"},
 		Deps:       []string{"root"},
 		IsPrebuilt: false},
 	{Name: "geant4", Version: "10.02.p02",
 		URL:  "http://geant4.cern.ch/support/source/geant4.[VER].tar.gz",
 		Path: "geant4/[VER]",
-		Cmds: []string{"cmake -DCMAKE_INSTALL_PREFIX=[PATH] ../geant4",
-			"make -j8", "make install"},
+		Cmds: []string{"cmake -DCMAKE_INSTALL_PREFIX=[PATH] -DXERCESC_ROOT_DIR=[PATH]/../../xerces-c/3.1.4 -DGEANT4_USE_RAYTRACER_X11=ON -DGEANT4_USE_OPENGL_X11=ON -DGEANT4_BUILD_MULTITHREADED=ON -DGEANT4_INSTALL_DATA=ON ../src",
+			"make -j8", "make install", "cd ..; rm -rf build src"},
 		Deps:       []string{"cmake"},
 		IsPrebuilt: false},
 	{Name: "evio", Version: "4.4.6",
@@ -75,7 +76,7 @@ var masterPackages = [...]Package{
 		Cmds:       []string{"scons --prefix=[PATH] install"},
 		Deps:       []string{""},
 		IsPrebuilt: false},
-	{Name: "rcdb", Version: "0.00",
+	{Name: "rcdb", Version: "0.01",
 		URL:        "https://github.com/JeffersonLab/rcdb/archive/v[VER].tar.gz",
 		Path:       "rcdb/[VER]",
 		Cmds:       []string{"cd cpp; scons"},
@@ -104,6 +105,12 @@ var masterPackages = [...]Package{
 		Path:       "sim-recon/[VER]",
 		Cmds:       []string{"scons -u -j8 install DEBUG=0"},
 		Deps:       []string{"xerces-c", "cernlib", "root", "evio", "ccdb", "jana", "hdds", "rcdb"},
+		IsPrebuilt: false},
+	{Name: "hdgeant4", Version: "master",
+		URL:        "https://github.com/rjones30/HDGeant4",
+		Path:       "hdgeant4/[VER]",
+		Cmds:       []string{"ln -sf src/G4.10.02.p02fixes G4fixes", ". [PATH]/../../geant4/10.02.p02/share/Geant4-10.2.2/geant4make/geant4make.sh; make"},
+		Deps:       []string{"xerces-c", "cernlib", "root", "evio", "ccdb", "jana", "hdds", "rcdb", "sim-recon"},
 		IsPrebuilt: false},
 	{Name: "gluex_root_analysis", Version: "master",
 		URL:        "https://github.com/JeffersonLab/gluex_root_analysis/archive/[VER].tar.gz",
@@ -196,6 +203,7 @@ var packageNames = []string{
 	"jana",
 	"hdds",
 	"sim-recon",
+	"hdgeant4",
 	"gluex_root_analysis",
 	"gluex_workshops",
 }
@@ -214,6 +222,7 @@ var jsep = map[string]string{
 	"jana":                "_",
 	"hdds":                "-",
 	"sim-recon":           "-",
+	"hdgeant4":            "-",
 	"gluex_root_analysis": "-",
 	"gluex_workshops":     "-",
 }
@@ -228,6 +237,31 @@ func ver_i(ver string, i int) string {
 		}
 	}
 	return ver
+}
+func (p *Package) configBinary() {
+	s := ""
+	if strings.Contains(OS, "Darwin_macosx10.12") {
+		s = "macosx64-10.12-clang80"
+	}
+	if strings.Contains(OS, "Fedora24") {
+		s = "Linux-fedora24-x86_64-gcc6.1"
+	}
+	if strings.Contains(OS, "CentOS7") || strings.Contains(OS, "RHEL7") {
+		s = "Linux-centos7-x86_64-gcc4.8"
+	}
+	if strings.Contains(OS, "Ubuntu14") || strings.Contains(OS, "LinuxMint17") {
+		s = "Linux-ubuntu14-x86_64-gcc4.8"
+	}
+	if strings.Contains(OS, "Ubuntu16") || strings.Contains(OS, "LinuxMint18") {
+		s = "Linux-ubuntu16-x86_64-gcc5.4"
+	}
+	if s == "" {
+		fmt.Fprintf(os.Stderr, "%s: ROOT binary distribution not available\n", OS)
+		return
+	}
+	p.URL = "https://root.cern.ch/download/root_v" + p.Version + "." + s + ".tar.gz"
+	p.IsPrebuilt = true
+	p.Cmds, p.Deps = []string{""}, []string{""}
 }
 
 func (p *Package) config() {
@@ -269,6 +303,10 @@ func (p *Package) config() {
 			p.Cmds = append(p.Cmds, "make -j8; make clean")
 			p.Deps = []string{""}
 		}
+	}
+
+	if p.inDist() {
+		p.IsPrebuilt = true
 	}
 }
 
@@ -366,7 +404,11 @@ func changeVersions(names []string, versions map[string]string) {
 			continue
 		}
 		ver, ok := versions[pkg.Name]
-		pkg.changeVersion(ver, ok)
+		if pkg.Name == "root" && ver == "binary" {
+			pkg.configBinary()
+		} else {
+			pkg.changeVersion(ver, ok)
+		}
 		pkgs = append(pkgs, pkg)
 		pkg.write(dir)
 	}
@@ -404,7 +446,7 @@ func extractVersion(arg string) string {
 func (p *Package) jlabPathConfig(dirtag string) {
 	dir := filepath.Join(JPD, OS, p.Name)
 	jp := filepath.Join(dir, p.Name+jsep[p.Name]+p.Version)
-	if dirtag != "" && p.Version != "master" {
+	if dirtag != "" {
 		jp += "^" + dirtag
 	}
 	if isPath(jp) {
@@ -470,8 +512,11 @@ Path: /group/halld/www/halldweb/html/dist
 				if jlab || jdev {
 					if jdev && (p1.Name == "hdds" || p1.Name == "sim-recon") {
 						p1.Version = "master"
+						p1.Path = filepath.Join(p1.Name, "[VER]")
+						p1.IsPrebuilt = false
+					} else {
+						p1.jlabPathConfig(p2.DirTag)
 					}
-					p1.jlabPathConfig(p2.DirTag)
 				} else {
 					if p2.DirTag != "" {
 						p1.Path += "^" + p2.DirTag

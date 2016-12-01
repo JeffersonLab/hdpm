@@ -181,6 +181,9 @@ func getEnv() map[string]string {
 		ENV["AMPTOOLS"] = filepath.Join(path["amptools"], "AmpTools")
 		ENV["AMPPLOTTER"] = filepath.Join(path["amptools"], "AmpPlotter")
 	}
+	if path["geant4"] != "" {
+		ENV["G4ROOT"] = path["geant4"]
+	}
 	enames := []string{"HALLD_MY", "PATH", "LD_LIBRARY_PATH", "PYTHONPATH", "JANA_PLUGIN_PATH"}
 	if runtime.GOOS == "darwin" {
 		ENV["CERN"] = ""
@@ -256,24 +259,38 @@ func setenvGCC() {
 	if isPath(filepath.Join(PD, ".dist")) || in(os.Args, "install") {
 		p := filepath.Join(PD, ".dist")
 		v := output("gcc", "-dumpversion")
-		setenv("PATH", p+"/opt/rh/python27/root/usr/bin:"+p+"/opt/rh/devtoolset-3/root/usr/bin:"+os.Getenv("PATH"))
+		b := p + "/opt/rh/python27/root/usr/bin:" + p + "/opt/rh/devtoolset-3/root/usr/bin:"
+		b0 := os.Getenv("PATH")
+		if !strings.Contains(b0, b) {
+			setenv("PATH", b+b0)
+		}
 		a := p + "/opt/rh/python27/root/usr/lib64:" + p + "/opt/rh/devtoolset-3/root/usr/lib64:" + p + "/opt/rh/devtoolset-3/root/usr/lib"
-		if os.Getenv("LD_LIBRARY_PATH") == "" {
+		a0 := os.Getenv("LD_LIBRARY_PATH")
+		if a0 == "" {
 			setenv("LD_LIBRARY_PATH", a)
 		} else {
-			setenv("LD_LIBRARY_PATH", a+":"+os.Getenv("LD_LIBRARY_PATH"))
+			if !strings.Contains(a0, a) {
+				setenv("LD_LIBRARY_PATH", a+":"+a0)
+			}
 		}
 		setenv("LDFLAGS", "-L"+p+"/opt/rh/python27/root/usr/lib64")
 		OS = strings.Replace(OS, v, "4.9.2", 1)
 	} else if isPath("/apps/gcc/4.9.2/bin") && isPath("/apps/python/PRO/bin") {
 		p := "/apps"
 		v := output("gcc", "-dumpversion")
-		setenv("PATH", p+"/python/PRO/bin:"+p+"/gcc/4.9.2/bin:"+os.Getenv("PATH"))
+		b := p + "/python/PRO/bin:" + p + "/gcc/4.9.2/bin:"
+		b0 := os.Getenv("PATH")
+		if !strings.Contains(b0, b) {
+			setenv("PATH", b+b0)
+		}
 		a := p + "/python/PRO/lib:" + p + "/gcc/4.9.2/lib64:" + p + "/gcc/4.9.2/lib"
-		if os.Getenv("LD_LIBRARY_PATH") == "" {
+		a0 := os.Getenv("LD_LIBRARY_PATH")
+		if a0 == "" {
 			setenv("LD_LIBRARY_PATH", a)
 		} else {
-			setenv("LD_LIBRARY_PATH", a+":"+os.Getenv("LD_LIBRARY_PATH"))
+			if !strings.Contains(a0, a) {
+				setenv("LD_LIBRARY_PATH", a+":"+a0)
+			}
 		}
 		OS = strings.Replace(OS, v, "4.9.2", 1)
 	}
