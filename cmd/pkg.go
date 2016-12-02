@@ -12,6 +12,8 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+
+	"github.com/spf13/cobra"
 )
 
 type Package struct {
@@ -29,26 +31,26 @@ var masterPackages = [...]Package{
 	{Name: "hdpm", Version: "latest",
 		URL:        "https://halldweb.jlab.org/dist/hdpm/hdpm-[VER].linux.tar.gz",
 		Path:       "hdpm/[VER]",
-		Cmds:       []string{""},
-		Deps:       []string{""},
+		Cmds:       nil,
+		Deps:       nil,
 		IsPrebuilt: true},
 	{Name: "cmake", Version: "3.6.3",
 		URL:        "https://cmake.org/files/v3.6/cmake-[VER]-Linux-x86_64.tar.gz",
 		Path:       "cmake/[VER]",
-		Cmds:       []string{""},
-		Deps:       []string{""},
+		Cmds:       nil,
+		Deps:       nil,
 		IsPrebuilt: true},
 	{Name: "xerces-c", Version: "3.1.4",
 		URL:        "http://archive.apache.org/dist/xerces/c/3/sources/xerces-c-[VER].tar.gz",
 		Path:       "xerces-c/[VER]",
 		Cmds:       []string{"./configure --prefix=[PATH]", "make", "make install"},
-		Deps:       []string{""},
+		Deps:       nil,
 		IsPrebuilt: false},
 	{Name: "cernlib", Version: "2005",
 		URL:        "http://www-zeuthen.desy.de/linear_collider/cernlib/new/cernlib.2005.corr.2014.04.17.tgz",
 		Path:       "cernlib",
-		Cmds:       []string{""},
-		Deps:       []string{""},
+		Cmds:       nil,
+		Deps:       nil,
 		IsPrebuilt: false},
 	{Name: "root", Version: "6.08.00",
 		URL:  "https://root.cern.ch/download/root_v[VER].source.tar.gz",
@@ -68,25 +70,25 @@ var masterPackages = [...]Package{
 		Path: "geant4/[VER]",
 		Cmds: []string{"cmake -DCMAKE_INSTALL_PREFIX=[PATH] -DXERCESC_ROOT_DIR=[PATH]/../../xerces-c/3.1.4 -DGEANT4_USE_RAYTRACER_X11=ON -DGEANT4_USE_OPENGL_X11=ON -DGEANT4_BUILD_MULTITHREADED=ON -DGEANT4_INSTALL_DATA=ON ../src",
 			"make -j8", "make install", "cd ..; rm -rf build src"},
-		Deps:       []string{"cmake"},
+		Deps:       []string{"cmake", "xerces-c"},
 		IsPrebuilt: false},
 	{Name: "evio", Version: "4.4.6",
 		URL:        "https://coda.jlab.org/drupal/system/files/coda/evio/evio-4.4/evio-[VER].tgz",
 		Path:       "evio/[VER]",
 		Cmds:       []string{"scons --prefix=[PATH] install"},
-		Deps:       []string{""},
+		Deps:       nil,
 		IsPrebuilt: false},
 	{Name: "rcdb", Version: "0.01",
 		URL:        "https://github.com/JeffersonLab/rcdb/archive/v[VER].tar.gz",
 		Path:       "rcdb/[VER]",
 		Cmds:       []string{"cd cpp; scons"},
-		Deps:       []string{""},
+		Deps:       nil,
 		IsPrebuilt: false},
 	{Name: "ccdb", Version: "1.06.02",
 		URL:        "https://github.com/JeffersonLab/ccdb/archive/v[VER].tar.gz",
 		Path:       "ccdb/[VER]",
 		Cmds:       []string{"scons"},
-		Deps:       []string{""},
+		Deps:       nil,
 		IsPrebuilt: false},
 	{Name: "jana", Version: "0.7.5p2",
 		URL:        "https://www.jlab.org/JANA/releases/jana_[VER].tgz",
@@ -104,30 +106,31 @@ var masterPackages = [...]Package{
 		URL:        "https://github.com/JeffersonLab/sim-recon/archive/[VER].tar.gz",
 		Path:       "sim-recon/[VER]",
 		Cmds:       []string{"scons -u -j8 install DEBUG=0"},
-		Deps:       []string{"xerces-c", "cernlib", "root", "evio", "ccdb", "jana", "hdds", "rcdb"},
+		Deps:       []string{"cernlib", "evio", "rcdb", "jana", "hdds"},
 		IsPrebuilt: false},
 	{Name: "hdgeant4", Version: "master",
 		URL:        "https://github.com/rjones30/HDGeant4",
 		Path:       "hdgeant4/[VER]",
 		Cmds:       []string{"ln -sf src/G4.10.02.p02fixes G4fixes", ". [PATH]/../../geant4/10.02.p02/share/Geant4-10.2.2/geant4make/geant4make.sh; make"},
-		Deps:       []string{"xerces-c", "cernlib", "root", "evio", "ccdb", "jana", "hdds", "rcdb", "sim-recon"},
+		Deps:       []string{"geant4", "sim-recon"},
 		IsPrebuilt: false},
 	{Name: "gluex_root_analysis", Version: "master",
 		URL:        "https://github.com/JeffersonLab/gluex_root_analysis/archive/[VER].tar.gz",
 		Path:       "gluex_root_analysis/[VER]",
 		Cmds:       []string{"./make_all.sh"},
-		Deps:       []string{"xerces-c", "cernlib", "root", "evio", "ccdb", "jana", "hdds", "rcdb", "sim-recon"},
+		Deps:       []string{"sim-recon"},
 		IsPrebuilt: false},
 	{Name: "gluex_workshops", Version: "master",
 		URL:        "https://github.com/JeffersonLab/gluex_workshops",
 		Path:       "gluex_workshops/[VER]",
 		Cmds:       []string{"cd physics_workshop_2016/session2/omega_ref; scons install", "cd physics_workshop_2016/session2/omega_skim_rest; scons install", "cd physics_workshop_2016/session2/omega_solutions; scons install", "cd physics_workshop_2016/session3b/omega_skim_tree; scons install", "cd physics_workshop_2016/session5b/p2gamma_workshop; scons install"},
-		Deps:       []string{"xerces-c", "cernlib", "root", "evio", "ccdb", "jana", "hdds", "rcdb", "sim-recon", "gluex_root_analysis"},
+		Deps:       []string{"gluex_root_analysis"},
 		IsPrebuilt: false},
 }
 
 // Packages to use
 var packages []Package
+var packageNames []string
 
 // OS release
 var OS string
@@ -162,9 +165,11 @@ func pkgInit() {
 			if isPath(SD + "/" + pkg.Name + ".json") {
 				pkg = read(pkg.Name)
 				packages = append(packages, pkg)
+				packageNames = append(packageNames, pkg.Name)
 			}
 		} else {
 			packages = append(packages, pkg)
+			packageNames = append(packageNames, pkg.Name)
 		}
 	}
 }
@@ -187,25 +192,6 @@ func getPackage(name string) Package {
 		}
 	}
 	return Package{}
-}
-
-var packageNames = []string{
-	"hdpm",
-	"cmake",
-	"xerces-c",
-	"cernlib",
-	"root",
-	"amptools",
-	"geant4",
-	"evio",
-	"rcdb",
-	"ccdb",
-	"jana",
-	"hdds",
-	"sim-recon",
-	"hdgeant4",
-	"gluex_root_analysis",
-	"gluex_workshops",
 }
 
 var jsep = map[string]string{
@@ -261,14 +247,14 @@ func (p *Package) configBinary() {
 	}
 	p.URL = "https://root.cern.ch/download/root_v" + p.Version + "." + s + ".tar.gz"
 	p.IsPrebuilt = true
-	p.Cmds, p.Deps = []string{""}, []string{""}
+	p.Cmds, p.Deps = nil, nil
 }
 
 func (p *Package) config() {
 	if p.Version == "" {
 		p.URL = ""
 		p.Path = ""
-		p.Cmds, p.Deps = []string{""}, []string{""}
+		p.Cmds, p.Deps = nil, nil
 		p.IsPrebuilt = true
 		return
 	}
@@ -301,7 +287,7 @@ func (p *Package) config() {
 			p.Cmds = nil
 			p.Cmds = append(p.Cmds, "./configure --enable-roofit")
 			p.Cmds = append(p.Cmds, "make -j8; make clean")
-			p.Deps = []string{""}
+			p.Deps = nil
 		}
 	}
 
@@ -360,6 +346,23 @@ func (p *Package) write(dir string) {
 	}
 	fmt.Fprintf(f, "%s\n", data)
 	f.Close()
+}
+
+func exitUnknownPackage(arg string) {
+	fmt.Fprintf(os.Stderr, "%s: Unknown package name\n", arg)
+	os.Exit(2)
+}
+
+func exitNoPackages(cmd *cobra.Command) {
+	fmt.Fprintln(os.Stderr, "No packages were specified on the command line.\n")
+	cmd.Usage()
+	os.Exit(2)
+}
+
+func printPackages(args []string) {
+	if len(args) > 0 {
+		fmt.Printf("Packages: %s\n\n", strings.Join(args, ", "))
+	}
 }
 
 func extractNames(args []string) []string {

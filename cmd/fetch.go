@@ -51,20 +51,18 @@ func runFetch(cmd *cobra.Command, args []string) {
 	args = extractNames(args)
 	for _, arg := range args {
 		if !in(packageNames, arg) {
-			fmt.Fprintf(os.Stderr, "%s: Unknown package name\n", arg)
-			os.Exit(2)
+			exitUnknownPackage(arg)
 		}
 	}
 	if len(args) == 0 && !all {
-		fmt.Fprintln(os.Stderr, "No packages were specified on the command line.\n")
-		cmd.Usage()
-		os.Exit(2)
+		exitNoPackages(cmd)
 	}
 	if all {
 		args = packageNames
 	} else if deps {
 		args = addDeps(args)
 	}
+	printPackages(args)
 
 	// Change package versions to XMLfile versions
 	if XML != "" {

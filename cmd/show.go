@@ -71,7 +71,7 @@ func (p *Package) show(arg string) {
 			fmt.Printf("%-22s%-22s\n", p.Name, cmd)
 		}
 	case "deps":
-		fmt.Printf("%-22s%-22s\n", p.Name, strings.Join(p.Deps, ","))
+		fmt.Printf("%-22s%-22s\n", p.Name, strings.Join(p.Deps, ", "))
 	case "isPrebuilt":
 		fmt.Printf("%-22s%-22t\n", p.Name, p.IsPrebuilt)
 	default:

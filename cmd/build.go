@@ -60,20 +60,18 @@ func runBuild(cmd *cobra.Command, args []string) {
 	args = extractNames(args)
 	for _, arg := range args {
 		if !in(packageNames, arg) {
-			fmt.Fprintf(os.Stderr, "%s: Unknown package name\n", arg)
-			os.Exit(2)
+			exitUnknownPackage(arg)
 		}
 	}
 	if len(args) == 0 && !all {
-		fmt.Fprintln(os.Stderr, "No packages were specified on the command line.\n")
-		cmd.Usage()
-		os.Exit(2)
+		exitNoPackages(cmd)
 	}
 	if all {
 		args = packageNames
 	} else {
 		args = addDeps(args)
 	}
+	printPackages(args)
 
 	// Change package versions to XMLfile versions
 	if XML != "" {
@@ -200,29 +198,34 @@ func (p *Package) gitVersion() string {
 }
 
 func addDeps(args []string) []string {
-	var deps []string
+	var names []string
+	used := make(map[string]bool)
+	var walk func(*Package)
+	walk = func(p *Package) {
+		if used[p.Name] || p.Name == "" {
+			return
+		}
+		used[p.Name] = true
+		for _, d := range p.Deps {
+			pd := getPackage(d)
+			walk(&pd)
+		}
+		names = append(names, p.Name)
+	}
 	for _, arg := range args {
 		for _, pkg := range packages {
 			if pkg.Name != arg {
 				continue
 			}
-			for _, dep := range pkg.Deps {
-				if dep != "" && !in(args, dep) && !in(deps, dep) {
-					deps = append(deps, dep)
-				}
-			}
+			walk(&pkg)
 		}
 	}
-	if len(deps) > 0 {
-		fmt.Printf("Dependencies: %s\n", strings.Join(deps, ", "))
-	}
-	deps = append(deps, args...)
-	return deps
+	return names
 }
 
 func (p *Package) taggedDeps() string {
 	var deps []string
-	for _, dep := range p.Deps {
+	for _, dep := range addDeps(p.Deps) {
 		if dep != "" {
 			pdep := getPackage(dep)
 			deps = append(deps, dep+"-"+pdep.gitVersion())
@@ -256,7 +259,7 @@ func (p *Package) checkDeps() {
 		"sim-recon":           commande("hd_root"),
 		"gluex_root_analysis": commande("root", "-b", "-q", "-l"),
 	}
-	for _, dep := range p.Deps {
+	for _, dep := range addDeps(p.Deps) {
 		if cmds[dep] == nil {
 			continue
 		}
@@ -282,7 +285,7 @@ func (p *Package) checkDeps() {
 			if !user.in([]string{"amptools", "jana", "hdds"}) {
 				continue
 			}
-			if !shlib.in(user.Deps) {
+			if !shlib.in(addDeps(user.Deps)) {
 				continue
 			}
 			path := user.Path
