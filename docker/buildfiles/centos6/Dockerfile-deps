@@ -9,7 +9,7 @@ RUN mkdir -p /home/gx && groupadd -r gx -g 573 && useradd -u 1000 \
 USER gx
 WORKDIR /home/gx
 ENV CC=/usr/bin/clang CXX=/usr/bin/clang++
-RUN scl enable devtoolset-3 python27 "hdpm fetch cernlib amptools evio jana rcdb \
+RUN scl enable devtoolset-3 python27 "hdpm fetch -d cernlib amptools evio jana rcdb \
     && hdpm build cernlib amptools evio jana rcdb \
-    && hdpm clean --obliterate"
+    && hdpm clean --obliterate --all"
 CMD /bin/bash
