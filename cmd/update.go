@@ -12,14 +12,11 @@ import (
 var cmdUpdate = &cobra.Command{
 	Use:   "update [PACKAGE...]",
 	Short: "Update selected Git/SVN repositories",
-	Long: `Update selected Git/SVN repositories.
-
-Usage examples:
-1. hdpm update sim-recon
+	Long:  `Update selected Git/SVN repositories.`,
+	Example: `1. hdpm update sim-recon
 2. hdpm update --all
 3. hdpm update sim-recon --deps
-4. hdpm update rcdb hdds
-`,
+4. hdpm update rcdb hdds`,
 	Run: runUpdate,
 }
 
@@ -45,11 +42,8 @@ func runUpdate(cmd *cobra.Command, args []string) {
 		}
 	}
 	if len(args) == 0 && !all {
-		fmt.Fprintln(os.Stderr, `No packages were specified on the command line.
-
-To update a package use "hdpm update PACKAGE".
-
-See usage for more options: hdpm update -h`)
+		fmt.Fprintln(os.Stderr, "No packages were specified on the command line.\n")
+		cmd.Usage()
 		os.Exit(2)
 	}
 	if all {

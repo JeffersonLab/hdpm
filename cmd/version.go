@@ -10,10 +10,8 @@ import (
 var cmdVersion = &cobra.Command{
 	Use:   "version",
 	Short: "Show the hdpm version number",
-	Long: `
-Show the hdpm version number.
-`,
-	Run: runVersion,
+	Long:  `Show the hdpm version number.`,
+	Run:   runVersion,
 }
 
 const VERSION = "0.4.0"

@@ -13,17 +13,13 @@ import (
 var cmdRun = &cobra.Command{
 	Use:   "run [COMMAND]",
 	Short: "Run a command in the GlueX offline environment",
-	Long: `
-Run a command in the GlueX offline environment.
+	Long: `Run a command in the GlueX offline environment.
 
-A bash shell is started by default.
-Enclose multi-word commands in quotes.
-
-Usage examples:
-1. hdpm run
+A bash shell is started if no command is given.
+Enclose multi-word commands in quotes.`,
+	Example: `1. hdpm run
 2. hdpm run "hd_root -PPLUGINS=omega_hists file.evio"
-3. hdpm run root
-`,
+3. hdpm run root`,
 	Run: runRun,
 }
 
@@ -37,7 +33,8 @@ func runRun(cmd *cobra.Command, args []string) {
 		os.Exit(2)
 	}
 	if len(args) > 1 {
-		fmt.Fprintln(os.Stderr, "Too many arguments: Enclose multi-word commands in quotes.")
+		fmt.Fprintln(os.Stderr, "Too many arguments: Enclose multi-word commands in quotes.\n")
+		cmd.Usage()
 		os.Exit(2)
 	}
 	pkgInit()

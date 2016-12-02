@@ -18,17 +18,12 @@ import (
 var cmdInstall = &cobra.Command{
 	Use:   "install [COMMIT]",
 	Short: "Install binary distribution of sim-recon and deps",
-	Long: `
-Install binary distribution of sim-recon and dependencies.
+	Long: `Install binary distribution of sim-recon and dependencies.
 
-Alternate Usage:
-1. hdpm install TARFILE-URL | TARFILE-PATH
-
-Usage Examples:
-1. hdpm install -l
+The latest binaries will be fetched/installed if no argument is given.`,
+	Example: `1. hdpm install -l
 2. hdpm install
-3. hdpm install -c
-`,
+3. hdpm install -c`,
 	Run: runInstall,
 }
 
@@ -38,8 +33,8 @@ var cleanLinks bool
 func init() {
 	cmdHDPM.AddCommand(cmdInstall)
 
-	cmdInstall.Flags().BoolVarP(&showList, "list", "l", false, "List available binary distribution tarfiles.")
-	cmdInstall.Flags().BoolVarP(&cleanLinks, "clean", "c", false, "Clean/remove symbolic links.")
+	cmdInstall.Flags().BoolVarP(&showList, "list", "l", false, "List available binary distribution tarfiles")
+	cmdInstall.Flags().BoolVarP(&cleanLinks, "clean", "c", false, "Clean/remove symbolic links")
 }
 
 func runInstall(cmd *cobra.Command, args []string) {
@@ -175,13 +170,6 @@ Available OS tags:  c6 (CentOS 6), c7 (CentOS 7),
 	URL := latestURL(tag, arg)
 	if showList {
 		os.Exit(0)
-	}
-	isurl := strings.Contains(URL, "https://") || strings.Contains(URL, "http://")
-	if isurl && !strings.Contains(URL, "https://halldweb.jlab.org/dist") {
-		fmt.Fprintf(os.Stderr, "%s is an unfamiliar URL.\n", URL)
-	}
-	if !isurl && !strings.Contains(URL, "/group/halld/www/halldweb/html/dist") {
-		fmt.Fprintf(os.Stderr, "%s is an unfamiliar path.\n", URL)
 	}
 	parts := strings.Split(URL, "-")
 	if len(parts) != 5 || !strings.Contains(URL, "sim-recon") {

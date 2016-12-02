@@ -13,19 +13,15 @@ import (
 var cmdSave = &cobra.Command{
 	Use:   "save NAME",
 	Short: "Save the current package settings",
-	Long: `
-Save the current package settings.
+	Long: `Save the current package settings.
 
 Give a name for the package settings as the only argument.
 
 Saved settings are restored by using the select command:
-hdpm select NAME
-
-Usage examples:
-1. hdpm save test
+  hdpm select NAME`,
+	Example: `1. hdpm save test
 2. hdpm save root5
-3. hdpm save whatever
-`,
+3. hdpm save whatever`,
 	Run: runSave,
 }
 
@@ -39,7 +35,8 @@ func runSave(cmd *cobra.Command, args []string) {
 		fmt.Println("GLUEX_TOP environment variable is not set.\nSaving settings to the current working directory ...")
 	}
 	if len(args) != 1 {
-		fmt.Fprintln(os.Stderr, "Give a name for the package settings as the only argument: hdpm save NAME")
+		fmt.Fprintln(os.Stderr, "Give a name for the package settings as the only argument.\n")
+		cmd.Usage()
 		os.Exit(2)
 	}
 	arg := args[0]

@@ -13,19 +13,15 @@ import (
 var cmdShow = &cobra.Command{
 	Use:   "show [FIELD]",
 	Short: "Show the current package settings",
-	Long: `
-Show the current package settings.
+	Long: `Show the current package settings.
 
 The package names and versions are printed by default.
 
-fields: version, url, path, cmds, deps, isPrebuilt
-
-Usage examples:
-1. hdpm show
+fields: version, url, path, cmds, deps, isPrebuilt`,
+	Example: `1. hdpm show
 2. hdpm show url
 3. hdpm show cmds
-4. hdpm show -p
-`,
+4. hdpm show -p`,
 	Run: runShow,
 }
 

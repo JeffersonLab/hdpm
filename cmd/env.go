@@ -16,14 +16,12 @@ import (
 var cmdEnv = &cobra.Command{
 	Use:   "env [VAR]",
 	Short: "Print GlueX environment variables",
-	Long: `
-Print GlueX environment variables in "key=value" format.
+	Long: `Print GlueX environment variables in "key=value" format.
 
 Pass an environment variable name as an argument to print it.
 
 bash and tcsh environment-setup scripts are written to
-$GLUEX_TOP/env-setup/<settings-id>.[c]sh.
-`,
+$GLUEX_TOP/env-setup/<settings-id>.[c]sh.`,
 	Run: runEnv,
 }
 

@@ -19,16 +19,14 @@ var cmdFetch = &cobra.Command{
 	Use:   "fetch [PACKAGE...]",
 	Short: "Fetch packages",
 	Long: `Fetch packages.
-	
+
 Download and unpack packages into the $GLUEX_TOP directory.
 If GLUEX_TOP is not set, packages are unpacked into the
-current working directory.
-
-Usage examples:
-1. hdpm fetch sim-recon --deps
+current working directory.`,
+	Example: `1. hdpm fetch sim-recon --deps
 2. hdpm fetch root geant4
 3. hdpm fetch --all
-`,
+4. hdpm fetch sim-recon -d --xml https://halldweb.jlab.org/dist/version.xml`,
 	Run: runFetch,
 }
 
@@ -58,11 +56,8 @@ func runFetch(cmd *cobra.Command, args []string) {
 		}
 	}
 	if len(args) == 0 && !all {
-		fmt.Fprintln(os.Stderr, `No packages were specified on the command line.
-
-To fetch a package use "hdpm fetch PACKAGE".
-
-See usage for more options: hdpm fetch -h`)
+		fmt.Fprintln(os.Stderr, "No packages were specified on the command line.\n")
+		cmd.Usage()
 		os.Exit(2)
 	}
 	if all {

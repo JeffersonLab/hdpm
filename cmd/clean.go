@@ -13,21 +13,18 @@ import (
 var cmdClean = &cobra.Command{
 	Use:   "clean [PACKAGE...]",
 	Short: "Clean build products of selected packages",
-	Long: `
-Clean/remove build products of selected packages.
+	Long: `Clean/remove build products of selected packages.
 
 The following packages are supported:
-ccdb, jana, hdds, sim-recon, gluex_root_analysis
-
-Alternate usage:
-hdpm clean DIRECTORY
-
-Usage examples:
-1. hdpm clean sim-recon
+  ccdb, jana, hdds, sim-recon, gluex_root_analysis`,
+	Example: `1. hdpm clean hdds sim-recon
 2. hdpm clean --all
 3. hdpm clean sim-recon --deps
-4. hdpm clean sim-recon/master/src/plugins/Analysis/pi0omega
-`,
+
+Usage:
+  hdpm clean DIRECTORY
+Example:
+  hdpm clean sim-recon/master/src/plugins/Analysis/pi0omega`,
 	Run: runClean,
 }
 
@@ -71,11 +68,8 @@ func runClean(cmd *cobra.Command, args []string) {
 		}
 	}
 	if len(args) == 0 && !all {
-		fmt.Fprintln(os.Stderr, `No packages were specified on the command line.
-
-To clean a package use "hdpm clean PACKAGE".
-
-See usage for more options: hdpm clean -h`)
+		fmt.Fprintln(os.Stderr, "No packages were specified on the command line.\n")
+		cmd.Usage()
 		os.Exit(2)
 	}
 	if all {

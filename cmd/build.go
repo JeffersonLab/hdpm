@@ -18,20 +18,17 @@ var cmdBuild = &cobra.Command{
 	Use:   "build [PACKAGE...]",
 	Short: "Build packages and dependencies",
 	Long: `Build packages and dependencies.
-	
-Display build information if a package has already been built by hdpm.
 
-Alternate usage:
-1. hdpm build DIRECTORY
-2. hdpm build (PACKAGE... | --all) --xml XMLFILE-URL | XMLFILE-PATH
-
-Usage examples:
-1. hdpm build sim-recon
-2. hdpm build sim-recon/master/src/plugins/Analysis/pi0omega
-3. hdpm build geant4 amptools xerces-c
+Display build information if a package has already been built by hdpm.`,
+	Example: `1. hdpm build sim-recon
+2. hdpm build geant4 amptools xerces-c
+3. hdpm build --all
 4. hdpm build sim-recon --xml https://halldweb.jlab.org/dist/version.xml
-5. hdpm build --all
-`,
+
+Usage:
+  hdpm build DIRECTORY
+Example:
+  hdpm build sim-recon/master/src/plugins/Analysis/pi0omega`,
 	Run: runBuild,
 }
 
@@ -68,11 +65,8 @@ func runBuild(cmd *cobra.Command, args []string) {
 		}
 	}
 	if len(args) == 0 && !all {
-		fmt.Fprintln(os.Stderr, `No packages were specified on the command line.
-
-To build a package use "hdpm build PACKAGE".
-
-See usage for more options: hdpm build -h`)
+		fmt.Fprintln(os.Stderr, "No packages were specified on the command line.\n")
+		cmd.Usage()
 		os.Exit(2)
 	}
 	if all {

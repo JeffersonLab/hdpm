@@ -11,40 +11,36 @@ import (
 
 // Create the select command
 var cmdSelect = &cobra.Command{
-	Use:   "select [NAME]",
+	Use:   "select NAME",
 	Short: "Select package settings",
-	Long: `
-Select package settings.
+	Long: `Select package settings.
 
-Default settings:
-hdpm select master
-hdpm select
+The settings files are written to the $GLUEX_TOP/settings directory.`,
+	Example: `1. hdpm select master (for default settings)
+2. hdpm select my-saved-settings
 
-Alternate usage:
-hdpm select --xml XMLFILE-URL | XMLFILE-PATH
+Usage:
+  hdpm select --xml XMLFILE-URL | XMLFILE-PATH
+Examples:
+1. hdpm select --xml latest
+2. hdpm select --xml https://halldweb.jlab.org/dist/version_1.27.xml
 
 The XMLfile versions are applied on top of the current settings.
 
 Shortcut URL ids:
-latest   : https://halldweb.jlab.org/dist/version.xml
-jlab-dev : https://halldweb.jlab.org/dist/version_jlab.xml
-jlab     : https://halldweb.jlab.org/dist/version_jlab.xml
+  latest   : https://halldweb.jlab.org/dist/version.xml
+  jlab-dev : https://halldweb.jlab.org/dist/version_jlab.xml
+  jlab     : https://halldweb.jlab.org/dist/version_jlab.xml
 
 The JLab shortcuts will also set the paths of dependencies to the halld
 group installations on the JLab CUE.
 
 JLab development settings (for JLab CUE use only):
-hdpm select --xml jlab-dev
+  hdpm select --xml jlab-dev
 
 If you use "jlab" instead of "jlab-dev", hdds and sim-recon will also
 be set to the latest prebuilt packages on the JLab CUE.
-Run "hdpm env" to write the env-setup scripts to the env-setup directory.
-
-Usage examples:
-1. hdpm select my-saved-settings
-2. hdpm select --xml latest
-3. hdpm select --xml https://halldweb.jlab.org/dist/version_1.27.xml
-`,
+Run "hdpm env" to write the env-setup scripts to the env-setup directory.`,
 	Run: runSelect,
 }
 
@@ -65,11 +61,13 @@ func runSelect(cmd *cobra.Command, args []string) {
 		versionXML(XML)
 		return
 	}
-	if len(args) > 1 {
-		return
+	if len(args) == 0 {
+		fmt.Fprintln(os.Stderr, "No settings were specified on the command line.\n")
+		cmd.Usage()
+		os.Exit(2)
 	}
 	arg := "master"
-	if len(args) == 1 {
+	if len(args) >= 1 {
 		arg = args[0]
 	}
 	if arg != "master" {
