@@ -10,9 +10,7 @@ import (
 var cmdGXD = &cobra.Command{
 	Use:   "gxd [COMMAND] [ARGS]",
 	Short: "A tool for managing docker builds of GlueX offline software",
-	Long: `
-gxd is a tool for managing docker builds of GlueX offline software.
-`,
+	Long:  `gxd is a tool for managing docker builds of GlueX offline software.`,
 }
 
 // Execute a gxd command

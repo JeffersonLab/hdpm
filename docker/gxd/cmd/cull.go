@@ -18,15 +18,12 @@ var cmdCull = &cobra.Command{
 	Use:   "cull [TAG...]",
 	Short: "Cull distribution tarfiles",
 	Long: `Cull distribution tarfiles.
-	
+
 tags: c6, c7, u14, u16
 
-All tags will be culled if no arguments are given.
-
-Usage examples:
-1. gxd cull -n 10 c6
-`,
-	Run: runCull,
+All tags will be culled if no arguments are given.`,
+	Example: `1. gxd cull -n 10 c6`,
+	Run:     runCull,
 }
 
 var N int
@@ -35,8 +32,8 @@ var show bool
 func init() {
 	cmdGXD.AddCommand(cmdCull)
 
-	cmdCull.Flags().IntVarP(&N, "", "n", 10, "Number of tarfiles to keep per tag.")
-	cmdCull.Flags().BoolVarP(&show, "show", "s", false, "Show tarfiles to be culled.")
+	cmdCull.Flags().IntVarP(&N, "nKeep", "n", 10, "Number of tarfiles to keep per tag")
+	cmdCull.Flags().BoolVarP(&show, "show", "s", false, "Show tarfiles to be culled")
 }
 
 func runCull(cmd *cobra.Command, args []string) {

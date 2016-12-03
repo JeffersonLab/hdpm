@@ -12,16 +12,13 @@ var cmdBuild = &cobra.Command{
 	Use:   "build [TAG...] [STAGE...]",
 	Short: "Build docker images",
 	Long: `Build docker images.
-	
+
 tags: c6, c7, u14, u16
 stages: base, deps, sim-recon
 
-All tags/stages will be built if no arguments are given.
-
-Usage examples:
-1. gxd build
-2. gxd build sim-recon c6
-`,
+All tags/stages will be built if no arguments are given.`,
+	Example: `1. gxd build base deps
+2. gxd build sim-recon c6`,
 	Run: runBuild,
 }
 
@@ -30,7 +27,7 @@ var rmi bool
 func init() {
 	cmdGXD.AddCommand(cmdBuild)
 
-	cmdBuild.Flags().BoolVarP(&rmi, "rmi", "", false, "Remove old image before build.")
+	cmdBuild.Flags().BoolVarP(&rmi, "rmi", "", false, "Remove old image before build")
 }
 
 func runBuild(cmd *cobra.Command, args []string) {

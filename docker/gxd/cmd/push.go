@@ -12,15 +12,12 @@ var cmdPush = &cobra.Command{
 	Use:   "push [TAG...]",
 	Short: "Push docker images",
 	Long: `Push docker images.
-	
+
 tags: c6, c7, u14, u16
 
-All tags will be pushed if no arguments are given.
-
-Usage examples:
-1. gxd push -u USER c6
-`,
-	Run: runPush,
+All tags will be pushed if no arguments are given.`,
+	Example: `1. gxd push -u USER c6`,
+	Run:     runPush,
 }
 
 var USER string
@@ -33,8 +30,7 @@ func init() {
 
 func runPush(cmd *cobra.Command, args []string) {
 	if USER == "" {
-		fmt.Fprint(os.Stderr, "Please pass Docker username as flag.\n")
-		os.Exit(2)
+		exitNoUsername(cmd)
 	}
 	var names = map[string]string{
 		"c6":  "centos6",
@@ -69,4 +65,10 @@ func runPush(cmd *cobra.Command, args []string) {
 		run("docker", "push", repo)
 		run("docker", "rmi", repo)
 	}
+}
+
+func exitNoUsername(cmd *cobra.Command) {
+	fmt.Fprintln(os.Stderr, "The Docker username is required as a flag.\n")
+	cmd.Usage()
+	os.Exit(2)
 }

@@ -13,15 +13,12 @@ var cmdWrite = &cobra.Command{
 	Use:   "write [TAG...]",
 	Short: "Write the docker-image id",
 	Long: `Write the docker-image id.
-	
+
 tags: c6, c7, u14, u16
 
-The ids of all tags will be written if no arguments are given.
-
-Usage examples:
-1. gxd write -u USER c6
-`,
-	Run: runWrite,
+The ids of all tags will be written if no arguments are given.`,
+	Example: `1. gxd write -u USER c6`,
+	Run:     runWrite,
 }
 
 func init() {
@@ -32,8 +29,7 @@ func init() {
 
 func runWrite(cmd *cobra.Command, args []string) {
 	if USER == "" {
-		fmt.Fprint(os.Stderr, "Please pass Docker username as a flag.\n")
-		os.Exit(2)
+		exitNoUsername(cmd)
 	}
 	var names = map[string]string{
 		"c6":  "centos6",
