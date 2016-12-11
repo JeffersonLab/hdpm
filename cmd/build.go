@@ -6,7 +6,9 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -32,11 +34,14 @@ Example:
 	Run: runBuild,
 }
 
+var jobs string
+
 func init() {
 	cmdHDPM.AddCommand(cmdBuild)
 
 	cmdBuild.Flags().StringVarP(&XML, "xml", "", "", "Version XMLfile URL or path")
 	cmdBuild.Flags().BoolVarP(&all, "all", "a", false, "Build all packages in the package settings")
+	cmdBuild.Flags().StringVarP(&jobs, "jobs", "j", "", "Number of jobs to run in parallel")
 }
 
 func runBuild(cmd *cobra.Command, args []string) {
@@ -46,12 +51,19 @@ func runBuild(cmd *cobra.Command, args []string) {
 	}
 	// Build a sim-recon subdirectory if passed as argument
 	cwd, _ := os.Getwd()
-	if len(args) == 1 && isPath(filepath.Join(cwd, args[0])) {
+	if len(args) == 1 && (isPath(filepath.Join(cwd, args[0])) || isPath(args[0])) {
 		dir := filepath.Join(cwd, args[0])
+		if filepath.IsAbs(args[0]) {
+			dir = args[0]
+		}
 		if isPath(filepath.Join(dir, "SConstruct")) || isPath(filepath.Join(dir, "SConscript")) {
 			cd(dir)
 			env("")
-			run("scons", "-u", "install")
+			if jobs == "" {
+				run("scons", "-u", "install")
+			} else {
+				run("scons", "-u", "-j"+jobs, "install")
+			}
 			return
 		}
 	}
@@ -133,7 +145,9 @@ func (p *Package) build(isBuilt *bool) {
 			}
 			mkcd("build")
 		}
+		numCPU := runtime.NumCPU()
 		for _, cmd := range p.Cmds {
+			cmd = applyNumCPU(cmd, numCPU)
 			run("sh", "-c", cmd)
 		}
 		p.cd()
@@ -184,6 +198,22 @@ func (p *Package) usesCMake() bool {
 		}
 	}
 	return false
+}
+
+func applyNumCPU(cmd string, numCPU int) string {
+	if numCPU >= 8 && jobs == "" {
+		return cmd
+	}
+	if strings.Contains(cmd, " -j") {
+		j := `-j\s??[1-9][0-9]??`
+		re := regexp.MustCompile(j)
+		s := strconv.Itoa(numCPU)
+		if jobs != "" {
+			s = jobs
+		}
+		cmd = re.ReplaceAllString(cmd, "-j"+s)
+	}
+	return cmd
 }
 
 func (p *Package) gitVersion() string {
@@ -288,6 +318,7 @@ func (p *Package) checkDeps() {
 			if !shlib.in(addDeps(user.Deps)) {
 				continue
 			}
+			user.config()
 			path := user.Path
 			if user.Name != "amptools" {
 				path = filepath.Join(path, OS)

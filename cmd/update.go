@@ -67,7 +67,7 @@ func runUpdate(cmd *cobra.Command, args []string) {
 
 func (p *Package) update() {
 	if strings.Contains(p.URL, "svn") && !strings.Contains(p.URL, "tags") {
-		fmt.Printf("\n%s: Updating to svn revision %s ...\n", p.Name, p.Version)
+		fmt.Printf("%s: Updating to svn revision %s ...\n", p.Name, p.Version)
 		if p.Version != "master" {
 			run("svn", "update", "--non-interactive", "-r"+p.Version)
 		} else {
@@ -75,7 +75,7 @@ func (p *Package) update() {
 		}
 	}
 	if strings.Contains(p.URL, "git") && !strings.Contains(p.URL, "archive") {
-		fmt.Printf("\n%s: Updating %s branch ...\n", p.Name, p.Version)
+		fmt.Printf("%s: Updating %s branch ...\n", p.Name, p.Version)
 		run("git", "checkout", p.Version)
 		run("git", "pull")
 	}

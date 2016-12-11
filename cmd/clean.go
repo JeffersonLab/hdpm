@@ -116,7 +116,7 @@ func (p *Package) clean() {
 		run("rm", "-f", "success.hdpm", ".sconsign.dblite")
 		run("scons", "-c")
 	}
-	if p.in([]string{"jana", "hdds", "sim-recon", "gluex_root_analysis"}) {
+	if p.in([]string{"jana", "hdds", "sim-recon", "hdgeant4", "gluex_root_analysis"}) {
 		run("rm", "-f", "success.hdpm", ".sconsign.dblite", "src/.sconsign.dblite")
 		run("rm", "-rf", OS, "."+OS)
 		if isPath("src") {

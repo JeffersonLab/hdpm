@@ -55,7 +55,6 @@ func runShow(cmd *cobra.Command, args []string) {
 	fmt.Println(strings.Repeat("-", 80))
 	for _, pkg := range packages {
 		pkg.config()
-		pkg.template()
 		pkg.show(arg)
 	}
 }
@@ -75,7 +74,7 @@ func (p *Package) show(arg string) {
 	case "isPrebuilt":
 		fmt.Printf("%-22s%-22t\n", p.Name, p.IsPrebuilt)
 	default:
-		fmt.Printf("%-22s%-22s\n", p.Name, p.Version)
+		fmt.Printf("%-22s%-22s\n", p.Name, p.gitVersion())
 	}
 }
 

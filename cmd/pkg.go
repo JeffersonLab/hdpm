@@ -21,9 +21,9 @@ type Package struct {
 	Version    string   `json:"version"`
 	URL        string   `json:"url"`
 	Path       string   `json:"path"`
-	Cmds       []string `json:"cmds"`
-	Deps       []string `json:"deps"`
-	IsPrebuilt bool     `json:"isPrebuilt"`
+	Cmds       []string `json:"cmds,omitempty"`
+	Deps       []string `json:"deps,omitempty"`
+	IsPrebuilt bool     `json:"isPrebuilt,omitempty"`
 }
 
 // Default package settings
@@ -34,8 +34,8 @@ var masterPackages = [...]Package{
 		Cmds:       nil,
 		Deps:       nil,
 		IsPrebuilt: true},
-	{Name: "cmake", Version: "3.6.3",
-		URL:        "https://cmake.org/files/v3.6/cmake-[VER]-Linux-x86_64.tar.gz",
+	{Name: "cmake", Version: "3.7.1",
+		URL:        "https://cmake.org/files/v3.7/cmake-[VER]-Linux-x86_64.tar.gz",
 		Path:       "cmake/[VER]",
 		Cmds:       nil,
 		Deps:       nil,
@@ -68,7 +68,7 @@ var masterPackages = [...]Package{
 	{Name: "geant4", Version: "10.02.p02",
 		URL:  "http://geant4.cern.ch/support/source/geant4.[VER].tar.gz",
 		Path: "geant4/[VER]",
-		Cmds: []string{"cmake -DCMAKE_INSTALL_PREFIX=[PATH] -DXERCESC_ROOT_DIR=[PATH]/../../xerces-c/3.1.4 -DGEANT4_USE_RAYTRACER_X11=ON -DGEANT4_USE_OPENGL_X11=ON -DGEANT4_BUILD_MULTITHREADED=ON -DGEANT4_INSTALL_DATA=ON ../src",
+		Cmds: []string{"cmake -DCMAKE_INSTALL_PREFIX=[PATH] -DXERCESC_ROOT_DIR=../../../xerces-c/3.1.4 -DGEANT4_USE_RAYTRACER_X11=ON -DGEANT4_USE_OPENGL_X11=ON -DGEANT4_BUILD_MULTITHREADED=ON -DGEANT4_INSTALL_DATA=ON ../src",
 			"make -j8", "make install", "cd ..; rm -rf build src"},
 		Deps:       []string{"cmake", "xerces-c"},
 		IsPrebuilt: false},
@@ -111,7 +111,7 @@ var masterPackages = [...]Package{
 	{Name: "hdgeant4", Version: "master",
 		URL:        "https://github.com/rjones30/HDGeant4",
 		Path:       "hdgeant4/[VER]",
-		Cmds:       []string{"ln -sf src/G4.10.02.p02fixes G4fixes", ". [PATH]/../../geant4/10.02.p02/share/Geant4-10.2.2/geant4make/geant4make.sh; make"},
+		Cmds:       []string{"ln -sf src/G4.10.02.p02fixes G4fixes", ". ../../geant4/10.02.p02/share/Geant4-10.2.2/geant4make/geant4make.sh; make"},
 		Deps:       []string{"geant4", "sim-recon"},
 		IsPrebuilt: false},
 	{Name: "gluex_root_analysis", Version: "master",
@@ -287,7 +287,6 @@ func (p *Package) config() {
 			p.Cmds = nil
 			p.Cmds = append(p.Cmds, "./configure --enable-roofit")
 			p.Cmds = append(p.Cmds, "make -j8; make clean")
-			p.Deps = nil
 		}
 	}
 
@@ -361,7 +360,13 @@ func exitNoPackages(cmd *cobra.Command) {
 
 func printPackages(args []string) {
 	if len(args) > 0 {
-		fmt.Printf("Packages: %s\n\n", strings.Join(args, ", "))
+		var a []string
+		for _, n := range packageNames {
+			if in(args, n) {
+				a = append(a, n)
+			}
+		}
+		fmt.Printf("Packages: %s\n", strings.Join(a, ", "))
 	}
 }
 
@@ -515,7 +520,9 @@ Path: /group/halld/www/halldweb/html/dist
 				if jlab || jdev {
 					if jdev && (p1.Name == "hdds" || p1.Name == "sim-recon") {
 						p1.Version = "master"
-						p1.Path = filepath.Join(p1.Name, "[VER]")
+						if strings.HasPrefix(p1.Path, JPD) {
+							p1.Path = filepath.Join(p1.Name, "[VER]")
+						}
 						p1.IsPrebuilt = false
 					} else {
 						p1.jlabPathConfig(p2.DirTag)
