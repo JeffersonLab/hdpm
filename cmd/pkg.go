@@ -534,6 +534,10 @@ Path: /group/halld/www/halldweb/html/dist
 				}
 			}
 		}
+		if p1.Name == "cmake" && isPath("/apps/cmake/cmake-3.5.1") {
+			p1.Version = "3.5.1"
+			p1.Path = "/apps/cmake/cmake-[VER]"
+		}
 		pkgs = append(pkgs, p1)
 		p1.write(dir)
 	}
