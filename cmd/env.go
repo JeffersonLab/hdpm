@@ -177,6 +177,9 @@ func getEnv() map[string]string {
 	if path["geant4"] != "" {
 		ENV["G4ROOT"] = path["geant4"]
 	}
+	if path["hdgeant4"] != "" {
+		ENV["G4WORKDIR"] = path["hdgeant4"]
+	}
 	enames := []string{"HALLD_MY", "PATH", "LD_LIBRARY_PATH", "PYTHONPATH", "JANA_PLUGIN_PATH"}
 	if runtime.GOOS == "darwin" {
 		ENV["CERN"] = ""
