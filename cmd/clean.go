@@ -127,6 +127,9 @@ func (p *Package) clean() {
 				run("rm", "-rf", dir+"/"+OS)
 			}
 		}
+		if p.Name == "hdgeant4" {
+			run("rm", "-rf", "bin", "tmp")
+		}
 		fmt.Printf("Cleaned: %s\n", p.Path)
 	}
 }
