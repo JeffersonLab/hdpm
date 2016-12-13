@@ -16,7 +16,7 @@ var cmdClean = &cobra.Command{
 	Long: `Clean/remove build products of selected packages.
 
 The following packages are supported:
-  ccdb, jana, hdds, sim-recon, gluex_root_analysis`,
+  ccdb, jana, hdds, sim-recon, hdgeant4, gluex_root_analysis`,
 	Example: `1. hdpm clean hdds sim-recon
 2. hdpm clean --all
 3. hdpm clean sim-recon --deps
