@@ -69,7 +69,9 @@ func runInstall(cmd *cobra.Command, args []string) {
 	}
 	for _, sh := range []string{"sh", "csh"} {
 		if isPath(distDir + "/env-setup/master." + sh) {
-			run("ln", "-s", distDir+"/env-setup/master."+sh, PD+"/env-setup/dist."+sh)
+			s := distDir + "/env-setup/master." + sh
+			l := PD + "/env-setup/dist." + sh
+			run("ln", "-s", relPath(filepath.Dir(l), s), l)
 		}
 	}
 }
@@ -105,14 +107,15 @@ func (p *Package) install() {
 	}
 	mk(d)
 	removeSymLinks(d)
-	run("ln", "-s", pd, pi)
+	run("ln", "-s", relPath(d, pd), pi)
 }
 
 func removeSymLinks(dir string) {
 	for _, lc := range readDir(dir) {
 		file := dir + "/" + lc
 		if isSymLink(file) {
-			if strings.HasPrefix(readLink(file), PD+"/.dist/") {
+			s := readLink(file)
+			if strings.HasPrefix(s, "../.dist/") || strings.HasPrefix(s, ".dist/") {
 				os.Remove(file)
 			}
 		}
@@ -229,7 +232,7 @@ Available OS tags:  c6 (CentOS 6), c7 (CentOS 7),
 				}
 				p := filepath.Join(dir, n, v)
 				if OS != d && !isPath(filepath.Join(p, OS)) {
-					run("ln", "-s", p+"/"+d, p+"/"+OS)
+					run("ln", "-s", d, p+"/"+OS)
 				}
 			}
 		}

@@ -611,7 +611,8 @@ func (p *Package) cd() {
 
 func (p *Package) inDist() bool {
 	if isSymLink(p.Path) {
-		if strings.HasPrefix(readLink(p.Path), PD+"/.dist/") {
+		s := readLink(p.Path)
+		if strings.HasPrefix(s, "../.dist/") || strings.HasPrefix(s, ".dist/") {
 			return true
 		}
 	}
@@ -643,6 +644,14 @@ func readLink(path string) string {
 		log.Fatalln(err)
 	}
 	return link
+}
+
+func relPath(base, target string) string {
+	p, err := filepath.Rel(base, target)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	return p
 }
 
 func readDir(path string) []string {
