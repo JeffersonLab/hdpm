@@ -49,6 +49,8 @@ var XML string
 func init() {
 	cmdHDPM.AddCommand(cmdSelect)
 
+	cmdSelect.Flags().BoolVarP(&showList, "list", "l", false, "List saved package settings")
+	cmdSelect.Flags().BoolVarP(&rm, "rm", "", false, "Remove saved package settings")
 	cmdSelect.Flags().StringVarP(&XML, "xml", "", "", "Version XMLfile URL or path")
 }
 
@@ -56,6 +58,27 @@ func runSelect(cmd *cobra.Command, args []string) {
 	pkgInit()
 	if os.Getenv("GLUEX_TOP") == "" {
 		fmt.Println("GLUEX_TOP environment variable is not set.\nWriting settings to the current working directory ...")
+	}
+	tdir := filepath.Join(PD, ".saved-settings")
+	if showList {
+		dirs := readDir(tdir)
+		if len(dirs) > 0 {
+			fmt.Println("Saved settings")
+			fmt.Printf("%v\n", strings.Join(dirs, ", "))
+		}
+		for _, dir := range dirs {
+			s := &Settings{}
+			if isPath(tdir + "/" + dir + "/.info.json") {
+				s.read(tdir + "/" + dir)
+			} else {
+				s.Name = dir
+			}
+			fmt.Println(strings.Repeat("-", 80))
+			fmt.Printf("%v\n", s.Name)
+			fmt.Printf("%v\n", s.Comment)
+			fmt.Printf("%v\n", s.Timestamp)
+		}
+		return
 	}
 	if XML != "" {
 		versionXML(XML)
@@ -66,16 +89,26 @@ func runSelect(cmd *cobra.Command, args []string) {
 		cmd.Usage()
 		os.Exit(2)
 	}
+	if rm {
+		for _, dir := range readDir(tdir) {
+			if !in(args, dir) {
+				continue
+			}
+			if isPath(tdir + "/" + dir) {
+				os.RemoveAll(tdir + "/" + dir)
+				fmt.Printf("Removed: %s\n", dir)
+			}
+		}
+		return
+	}
 	arg := "master"
 	if len(args) >= 1 {
 		arg = args[0]
 	}
 	if arg != "master" {
-		tdir := filepath.Join(PD, ".saved-settings")
 		if isPath(tdir + "/" + arg) {
 			os.RemoveAll(SD)
 			run("cp", "-pr", tdir+"/"+arg, SD)
-			write_text(SD+"/.id", arg)
 			return
 		} else {
 			fmt.Fprintf(os.Stderr, "Unknown settings id:\n%s does not exist.\n",
@@ -85,7 +118,8 @@ func runSelect(cmd *cobra.Command, args []string) {
 		}
 	}
 	mk(SD)
-	write_text(SD+"/.id", arg)
+	s := newSettings(arg, "Default settings of hdpm version "+VERSION)
+	s.write(SD)
 	for _, pkg := range masterPackages {
 		pkg.write(SD)
 	}

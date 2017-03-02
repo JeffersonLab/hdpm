@@ -56,8 +56,14 @@ func env(arg string) {
 func printEnv(arg string, ENV map[string]string) {
 	id := "master"
 	dir := filepath.Join(ENV["GLUEX_TOP"], "settings")
+	s := &Settings{}
 	if isPath(dir) {
-		id = readFile(dir + "/.id")
+		if isPath(dir + "/.id") {
+			id = readFile(dir + "/.id")
+		} else {
+			s.read(dir)
+			id = s.Name
+		}
 	}
 	mk(filepath.Join(ENV["GLUEX_TOP"], "env-setup"))
 	n := "kv"

@@ -43,13 +43,21 @@ func runShow(cmd *cobra.Command, args []string) {
 		prereqs(arg)
 		return
 	}
-	id := "master"
-	if isPath(SD + "/.id") {
-		id = readFile(SD + "/.id")
+	s := &Settings{}
+	if isPath(SD + "/.info.json") {
+		s.read(SD)
+	}
+	if s.Name == "" && isPath(SD+"/.id") {
+		s.Name = readFile(SD + "/.id")
+	}
+	if s.Name == "" {
+		s.Name = "master"
 	}
 	fmt.Println(strings.Repeat("-", 80))
-	fmt.Printf("Settings id: %s\n", id)
-	fmt.Printf("GLUEX_TOP:   %s\n", PD)
+	fmt.Printf("Settings:  %s\n", s.Name)
+	fmt.Printf("Comment:   %s\n", s.Comment)
+	fmt.Printf("Timestamp: %s\n", s.Timestamp)
+	fmt.Printf("GLUEX_TOP: %s\n", PD)
 	fmt.Println(strings.Repeat("-", 80))
 	fmt.Printf("%-22s%-22s\n", "package", arg)
 	fmt.Println(strings.Repeat("-", 80))

@@ -12,9 +12,46 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 )
+
+type Settings struct {
+	Name      string `json:"name"`
+	Comment   string `json:"comment"`
+	Timestamp string `json:"timestamp"`
+}
+
+func newSettings(name, comment string) *Settings {
+	s := &Settings{}
+	s.Name = name
+	s.Comment = comment
+	t := time.Now().Round(time.Second)
+	s.Timestamp = t.Format(time.RFC3339)
+	return s
+}
+
+func (s *Settings) read(dir string) {
+	b, err := ioutil.ReadFile(dir + "/.info.json")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	json.Unmarshal(b, &s)
+}
+
+func (s *Settings) write(dir string) {
+	f, err := os.Create(dir + "/.info.json")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	data, err := json.MarshalIndent(s, "", "    ")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Fprintf(f, "%s\n", data)
+	f.Close()
+}
 
 type Package struct {
 	Name       string   `json:"name"`
@@ -34,7 +71,7 @@ var masterPackages = [...]Package{
 		Cmds:       nil,
 		Deps:       nil,
 		IsPrebuilt: true},
-	{Name: "cmake", Version: "3.7.1",
+	{Name: "cmake", Version: "3.7.2",
 		URL:        "https://cmake.org/files/v3.7/cmake-[VER]-Linux-x86_64.tar.gz",
 		Path:       "cmake/[VER]",
 		Cmds:       nil,
@@ -52,7 +89,7 @@ var masterPackages = [...]Package{
 		Cmds:       nil,
 		Deps:       nil,
 		IsPrebuilt: false},
-	{Name: "root", Version: "6.08.00",
+	{Name: "root", Version: "6.08.04",
 		URL:  "https://root.cern.ch/download/root_v[VER].source.tar.gz",
 		Path: "root/[VER]",
 		Cmds: []string{"cmake -Droofit=ON -DCMAKE_INSTALL_PREFIX=[PATH] ../src", "cmake --build . -- -j8",
@@ -68,7 +105,7 @@ var masterPackages = [...]Package{
 	{Name: "geant4", Version: "10.02.p02",
 		URL:  "http://geant4.cern.ch/support/source/geant4.[VER].tar.gz",
 		Path: "geant4/[VER]",
-		Cmds: []string{"cmake -DCMAKE_INSTALL_PREFIX=[PATH] -DXERCESC_ROOT_DIR=../../../xerces-c/3.1.4 -DGEANT4_USE_RAYTRACER_X11=ON -DGEANT4_USE_OPENGL_X11=ON -DGEANT4_BUILD_MULTITHREADED=ON -DGEANT4_INSTALL_DATA=ON ../src",
+		Cmds: []string{"cmake -DCMAKE_INSTALL_PREFIX=[PATH] -DXERCESC_ROOT_DIR=${XERCESCROOT} -DGEANT4_USE_RAYTRACER_X11=ON -DGEANT4_USE_OPENGL_X11=ON -DGEANT4_BUILD_MULTITHREADED=ON -DGEANT4_INSTALL_DATA=ON ../src",
 			"make -j8", "make install", "cd ..; rm -rf build src"},
 		Deps:       []string{"cmake", "xerces-c"},
 		IsPrebuilt: false},
@@ -90,7 +127,7 @@ var masterPackages = [...]Package{
 		Cmds:       []string{"scons"},
 		Deps:       nil,
 		IsPrebuilt: false},
-	{Name: "jana", Version: "0.7.5p2",
+	{Name: "jana", Version: "0.7.7p1",
 		URL:        "https://www.jlab.org/JANA/releases/jana_[VER].tgz",
 		Path:       "jana/[VER]",
 		Cmds:       []string{"scons -u -j8 install"},
@@ -109,9 +146,9 @@ var masterPackages = [...]Package{
 		Deps:       []string{"cernlib", "evio", "rcdb", "jana", "hdds"},
 		IsPrebuilt: false},
 	{Name: "hdgeant4", Version: "master",
-		URL:        "https://github.com/rjones30/HDGeant4",
+		URL:        "https://github.com/JeffersonLab/HDGeant4",
 		Path:       "hdgeant4/[VER]",
-		Cmds:       []string{"ln -sf src/G4.10.02.p02fixes G4fixes", ". ../../geant4/10.02.p02/share/Geant4-10.2.2/geant4make/geant4make.sh; make"},
+		Cmds:       []string{"ln -sfn G4.10.02.p02fixes src/G4fixes", ". ${G4ROOT}/share/Geant4-10.2.2/geant4make/geant4make.sh; make"},
 		Deps:       []string{"geant4", "sim-recon"},
 		IsPrebuilt: false},
 	{Name: "gluex_root_analysis", Version: "master",
@@ -201,7 +238,7 @@ var jsep = map[string]string{
 	"cernlib":             "",
 	"root":                "-",
 	"amptools":            "_",
-	"geant4":              "-",
+	"geant4":              ".",
 	"evio":                "-",
 	"rcdb":                "_",
 	"ccdb":                "_",
@@ -403,12 +440,16 @@ func changeVersions(names []string, versions map[string]string) {
 	if len(versions) == 0 {
 		return
 	}
-	dir := settingsDir()
+	mk(SD)
+	s := newSettings("master", "Default settings of hdpm version "+VERSION)
+	if !isPath(SD + "/.info.json") {
+		s.write(SD)
+	}
 	var pkgs []Package
 	for _, pkg := range packages {
 		if !pkg.in(names) {
 			pkgs = append(pkgs, pkg)
-			pkg.write(dir)
+			pkg.write(SD)
 			continue
 		}
 		ver, ok := versions[pkg.Name]
@@ -418,7 +459,7 @@ func changeVersions(names []string, versions map[string]string) {
 			pkg.changeVersion(ver, ok)
 		}
 		pkgs = append(pkgs, pkg)
-		pkg.write(dir)
+		pkg.write(SD)
 	}
 	packages = pkgs
 }
@@ -431,16 +472,6 @@ func (p *Package) changeVersion(ver string, ok bool) {
 			p.IsPrebuilt = false
 		}
 	}
-}
-
-func settingsDir() string {
-	mk(SD)
-	id := "master"
-	if isPath(SD + "/.id") {
-		id = readFile(SD + "/.id")
-	}
-	write_text(SD+"/.id", id)
-	return SD
 }
 
 func extractVersion(arg string) string {
@@ -500,6 +531,8 @@ Path: /group/halld/www/halldweb/html/dist
 		Version    string `xml:"version,attr"`
 		WordLength string `xml:"word_length,attr"`
 		DirTag     string `xml:"dirtag,attr"`
+		URL        string `xml:"url,attr"`
+		Branch     string `xml:"branch,attr"`
 	}
 	type vXML struct {
 		XMLName xml.Name `xml:"gversions"`
@@ -511,12 +544,32 @@ Path: /group/halld/www/halldweb/html/dist
 	}
 	var v *vXML
 	xml.Unmarshal(b, &v)
-	dir := settingsDir()
+	mk(SD)
+	id, c := "master", "Version XML"
+	if jlab && !jdev {
+		id, c = "jlab", "JLab CUE"
+	}
+	if jlab && jdev {
+		id, c = "jlab-dev", "JLab-dev CUE"
+	}
+	s := newSettings(id, c)
+	if isPath(SD + "/.info.json") {
+		s.read(SD)
+	}
+	s.write(SD)
 	var pkgs []Package
 	for _, p1 := range packages {
 		for _, p2 := range v.Packs {
 			if p1.Name == p2.Name {
-				p1.Version = p2.Version
+				if p2.Version != "" {
+					p1.Version = p2.Version
+				}
+				if p2.Version == "" && p2.Branch != "" {
+					p1.Version = p2.Branch
+				}
+				if p2.URL != "" {
+					p1.URL = p2.URL
+				}
 				if jlab || jdev {
 					if jdev && (p1.Name == "hdds" || p1.Name == "sim-recon") {
 						p1.Version = "master"
@@ -539,7 +592,7 @@ Path: /group/halld/www/halldweb/html/dist
 			p1.Path = "/apps/cmake/cmake-[VER]"
 		}
 		pkgs = append(pkgs, p1)
-		p1.write(dir)
+		p1.write(SD)
 	}
 	packages = pkgs
 	fmt.Println("\nThe XMLfile versions have been applied to your current settings.")

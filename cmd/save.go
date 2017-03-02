@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
-	"time"
+	"strconv"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -25,8 +27,12 @@ Saved settings are restored by using the select command:
 	Run: runSave,
 }
 
+var comment string
+
 func init() {
 	cmdHDPM.AddCommand(cmdSave)
+
+	cmdSave.Flags().StringVarP(&comment, "comment", "c", "", "Comment")
 }
 
 func runSave(cmd *cobra.Command, args []string) {
@@ -41,12 +47,46 @@ func runSave(cmd *cobra.Command, args []string) {
 	}
 	arg := args[0]
 	dir := filepath.Join(PD, ".saved-settings", arg)
-	if isPath(dir) {
-		t := time.Now().Round(time.Second)
-		os.Rename(dir, dir+"_"+t.Format(time.RFC3339))
+	type shift struct {
+		current string
+		next    string
+	}
+	var saved []shift
+	d := dir
+	for isPath(d) {
+		s := strings.Split(d, "@t")
+		sh := shift{}
+		if len(s) > 1 {
+			b := ""
+			for n := 0; n < len(s)-1; n++ {
+				b += s[n]
+			}
+			i, err := strconv.Atoi(s[len(s)-1])
+			if err != nil {
+				log.Fatalln(err)
+			}
+			sh = shift{d, b + "@t" + strconv.Itoa(i+1)}
+		} else {
+			sh = shift{d, d + "@t1"}
+		}
+		saved = append(saved, sh)
+		d = sh.next
+	}
+	for n := len(saved) - 1; n >= 0; n-- {
+		nd := saved[n].next
+		os.Rename(saved[n].current, nd)
+		s0 := &Settings{}
+		if isPath(nd + "/.info.json") {
+			s0.read(nd)
+		}
+		s0.Name = filepath.Base(nd)
+		s0.write(nd)
 	}
 	mk(dir)
 	for _, pkg := range packages {
 		pkg.write(dir)
 	}
+	s := newSettings(arg, comment)
+	s.write(SD)
+	s.write(dir)
 }
