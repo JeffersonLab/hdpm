@@ -268,26 +268,24 @@ func (p *Package) taggedDeps() string {
 }
 
 func (p *Package) checkDeps() {
-	ldd := "ldd"
-	oe := "so"
-	if runtime.GOOS == "darwin" {
-		ldd = "otool -L"
-		oe = "dylib"
-	}
 	xerces_c := getPackage("xerces-c")
 	cernlib := getPackage("cernlib")
 	hdds := getPackage("hdds")
 	var cmds = map[string]*exec.Cmd{
-		"xerces-c":            commande(ldd, xerces_c.Path+"/lib/libxerces-c."+oe),
+		"xerces-c":            commande("ldd", xerces_c.Path+"/lib/libxerces-c.so"),
 		"cernlib":             commande("ls", "-lh", cernlib.Path+"/"+cernlib.Version+"/lib/libgeant321.a"),
 		"root":                commande("root", "-b", "-q", "-l"),
 		"evio":                commande("evio2xml"),
 		"rcdb":                commande("rcdb"),
 		"ccdb":                commande("ccdb"),
 		"jana":                commande("jana"),
-		"hdds":                commande(ldd, hdds.Path+"/"+OS+"/"+"/lib/libhdds.so"),
+		"hdds":                commande("ldd", hdds.Path+"/"+OS+"/"+"/lib/libhdds.so"),
 		"sim-recon":           commande("hd_root"),
 		"gluex_root_analysis": commande("root", "-b", "-q", "-l"),
+	}
+	if runtime.GOOS == "darwin" {
+		cmds["xerces-c"] = commande("otool", "-L", xerces_c.Path+"/lib/libxerces-c.dylib")
+		cmds["hdds"] = commande("otool", "-L", hdds.Path+"/"+OS+"/"+"/lib/libhdds.so")
 	}
 	for _, dep := range addDeps(p.Deps) {
 		if cmds[dep] == nil {

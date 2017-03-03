@@ -302,6 +302,9 @@ func (p *Package) config() {
 	if p.Name == "hdpm" && runtime.GOOS == "darwin" {
 		p.URL = strings.Replace(p.URL, "linux", "macOS", -1)
 	}
+	if p.Name == "sim-recon" && runtime.GOOS == "darwin" {
+		p.Deps = []string{"evio", "rcdb", "jana", "hdds"}
+	}
 	p.URL = strings.Replace(p.URL, "[VER]", p.Version, -1)
 
 	p.Path = strings.Replace(p.Path, "[OS]", OS, -1)
