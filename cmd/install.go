@@ -29,12 +29,14 @@ The latest binaries will be fetched/installed if no argument is given.`,
 
 var showList bool
 var cleanLinks bool
+var osTag string
 
 func init() {
 	cmdHDPM.AddCommand(cmdInstall)
 
 	cmdInstall.Flags().BoolVarP(&showList, "list", "l", false, "List available binary distribution tarfiles")
 	cmdInstall.Flags().BoolVarP(&cleanLinks, "clean", "c", false, "Clean/remove symbolic links")
+	cmdInstall.Flags().StringVarP(&osTag, "tag", "t", "", "Force selection of a OS tag")
 }
 
 func runInstall(cmd *cobra.Command, args []string) {
@@ -162,8 +164,15 @@ Available OS tags:  c6 (CentOS 6), c7 (CentOS 7),
 	if strings.Contains(OS, "Ubuntu16") || strings.Contains(OS, "LinuxMint18") {
 		tag = "u16"
 	}
+	if osTag != "" {
+		tag = osTag
+	}
 	if tag == "" {
 		fmt.Fprintf(os.Stderr, "%s: Unsupported operating system\n", OS)
+		os.Exit(2)
+	}
+	if !in([]string{"c6", "c7", "u14", "u16"}, tag) {
+		fmt.Fprintf(os.Stderr, "%s: Unknown OS tag\n", tag)
 		os.Exit(2)
 	}
 	dir := filepath.Join(PD, ".dist")

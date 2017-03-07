@@ -247,6 +247,7 @@ func addDeps(args []string) []string {
 			if pkg.Name != arg {
 				continue
 			}
+			pkg.configDeps()
 			walk(&pkg)
 		}
 	}
