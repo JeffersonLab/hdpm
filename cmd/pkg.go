@@ -148,7 +148,7 @@ var masterPackages = [...]Package{
 	{Name: "hdgeant4", Version: "master",
 		URL:        "https://github.com/JeffersonLab/HDGeant4",
 		Path:       "hdgeant4/[VER]",
-		Cmds:       []string{"ln -sfn G4.10.02.p02fixes src/G4fixes", ". ${G4ROOT}/share/Geant4-10.2.2/geant4make/geant4make.sh; make"},
+		Cmds:       []string{"ln -sfn G4.10.02.p02fixes src/G4fixes", "bash -c '. ${G4ROOT}/share/Geant4-10.2.2/geant4make/geant4make.sh; make'"},
 		Deps:       []string{"geant4", "sim-recon"},
 		IsPrebuilt: false},
 	{Name: "gluex_root_analysis", Version: "master",
