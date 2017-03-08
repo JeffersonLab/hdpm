@@ -19,7 +19,7 @@ import (
 
 type Settings struct {
 	Name      string `json:"name"`
-	Comment   string `json:"comment"`
+	Comment   string `json:"comment,omitempty"`
 	Timestamp string `json:"timestamp"`
 }
 
@@ -89,7 +89,7 @@ var masterPackages = [...]Package{
 		Cmds:       nil,
 		Deps:       nil,
 		IsPrebuilt: false},
-	{Name: "root", Version: "6.08.04",
+	{Name: "root", Version: "6.08.06",
 		URL:  "https://root.cern.ch/download/root_v[VER].source.tar.gz",
 		Path: "root/[VER]",
 		Cmds: []string{"cmake -Droofit=ON -DCMAKE_INSTALL_PREFIX=[PATH] ../src", "cmake --build . -- -j8",

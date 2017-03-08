@@ -55,7 +55,9 @@ func runShow(cmd *cobra.Command, args []string) {
 	}
 	fmt.Println(strings.Repeat("-", 80))
 	fmt.Printf("Settings:  %s\n", s.Name)
-	fmt.Printf("Comment:   %s\n", s.Comment)
+	if s.Comment != "" {
+		fmt.Printf("Comment:   %s\n", s.Comment)
+	}
 	fmt.Printf("Timestamp: %s\n", s.Timestamp)
 	fmt.Printf("GLUEX_TOP: %s\n", PD)
 	fmt.Println(strings.Repeat("-", 80))

@@ -64,7 +64,7 @@ func runSelect(cmd *cobra.Command, args []string) {
 		dirs := readDir(tdir)
 		if len(dirs) > 0 {
 			fmt.Println("Saved settings")
-			fmt.Printf("%v\n", strings.Join(dirs, ", "))
+			fmt.Printf("%s\n", strings.Join(dirs, ", "))
 		}
 		for _, dir := range dirs {
 			s := &Settings{}
@@ -74,9 +74,11 @@ func runSelect(cmd *cobra.Command, args []string) {
 				s.Name = dir
 			}
 			fmt.Println(strings.Repeat("-", 80))
-			fmt.Printf("%v\n", s.Name)
-			fmt.Printf("%v\n", s.Comment)
-			fmt.Printf("%v\n", s.Timestamp)
+			fmt.Printf("%s\n", s.Name)
+			if s.Comment != "" {
+				fmt.Printf("%s\n", s.Comment)
+			}
+			fmt.Printf("%s\n", s.Timestamp)
 		}
 		return
 	}
@@ -113,7 +115,7 @@ func runSelect(cmd *cobra.Command, args []string) {
 		} else {
 			fmt.Fprintf(os.Stderr, "Unknown settings id:\n%s does not exist.\n",
 				tdir+"/"+arg)
-			fmt.Fprintf(os.Stderr, "\nSaved settings: %v\n", strings.Join(readDir(tdir), ", "))
+			fmt.Fprintf(os.Stderr, "\nSaved settings: %s\n", strings.Join(readDir(tdir), ", "))
 			os.Exit(2)
 		}
 	}
