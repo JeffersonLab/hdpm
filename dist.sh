@@ -15,7 +15,7 @@ GOOS=linux GOARCH=amd64 go build
 dir=${name}-${ver}
 mkdir -p ${dir}/bin
 mv hdpm ${dir}/bin
-cp -p README.md ${dir}
+cp -p README.md setup.*sh ${dir}
 tarfile=${dir}.linux.tar.gz
 tar czf ${tarfile} ${dir}
 mv ${tarfile} ${target}
@@ -37,7 +37,7 @@ GOOS=darwin GOARCH=amd64 go build
 dir=${name}-${ver}
 mkdir -p ${dir}/bin
 mv hdpm ${dir}/bin
-cp -p README.md ${dir}
+cp -p README.md setup.*sh ${dir}
 tarfile=${dir}.macOS.tar.gz
 tar czf ${tarfile} ${dir}
 rm -rf ${dir}
