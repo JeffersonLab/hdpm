@@ -17,19 +17,22 @@ var cmdShow = &cobra.Command{
 
 The package names and versions are printed by default.
 
-fields: version, url, path, cmds, deps, isPrebuilt`,
+fields: version, url, path, cmds, deps, isPrebuilt, dependents`,
 	Example: `1. hdpm show
 2. hdpm show url
 3. hdpm show cmds
-4. hdpm show -p`,
+4. hdpm show dependents
+5. hdpm show -p`,
 	Run: runShow,
 }
 
-var showPrereqs bool
+var showPrereqs, showExtras, showMaster bool
 
 func init() {
 	cmdHDPM.AddCommand(cmdShow)
 
+	cmdShow.Flags().BoolVarP(&showExtras, "extras", "e", false, "Show extra package settings")
+	cmdShow.Flags().BoolVarP(&showMaster, "master", "m", false, "Show master package settings")
 	cmdShow.Flags().BoolVarP(&showPrereqs, "prereqs", "p", false, "Show GlueX offline software prerequisites")
 }
 
@@ -41,6 +44,28 @@ func runShow(cmd *cobra.Command, args []string) {
 	}
 	if showPrereqs {
 		prereqs(arg)
+		return
+	}
+	if showMaster {
+		fmt.Println("Master (default) packages")
+		fmt.Println(strings.Repeat("-", 80))
+		fmt.Printf("%-22s%-22s\n", "package", arg)
+		fmt.Println(strings.Repeat("-", 80))
+		for _, pkg := range masterPackages {
+			pkg.config()
+			pkg.show(arg)
+		}
+		return
+	}
+	if showExtras {
+		fmt.Println("Extra packages")
+		fmt.Println(strings.Repeat("-", 80))
+		fmt.Printf("%-22s%-22s\n", "package", arg)
+		fmt.Println(strings.Repeat("-", 80))
+		for _, pkg := range extraPackages {
+			pkg.config()
+			pkg.show(arg)
+		}
 		return
 	}
 	s := &Settings{}
@@ -58,7 +83,9 @@ func runShow(cmd *cobra.Command, args []string) {
 	if s.Comment != "" {
 		fmt.Printf("Comment:   %s\n", s.Comment)
 	}
-	fmt.Printf("Timestamp: %s\n", s.Timestamp)
+	if s.Timestamp != "" {
+		fmt.Printf("Timestamp: %s\n", s.Timestamp)
+	}
 	fmt.Printf("GLUEX_TOP: %s\n", PD)
 	fmt.Println(strings.Repeat("-", 80))
 	fmt.Printf("%-22s%-22s\n", "package", arg)
@@ -80,7 +107,9 @@ func (p *Package) show(arg string) {
 			fmt.Printf("%-22s%-22s\n", p.Name, cmd)
 		}
 	case "deps":
-		fmt.Printf("%-22s%-22s\n", p.Name, strings.Join(p.Deps, ", "))
+		fmt.Printf("%-22s%-22s\n", p.Name, strings.Join(p.Deps, " "))
+	case "dependents":
+		fmt.Printf("%-22s%-22s\n", p.Name, strings.Join(dependents(p.Name), " "))
 	case "isPrebuilt":
 		fmt.Printf("%-22s%-22t\n", p.Name, p.IsPrebuilt)
 	default:
@@ -120,7 +149,7 @@ func prereqs(arg string) {
 yum update -y && yum install -y centos-release-SCL epel-release \
 	centos-release-scl-rh \
 	&& yum install -y python27 git make gcc-c++ gcc binutils \
-	libX11-devel libXpm-devel libXft-devel libXext-devel \
+	libX11-devel libXpm-devel libXft-devel libXext-devel cmake3 \
 	subversion scons gcc-gfortran imake patch expat-devel \
 	blas-devel lapack-devel openmotif-devel mysql-devel sqlite-devel \
 	fftw-devel bzip2 bzip2-devel tcsh devtoolset-3-toolchain \
@@ -130,7 +159,7 @@ yum update -y && yum install -y centos-release-SCL epel-release \
 		msg = `# CentOS/RHEL 7 prerequisites
 
 yum update -y && yum install -y epel-release && yum install -y \
-	git make gcc-c++ gcc binutils python-devel \
+	git make gcc-c++ gcc binutils python-devel cmake3 \
 	libX11-devel libXpm-devel libXft-devel libXext-devel \
 	subversion scons gcc-gfortran imake patch expat-devel \
 	mysql-devel sqlite-devel fftw-devel bzip2 bzip2-devel tcsh  \
@@ -140,11 +169,11 @@ yum update -y && yum install -y epel-release && yum install -y \
 	case tag == "u14" || tag == "u16":
 		msg = `# Ubuntu 14.04/16.04 LTS prerequisites
 
-apt-get update && apt-get install -y curl git dpkg-dev make g++ gcc \
-	binutils libx11-dev libxpm-dev libxft-dev libxext-dev libfftw3-dev \
-	python-dev scons subversion gfortran xutils-dev libxt-dev \
-	liblapack-dev libblas-dev libmotif-dev expect libgl1-mesa-dev \
-	libglew-dev libmysqlclient-dev sqlite3 libsqlite3-dev tcsh libbz2-dev \
+apt-get update && apt-get install -y curl git dpkg-dev make g++ gcc cmake \
+	binutils libx11-dev libxpm-dev libxft-dev libxext-dev libfftw3-dev tcsh \
+	python-dev scons subversion gfortran xutils-dev libxt-dev libboost-python-dev \
+	liblapack-dev libblas-dev libmotif-dev expect libgl1-mesa-dev libxmu-dev \
+	libxi-dev libglew-dev libmysqlclient-dev sqlite3 libsqlite3-dev libbz2-dev \
 	&& ln -s /usr/bin/make /usr/bin/gmake \
 	&& ln -s /usr/lib/liblapack.a /usr/lib/liblapack3.a
 `

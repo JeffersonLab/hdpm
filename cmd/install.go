@@ -41,14 +41,16 @@ func init() {
 
 func runInstall(cmd *cobra.Command, args []string) {
 	pkgInit()
-	if os.Getenv("GLUEX_TOP") == "" {
-		fmt.Println("GLUEX_TOP environment variable is not set.\nInstalling packages to the current working directory ...")
-	}
 	arg := ""
 	if len(args) >= 1 {
 		arg = args[0]
 	}
-	distDir := filepath.Join(PD, ".dist")
+	distDirOld := filepath.Join(PD, ".dist")
+	distDir := filepath.Join(HD, "dist")
+	if isPath(distDirOld) && !isPath(distDir) {
+		mk(HD)
+		os.Rename(distDirOld, distDir)
+	}
 	if !cleanLinks {
 		fetchDist(arg)
 	}
@@ -63,23 +65,28 @@ func runInstall(cmd *cobra.Command, args []string) {
 	for _, pkg := range packages {
 		pkg.install()
 	}
-	// Link env-setup scripts
-	mk(PD + "/env-setup")
-	rmGlob(PD + "/env-setup/dist.*")
+	// Link env scripts
+	mk(HD + "/env")
+	rmGlob(HD + "/env/dist.*")
 	if cleanLinks {
 		return
 	}
 	for _, sh := range []string{"sh", "csh"} {
 		if isPath(distDir + "/env-setup/master." + sh) {
 			s := distDir + "/env-setup/master." + sh
-			l := PD + "/env-setup/dist." + sh
+			l := HD + "/env/dist." + sh
+			run("ln", "-s", relPath(filepath.Dir(l), s), l)
+		}
+		if isPath(distDir + "/env/master." + sh) {
+			s := distDir + "/env/master." + sh
+			l := HD + "/env/dist." + sh
 			run("ln", "-s", relPath(filepath.Dir(l), s), l)
 		}
 	}
 }
 
 func (p *Package) install() {
-	pd := filepath.Join(PD, ".dist", p.Name)
+	pd := filepath.Join(HD, "dist", p.Name)
 	if !isPath(pd) {
 		fmt.Printf("Not in distribution: %s\n", p.Name)
 		return
@@ -89,7 +96,7 @@ func (p *Package) install() {
 	if p.Name == "hdds" || p.Name == "sim-recon" {
 		v = distVersion(pd + "/" + v + "/" + OS)
 	}
-	if p.Name == "gluex_root_analysis" {
+	if p.Name == "hdgeant4" || p.Name == "gluex_root_analysis" {
 		v = distVersion(pd + "/" + v)
 	}
 	pi := filepath.Join(PD, p.Name, v)
@@ -118,6 +125,9 @@ func removeSymLinks(dir string) {
 		if isSymLink(file) {
 			s := readLink(file)
 			if strings.HasPrefix(s, "../.dist/") || strings.HasPrefix(s, ".dist/") {
+				os.Remove(file)
+			}
+			if strings.HasPrefix(s, "../.hdpm/dist/") || strings.HasPrefix(s, ".hdpm/dist/") {
 				os.Remove(file)
 			}
 		}
@@ -175,7 +185,7 @@ Available OS tags:  c6 (CentOS 6), c7 (CentOS 7),
 		fmt.Fprintf(os.Stderr, "%s: Unknown OS tag\n", tag)
 		os.Exit(2)
 	}
-	dir := filepath.Join(PD, ".dist")
+	dir := filepath.Join(HD, "dist")
 	if showList {
 		fmt.Println("Available tarfiles")
 	}
@@ -220,12 +230,18 @@ Available OS tags:  c6 (CentOS 6), c7 (CentOS 7),
 		run("touch", dir+"/version_sim-recon-"+commit+"_deps-"+idDeps)
 	}
 	if updateDeps {
-		updateEnvScript(dir + "/env-setup/master.sh")
-		updateEnvScript(dir + "/env-setup/master.csh")
+		if isPath(dir + "/env-setup/master.sh") {
+			updateEnvScript(dir + "/env-setup/master.sh")
+			updateEnvScript(dir + "/env-setup/master.csh")
+		}
+		if isPath(dir + "/env/master.sh") {
+			updateEnvScript(dir + "/env/master.sh")
+			updateEnvScript(dir + "/env/master.csh")
+		}
 	}
 	fmt.Println(strings.Repeat("-", 80))
 	fmt.Println("Environment setup")
-	fmt.Println("source " + dir + "/env-setup/master.[c]sh")
+	fmt.Println("source " + dir + "/env/master.[c]sh")
 	// Check consistency between commit records
 	for _, d := range readDir(dir + "/sim-recon/master") {
 		if strings.HasPrefix(d, "Linux_") || strings.HasPrefix(d, "Darwin_") {

@@ -15,9 +15,11 @@ var cmdSelect = &cobra.Command{
 	Short: "Select package settings",
 	Long: `Select package settings.
 
-The settings files are written to the $GLUEX_TOP/settings directory.`,
+The settings files are written to the $GLUEX_TOP/.hdpm/settings directory.`,
 	Example: `1. hdpm select master (for default settings)
 2. hdpm select my-saved-settings
+3. hdpm select -l
+4. hdpm select --rm test@t1 test@t4
 
 Usage:
   hdpm select --xml XMLFILE-URL | XMLFILE-PATH
@@ -40,7 +42,7 @@ JLab development settings (for JLab CUE use only):
 
 If you use "jlab" instead of "jlab-dev", hdds and sim-recon will also
 be set to the latest prebuilt packages on the JLab CUE.
-Run "hdpm env" to write the env-setup scripts to the env-setup directory.`,
+Run "hdpm env" to write the env scripts to the .hdpm/env directory.`,
 	Run: runSelect,
 }
 
@@ -49,22 +51,23 @@ var XML string
 func init() {
 	cmdHDPM.AddCommand(cmdSelect)
 
-	cmdSelect.Flags().BoolVarP(&showList, "list", "l", false, "List saved package settings")
-	cmdSelect.Flags().BoolVarP(&rm, "rm", "", false, "Remove saved package settings")
+	cmdSelect.Flags().BoolVarP(&showList, "list", "l", false, "List all saved package settings")
+	cmdSelect.Flags().BoolVarP(&rm, "rm", "", false, "Remove one or more saved package settings")
 	cmdSelect.Flags().StringVarP(&XML, "xml", "", "", "Version XMLfile URL or path")
 }
 
 func runSelect(cmd *cobra.Command, args []string) {
 	pkgInit()
-	if os.Getenv("GLUEX_TOP") == "" {
-		fmt.Println("GLUEX_TOP environment variable is not set.\nWriting settings to the current working directory ...")
+	tdir := filepath.Join(HD, "saved-settings")
+	if isPath(PD+"/.saved-settings") && !isPath(tdir) {
+		mk(HD)
+		os.Rename(PD+"/.saved-settings", tdir)
 	}
-	tdir := filepath.Join(PD, ".saved-settings")
 	if showList {
 		dirs := readDir(tdir)
 		if len(dirs) > 0 {
 			fmt.Println("Saved settings")
-			fmt.Printf("%s\n", strings.Join(dirs, ", "))
+			fmt.Printf("%s\n", strings.Join(dirs, " "))
 		}
 		for _, dir := range dirs {
 			s := &Settings{}
@@ -78,7 +81,9 @@ func runSelect(cmd *cobra.Command, args []string) {
 			if s.Comment != "" {
 				fmt.Printf("%s\n", s.Comment)
 			}
-			fmt.Printf("%s\n", s.Timestamp)
+			if s.Timestamp != "" {
+				fmt.Printf("%s\n", s.Timestamp)
+			}
 		}
 		return
 	}
@@ -98,6 +103,7 @@ func runSelect(cmd *cobra.Command, args []string) {
 			}
 			if isPath(tdir + "/" + dir) {
 				os.RemoveAll(tdir + "/" + dir)
+				rmGlob(HD + "/env/" + dir + ".*")
 				fmt.Printf("Removed: %s\n", dir)
 			}
 		}
@@ -113,12 +119,15 @@ func runSelect(cmd *cobra.Command, args []string) {
 			run("cp", "-pr", tdir+"/"+arg, SD)
 			return
 		} else {
-			fmt.Fprintf(os.Stderr, "Unknown settings id:\n%s does not exist.\n",
-				tdir+"/"+arg)
-			fmt.Fprintf(os.Stderr, "\nSaved settings: %s\n", strings.Join(readDir(tdir), ", "))
+			fmt.Fprintf(os.Stderr, "%s: Unknown settings id\n", arg)
+			dirs := readDir(tdir)
+			if len(dirs) > 0 {
+				fmt.Fprintf(os.Stderr, "Saved settings: %s\n", strings.Join(dirs, ", "))
+			}
 			os.Exit(2)
 		}
 	}
+	os.RemoveAll(SD)
 	mk(SD)
 	s := newSettings(arg, "Default settings of hdpm version "+VERSION)
 	s.write(SD)

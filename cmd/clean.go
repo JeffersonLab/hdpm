@@ -41,9 +41,6 @@ func init() {
 
 func runClean(cmd *cobra.Command, args []string) {
 	pkgInit()
-	if os.Getenv("GLUEX_TOP") == "" {
-		fmt.Println("GLUEX_TOP environment variable is not set.\nCleaning packages in the current working directory ...")
-	}
 	// Clean a sim-recon subdirectory if passed as argument
 	cwd, _ := os.Getwd()
 	if len(args) == 1 && isPath(filepath.Join(cwd, args[0])) {

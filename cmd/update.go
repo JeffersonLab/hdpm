@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -29,9 +28,6 @@ func init() {
 
 func runUpdate(cmd *cobra.Command, args []string) {
 	pkgInit()
-	if os.Getenv("GLUEX_TOP") == "" {
-		fmt.Println("GLUEX_TOP environment variable is not set.\nUpdating packages in the current working directory ...")
-	}
 	// Parse args
 	versions := extractVersions(args)
 	args = extractNames(args)
@@ -52,6 +48,9 @@ func runUpdate(cmd *cobra.Command, args []string) {
 
 	// Change package versions to versions passed on command line
 	changeVersions(args, versions)
+
+	// Set proxy env. variables if on JLab CUE
+	setenvJLabProxy()
 
 	// Update packages
 	mkcd(PD)

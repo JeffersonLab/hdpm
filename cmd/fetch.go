@@ -6,9 +6,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
-	"regexp"
 	"runtime"
-	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -36,16 +34,13 @@ func init() {
 	cmdHDPM.AddCommand(cmdFetch)
 
 	cmdFetch.Flags().StringVarP(&XML, "xml", "", "", "Version XMLfile URL or path")
-	cmdFetch.Flags().BoolVarP(&force, "force", "f", false, "Do not skip cernlib/CMake on macOS")
+	cmdFetch.Flags().BoolVarP(&force, "force", "f", false, "Do not skip cernlib on macOS")
 	cmdFetch.Flags().BoolVarP(&deps, "deps", "d", false, "Include dependencies")
 	cmdFetch.Flags().BoolVarP(&all, "all", "a", false, "Fetch all packages in the package settings")
 }
 
 func runFetch(cmd *cobra.Command, args []string) {
 	pkgInit()
-	if os.Getenv("GLUEX_TOP") == "" {
-		fmt.Println("GLUEX_TOP environment variable is not set.\nInstalling packages to the current working directory ...")
-	}
 	// Parse args
 	versions := extractVersions(args)
 	args = extractNames(args)
@@ -80,8 +75,7 @@ func runFetch(cmd *cobra.Command, args []string) {
 		if !pkg.in(args) {
 			continue
 		}
-		if runtime.GOOS == "darwin" && !force &&
-			(pkg.Name == "cernlib" || pkg.Name == "cmake") {
+		if runtime.GOOS == "darwin" && !force && pkg.Name == "cernlib" {
 			fmt.Printf("macOS detected: Skipping %s\n", pkg.Name)
 			continue
 		}
@@ -101,15 +95,6 @@ func (p *Package) fetch() {
 	switch strings.HasSuffix(p.URL, ".tar.gz") || strings.HasSuffix(p.URL, ".tgz") {
 	case true:
 		if p.Name != "cernlib" {
-			if p.Name == "hdpm" && p.Version == "latest" {
-				ver := latestRelease("hdpm")
-				p.URL = strings.Replace(p.URL, "latest", ver, 1)
-				p.Path = strings.Replace(p.Path, "latest", ver, 1)
-				if p.isFetched() {
-					fmt.Printf("Already fetched: hdpm version %s\n", ver)
-					return
-				}
-			}
 			if p.usesCMake() {
 				fetchTarfile(p.URL, p.Path+"/src")
 			} else {
@@ -117,8 +102,8 @@ func (p *Package) fetch() {
 			}
 		} else if p.Version == "2005" {
 			p.mkcd()
-			fetchTarfile(strings.Replace(p.URL, ".2005.corr.2014.04.17", "-2005-all-new", 1), "") // get the "all" file
-			fetchTarfile(strings.Replace(p.URL, "corr", "install", 1), "")                        // get the "install" file
+			fetchTarfile(strings.Replace(p.URL, ".2005.corr.2014.04.17", "-2005-all-new", 1), "")
+			fetchTarfile(strings.Replace(p.URL, "corr", "install", 1), "")
 			run("curl", "-OL", p.URL)
 			run("mv", "-f", path.Base(p.URL), "cernlib.2005.corr.tgz")
 		}
@@ -167,60 +152,4 @@ func fetchTarfile(url, path string) {
 		run("tar", "xf", file)
 	}
 	os.Remove(file)
-}
-
-func latestRelease(name string) string {
-	latest_release := "0.0.0"
-	page := output("curl", "-s", "https://halldweb.jlab.org/dist/hdpm/")
-	lines := strings.Split(page, "\n")
-	for _, line := range lines {
-		re := regexp.MustCompile("href=\".{20,30}\"")
-		r := re.FindString(line)
-		if r == "" {
-			continue
-		}
-		file := r[6 : len(r)-1]
-		prefix, suffix := name+"-", ".linux.tar.gz"
-		if strings.HasPrefix(file, prefix) && strings.HasSuffix(file, suffix) && !strings.HasPrefix(file, name+"-dev.") {
-			file = strings.TrimPrefix(file, prefix)
-			file = strings.TrimSuffix(file, suffix)
-			if strings.Contains(file, ".") {
-				if isLater(file, latest_release) {
-					latest_release = file
-				}
-			}
-		}
-	}
-	if latest_release == "0.0.0" {
-		fmt.Fprintf(os.Stderr, "No releases found at https://halldweb.jlab.org/dist/hdpm/ for %s.\n", name)
-		os.Exit(2)
-	}
-	fmt.Printf("Latest release: %s version %s\n\n", name, latest_release)
-	return latest_release
-}
-
-func isLater(v1, v2 string) bool {
-	V1 := vnSlice(v1)
-	V2 := vnSlice(v2)
-	if len(V1) != len(V2) {
-		return false
-	}
-	if len(V1) != 3 {
-		return false
-	}
-	for i, _ := range V1 {
-		if V1[i] == V2[i] {
-			continue
-		}
-		return V1[i] > V2[i]
-	}
-	return false
-}
-
-func vnSlice(v string) (V []int) {
-	for _, s := range strings.Split(v, ".") {
-		i, _ := strconv.Atoi(s)
-		V = append(V, i)
-	}
-	return V
 }

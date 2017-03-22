@@ -37,16 +37,18 @@ func init() {
 
 func runSave(cmd *cobra.Command, args []string) {
 	pkgInit()
-	if os.Getenv("GLUEX_TOP") == "" {
-		fmt.Println("GLUEX_TOP environment variable is not set.\nSaving settings to the current working directory ...")
-	}
 	if len(args) != 1 {
 		fmt.Fprintln(os.Stderr, "Give a name for the package settings as the only argument.\n")
 		cmd.Usage()
 		os.Exit(2)
 	}
+	tdir := filepath.Join(HD, "saved-settings")
+	if isPath(PD+"/.saved-settings") && !isPath(tdir) {
+		mk(HD)
+		os.Rename(PD+"/.saved-settings", tdir)
+	}
 	arg := args[0]
-	dir := filepath.Join(PD, ".saved-settings", arg)
+	dir := filepath.Join(tdir, arg)
 	type shift struct {
 		current string
 		next    string
@@ -75,12 +77,12 @@ func runSave(cmd *cobra.Command, args []string) {
 	for n := len(saved) - 1; n >= 0; n-- {
 		nd := saved[n].next
 		os.Rename(saved[n].current, nd)
-		s0 := &Settings{}
+		s := &Settings{}
 		if isPath(nd + "/.info.json") {
-			s0.read(nd)
+			s.read(nd)
 		}
-		s0.Name = filepath.Base(nd)
-		s0.write(nd)
+		s.Name = filepath.Base(nd)
+		s.write(nd)
 	}
 	mk(dir)
 	for _, pkg := range packages {

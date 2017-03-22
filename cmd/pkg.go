@@ -20,7 +20,7 @@ import (
 type Settings struct {
 	Name      string `json:"name"`
 	Comment   string `json:"comment,omitempty"`
-	Timestamp string `json:"timestamp"`
+	Timestamp string `json:"timestamp,omitempty"`
 }
 
 func newSettings(name, comment string) *Settings {
@@ -65,18 +65,6 @@ type Package struct {
 
 // Default package settings
 var masterPackages = [...]Package{
-	{Name: "hdpm", Version: "latest",
-		URL:        "https://halldweb.jlab.org/dist/hdpm/hdpm-[VER].linux.tar.gz",
-		Path:       "hdpm/[VER]",
-		Cmds:       nil,
-		Deps:       nil,
-		IsPrebuilt: true},
-	{Name: "cmake", Version: "3.7.2",
-		URL:        "https://cmake.org/files/v3.7/cmake-[VER]-Linux-x86_64.tar.gz",
-		Path:       "cmake/[VER]",
-		Cmds:       nil,
-		Deps:       nil,
-		IsPrebuilt: true},
 	{Name: "xerces-c", Version: "3.1.4",
 		URL:        "http://archive.apache.org/dist/xerces/c/3/sources/xerces-c-[VER].tar.gz",
 		Path:       "xerces-c/[VER]",
@@ -94,7 +82,7 @@ var masterPackages = [...]Package{
 		Path: "root/[VER]",
 		Cmds: []string{"cmake -Droofit=ON -DCMAKE_INSTALL_PREFIX=[PATH] ../src", "cmake --build . -- -j8",
 			"cmake --build . --target install", "cd ..; rm -rf build src"},
-		Deps:       []string{"cmake"},
+		Deps:       nil,
 		IsPrebuilt: false},
 	{Name: "amptools", Version: "0.9.2",
 		URL:        "http://downloads.sourceforge.net/project/amptools/AmpTools_v[VER].tgz",
@@ -107,7 +95,7 @@ var masterPackages = [...]Package{
 		Path: "geant4/[VER]",
 		Cmds: []string{"cmake -DCMAKE_INSTALL_PREFIX=[PATH] -DXERCESC_ROOT_DIR=${XERCESCROOT} -DGEANT4_USE_RAYTRACER_X11=ON -DGEANT4_USE_OPENGL_X11=ON -DGEANT4_BUILD_MULTITHREADED=ON -DGEANT4_INSTALL_DATA=ON ../src",
 			"make -j8", "make install", "cd ..; rm -rf build src"},
-		Deps:       []string{"cmake", "xerces-c"},
+		Deps:       []string{"xerces-c"},
 		IsPrebuilt: false},
 	{Name: "evio", Version: "4.4.6",
 		URL:        "https://coda.jlab.org/drupal/system/files/coda/evio/evio-4.4/evio-[VER].tgz",
@@ -121,7 +109,7 @@ var masterPackages = [...]Package{
 		Cmds:       []string{"cd cpp; scons"},
 		Deps:       nil,
 		IsPrebuilt: false},
-	{Name: "ccdb", Version: "1.06.02",
+	{Name: "ccdb", Version: "1.06.03",
 		URL:        "https://github.com/JeffersonLab/ccdb/archive/v[VER].tar.gz",
 		Path:       "ccdb/[VER]",
 		Cmds:       []string{"scons"},
@@ -137,18 +125,18 @@ var masterPackages = [...]Package{
 		URL:        "https://github.com/JeffersonLab/hdds/archive/[VER].tar.gz",
 		Path:       "hdds/[VER]",
 		Cmds:       []string{"scons -u install"},
-		Deps:       []string{"xerces-c"},
+		Deps:       []string{"xerces-c", "root"},
 		IsPrebuilt: false},
 	{Name: "sim-recon", Version: "master",
 		URL:        "https://github.com/JeffersonLab/sim-recon/archive/[VER].tar.gz",
 		Path:       "sim-recon/[VER]",
 		Cmds:       []string{"scons -u -j8 install DEBUG=0"},
-		Deps:       []string{"cernlib", "evio", "rcdb", "jana", "hdds"},
+		Deps:       []string{"cernlib", "amptools", "evio", "rcdb", "jana", "hdds"},
 		IsPrebuilt: false},
 	{Name: "hdgeant4", Version: "master",
-		URL:        "https://github.com/JeffersonLab/HDGeant4",
+		URL:        "https://github.com/JeffersonLab/hdgeant4/archive/[VER].tar.gz",
 		Path:       "hdgeant4/[VER]",
-		Cmds:       []string{"ln -sfn G4.10.02.p02fixes src/G4fixes", "bash -c '. ${G4ROOT}/share/Geant4-10.2.2/geant4make/geant4make.sh; make'"},
+		Cmds:       []string{"ln -sfn G4.${G4VERSION}fixes src/G4fixes", "make"},
 		Deps:       []string{"geant4", "sim-recon"},
 		IsPrebuilt: false},
 	{Name: "gluex_root_analysis", Version: "master",
@@ -157,12 +145,28 @@ var masterPackages = [...]Package{
 		Cmds:       []string{"./make_all.sh"},
 		Deps:       []string{"sim-recon"},
 		IsPrebuilt: false},
+}
+
+// Extra package settings
+var extraPackages = [...]Package{
+	{Name: "cmake", Version: "3.7.2",
+		URL:        "https://cmake.org/files/v3.7/cmake-[VER]-Linux-x86_64.tar.gz",
+		Path:       "cmake/[VER]",
+		Cmds:       nil,
+		Deps:       nil,
+		IsPrebuilt: true},
 	{Name: "gluex_workshops", Version: "master",
 		URL:        "https://github.com/JeffersonLab/gluex_workshops",
 		Path:       "gluex_workshops/[VER]",
 		Cmds:       []string{"cd physics_workshop_2016/session2/omega_ref; scons install", "cd physics_workshop_2016/session2/omega_skim_rest; scons install", "cd physics_workshop_2016/session2/omega_solutions; scons install", "cd physics_workshop_2016/session3b/omega_skim_tree; scons install", "cd physics_workshop_2016/session5b/p2gamma_workshop; scons install"},
 		Deps:       []string{"gluex_root_analysis"},
 		IsPrebuilt: false},
+	{Name: "hd_utilities", Version: "master",
+		URL:        "https://github.com/JeffersonLab/hd_utilities/archive/[VER].tar.gz",
+		Path:       "hd_utilities/[VER]",
+		Cmds:       nil,
+		Deps:       nil,
+		IsPrebuilt: true},
 }
 
 // Packages to use
@@ -181,9 +185,13 @@ const JPD = "/group/halld/Software/builds"
 // Settings directory
 var SD string
 
+// Hidden directory
+var HD string
+
 func pkgInit() {
 	PD = os.Getenv("GLUEX_TOP")
 	if PD == "" {
+		fmt.Println("GLUEX_TOP env variable is not set.\nhdpm will use the current working directory...")
 		PD, _ = os.Getwd()
 	}
 
@@ -194,19 +202,51 @@ func pkgInit() {
 		}
 	}
 
-	SD = filepath.Join(PD, "settings")
+	HD = filepath.Join(PD, ".hdpm")
+	SD = filepath.Join(HD, "settings")
+	if isPath(PD+"/settings") && !isPath(SD) {
+		mk(HD)
+		os.Rename(PD+"/settings", SD)
+	}
+	if isPath(PD+"/env-setup") && !isPath(HD+"/env") {
+		mk(HD)
+		os.Rename(PD+"/env-setup", HD+"/env")
+	}
 
-	rsd := isPath(SD)
-	for _, pkg := range masterPackages {
-		if rsd {
-			if isPath(SD + "/" + pkg.Name + ".json") {
-				pkg = read(pkg.Name)
-				packages = append(packages, pkg)
-				packageNames = append(packageNames, pkg.Name)
-			}
-		} else {
+	nOther := 0
+	files := readDir(SD)
+	var tmp []Package
+	for _, fn := range readDir(SD) {
+		if !strings.HasSuffix(fn, ".json") || strings.HasPrefix(fn, ".") {
+			nOther++
+			continue
+		}
+		name := strings.Split(fn, ".json")[0]
+		pkg := read(name)
+		tmp = append(tmp, pkg)
+	}
+	if !isPath(SD) || len(files) == nOther {
+		for _, pkg := range masterPackages {
 			packages = append(packages, pkg)
 			packageNames = append(packageNames, pkg.Name)
+		}
+	} else { // Restore order of default packages
+		found := make(map[string]bool)
+		for _, pm := range masterPackages {
+			for _, p := range tmp {
+				if p.Name == pm.Name {
+					found[p.Name] = true
+					packages = append(packages, p)
+					packageNames = append(packageNames, p.Name)
+				}
+			}
+		}
+		for _, p := range tmp {
+			_, ok := found[p.Name]
+			if !ok {
+				packages = append(packages, p)
+				packageNames = append(packageNames, p.Name)
+			}
 		}
 	}
 }
@@ -232,8 +272,6 @@ func getPackage(name string) Package {
 }
 
 var jsep = map[string]string{
-	"hdpm":                "-",
-	"cmake":               "-",
 	"xerces-c":            "-",
 	"cernlib":             "",
 	"root":                "-",
@@ -247,7 +285,6 @@ var jsep = map[string]string{
 	"sim-recon":           "-",
 	"hdgeant4":            "-",
 	"gluex_root_analysis": "-",
-	"gluex_workshops":     "-",
 }
 
 func ver_i(ver string, i int) string {
@@ -296,11 +333,8 @@ func (p *Package) config() {
 		return
 	}
 
-	if p.Name == "evio" || p.Name == "cmake" {
+	if p.Name == "evio" {
 		p.configMajorMinorInURL()
-	}
-	if p.Name == "hdpm" && runtime.GOOS == "darwin" {
-		p.URL = strings.Replace(p.URL, "linux", "macOS", -1)
 	}
 	p.configDeps()
 	p.URL = strings.Replace(p.URL, "[VER]", p.Version, -1)
@@ -352,7 +386,7 @@ func (p *Package) configCmds(oldPath, newPath string) {
 	var cmds []string
 	for _, cmd := range p.Cmds {
 		if p.Path != "" {
-			cmds = append(cmds, strings.Replace(cmd, oldPath, newPath, -1))
+			cmds = append(cmds, strings.Replace(cmd, oldPath, newPath, 1))
 		}
 	}
 	p.Cmds = cmds
@@ -491,7 +525,11 @@ func extractVersion(arg string) string {
 
 func (p *Package) jlabPathConfig(dirtag string) {
 	dir := filepath.Join(JPD, OS, p.Name)
-	jp := filepath.Join(dir, p.Name+jsep[p.Name]+p.Version)
+	sep, ok := jsep[p.Name]
+	jp := ""
+	if ok {
+		jp = filepath.Join(dir, p.Name+sep+p.Version)
+	}
 	if dirtag != "" {
 		jp += "^" + dirtag
 	}
@@ -553,16 +591,18 @@ Path: /group/halld/www/halldweb/html/dist
 	xml.Unmarshal(b, &v)
 	mk(SD)
 	id, c := "master", "Version XML"
+	s := &Settings{}
+	if isPath(SD + "/.info.json") {
+		s.read(SD)
+		id = s.Name
+	}
 	if jlab && !jdev {
 		id, c = "jlab", "JLab CUE"
 	}
 	if jlab && jdev {
 		id, c = "jlab-dev", "JLab-dev CUE"
 	}
-	s := newSettings(id, c)
-	if isPath(SD + "/.info.json") {
-		s.read(SD)
-	}
+	s = newSettings(id, c)
 	s.write(SD)
 	var pkgs []Package
 	for _, p1 := range packages {
@@ -578,7 +618,7 @@ Path: /group/halld/www/halldweb/html/dist
 					p1.URL = p2.URL
 				}
 				if jlab || jdev {
-					if jdev && (p1.Name == "hdds" || p1.Name == "sim-recon") {
+					if jdev && p1.in([]string{"hdds", "sim-recon", "hdgeant4", "gluex_root_analysis"}) {
 						p1.Version = "master"
 						if strings.HasPrefix(p1.Path, JPD) {
 							p1.Path = filepath.Join(p1.Name, "[VER]")
@@ -594,10 +634,6 @@ Path: /group/halld/www/halldweb/html/dist
 				}
 			}
 		}
-		if p1.Name == "cmake" && isPath("/apps/cmake/cmake-3.5.1") {
-			p1.Version = "3.5.1"
-			p1.Path = "/apps/cmake/cmake-[VER]"
-		}
 		pkgs = append(pkgs, p1)
 		p1.write(SD)
 	}
@@ -606,6 +642,32 @@ Path: /group/halld/www/halldweb/html/dist
 	if wasurl {
 		os.Remove(file)
 	}
+}
+
+func writeVersionXML() {
+	type pack struct {
+		Name    string `xml:"name,attr"`
+		Version string `xml:"version,attr"`
+	}
+	type vXML struct {
+		XMLName xml.Name `xml:"gversions"`
+		Packs   []pack   `xml:"package"`
+	}
+	v := &vXML{}
+	for _, p := range packages {
+		v.Packs = append(v.Packs, pack{p.Name, p.Version})
+	}
+	mk(HD)
+	f, err := os.Create(HD + "/version.xml")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	data, err := xml.MarshalIndent(v, "", "  ")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Fprintf(f, "%s\n", data)
+	f.Close()
 }
 
 func readFile(path string) string {
@@ -675,6 +737,9 @@ func (p *Package) inDist() bool {
 		if strings.HasPrefix(s, "../.dist/") || strings.HasPrefix(s, ".dist/") {
 			return true
 		}
+		if strings.HasPrefix(s, "../.hdpm/dist/") || strings.HasPrefix(s, ".hdpm/dist/") {
+			return true
+		}
 	}
 	return false
 }
@@ -688,12 +753,9 @@ func isPath(path string) bool {
 }
 
 func isSymLink(path string) bool {
-	if !isPath(path) {
-		return false
-	}
 	stat, err := os.Lstat(path)
 	if err != nil {
-		log.Fatalln(err)
+		return false
 	}
 	return stat.Mode()&os.ModeSymlink == os.ModeSymlink
 }
@@ -779,6 +841,24 @@ func output(name string, args ...string) string {
 		log.Fatalln(err)
 	}
 	return strings.TrimRight(string(b), "\n")
+}
+
+func outputnf(name string, args ...string) string {
+	c := exec.Command(name, args...)
+	b, err := c.CombinedOutput()
+	if err != nil {
+		return ""
+	}
+	return strings.TrimRight(string(b), "\n")
+}
+
+func isJLabFarm() bool {
+	if !isPath("/group/halld/Software") {
+		return false
+	}
+	nn := output("uname", "-n")
+	return strings.HasPrefix(nn, "farm") || strings.HasPrefix(nn, "ifarm") ||
+		strings.HasPrefix(nn, "qcd") || strings.HasPrefix(nn, "gluon")
 }
 
 func osrelease() string {

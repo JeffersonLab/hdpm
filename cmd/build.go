@@ -19,13 +19,12 @@ import (
 var cmdBuild = &cobra.Command{
 	Use:   "build [PACKAGE...]",
 	Short: "Build packages and dependencies",
-	Long: `Build packages and dependencies.
-
-Display build information if a package has already been built by hdpm.`,
+	Long:  `Build packages and dependencies.`,
 	Example: `1. hdpm build sim-recon
 2. hdpm build geant4 amptools xerces-c
 3. hdpm build --all
 4. hdpm build sim-recon --xml https://halldweb.jlab.org/dist/version.xml
+5. hdpm build gluex_root_analysis -i
 
 Usage:
   hdpm build DIRECTORY
@@ -35,6 +34,7 @@ Example:
 }
 
 var jobs string
+var showInfo bool
 
 func init() {
 	cmdHDPM.AddCommand(cmdBuild)
@@ -42,13 +42,11 @@ func init() {
 	cmdBuild.Flags().StringVarP(&XML, "xml", "", "", "Version XMLfile URL or path")
 	cmdBuild.Flags().BoolVarP(&all, "all", "a", false, "Build all packages in the package settings")
 	cmdBuild.Flags().StringVarP(&jobs, "jobs", "j", "", "Number of jobs to run in parallel")
+	cmdBuild.Flags().BoolVarP(&showInfo, "info", "i", false, "Show current build information and exit")
 }
 
 func runBuild(cmd *cobra.Command, args []string) {
 	pkgInit()
-	if os.Getenv("GLUEX_TOP") == "" {
-		fmt.Println("GLUEX_TOP environment variable is not set.\nInstalling packages to the current working directory ...")
-	}
 	// Build a sim-recon subdirectory if passed as argument
 	cwd, _ := os.Getwd()
 	if len(args) == 1 && (isPath(filepath.Join(cwd, args[0])) || isPath(args[0])) {
@@ -80,10 +78,9 @@ func runBuild(cmd *cobra.Command, args []string) {
 	}
 	if all {
 		args = packageNames
-	} else {
-		args = addDeps(args)
 	}
-	printPackages(args)
+	args = addDeps(args)
+	fmt.Printf("Packages: %s\n", strings.Join(args, ", "))
 
 	// Change package versions to XMLfile versions
 	if XML != "" {
@@ -92,30 +89,31 @@ func runBuild(cmd *cobra.Command, args []string) {
 	// Change package versions to versions passed on command line
 	changeVersions(args, versions)
 
+	writeVersionXML()
+
 	// Set environment variables
 	env("")
-	// Set proxy env. variables if on JLab CUE
-	setenvJLabProxy()
 
 	// Fetch and build packages
 	mkcd(PD)
 	isBuilt := false
-	for _, pkg := range packages {
-		if !pkg.in(args) {
-			continue
+	for _, arg := range args {
+		for _, pkg := range packages {
+			if pkg.Name != arg {
+				continue
+			}
+			if runtime.GOOS == "darwin" && pkg.Name == "cernlib" {
+				fmt.Printf("macOS detected: Skipping %s\n", pkg.Name)
+				continue
+			}
+			pkg.config()
+			pkg.fetch()
+			if pkg.IsPrebuilt {
+				fmt.Printf("Prebuilt package: %s\n", pkg.Name)
+				continue
+			}
+			pkg.build(&isBuilt)
 		}
-		if runtime.GOOS == "darwin" &&
-			(pkg.Name == "cernlib" || pkg.Name == "cmake") {
-			fmt.Printf("macOS detected: Skipping %s\n", pkg.Name)
-			continue
-		}
-		pkg.config()
-		pkg.fetch()
-		if pkg.IsPrebuilt {
-			fmt.Printf("Prebuilt package: %s\n", pkg.Name)
-			continue
-		}
-		pkg.build(&isBuilt)
 	}
 }
 
@@ -125,8 +123,8 @@ func (p *Package) build(isBuilt *bool) {
 	if p.in([]string{"jana", "hdds", "sim-recon"}) {
 		fname = p.Path + "/" + OS + "/success.hdpm"
 	}
-	if isPath(fname) {
-		printStats(fname, isBuilt)
+	if isPath(fname) && (showInfo || !p.isRepo()) {
+		printInfo(fname, isBuilt)
 		return
 	}
 	fmt.Printf("\n%s: Checking dependencies ...\n", p.Name)
@@ -138,8 +136,11 @@ func (p *Package) build(isBuilt *bool) {
 		if p.Name == "sim-recon" {
 			cd("src")
 		}
+		if p.Name == "hdgeant4" {
+			env("") // For geant4 env variables
+		}
 		if p.usesCMake() {
-			setenvPath(getPackage("cmake").Path)
+			p.configCMake()
 			if p.Name == "geant4" && isPath("src/LICENSE") {
 				run("cp", "-p", "src/LICENSE", ".")
 			}
@@ -176,7 +177,7 @@ func (p *Package) build(isBuilt *bool) {
 	fmt.Println()
 }
 
-func printStats(fname string, isBuilt *bool) {
+func printInfo(fname string, isBuilt *bool) {
 	if !(*isBuilt) {
 		fmt.Println(strings.Repeat("-", 80))
 		fmt.Printf("%-18s%-18s%-18s%-18s\n", "package", "build time", "disk use", "timestamp")
@@ -198,6 +199,34 @@ func (p *Package) usesCMake() bool {
 		}
 	}
 	return false
+}
+
+func (p *Package) configCMake() {
+	ver := getCMakeVersion("cmake")
+	if strings.HasPrefix(ver, "3.") {
+		return
+	} else {
+		ver = getCMakeVersion("cmake3")
+	}
+	if strings.HasPrefix(ver, "3.") {
+		for _, cmd := range p.Cmds {
+			if strings.HasPrefix(cmd, "cmake3") {
+				return
+			}
+		}
+		p.configCmds("cmake", "cmake3")
+	}
+}
+
+func getCMakeVersion(name string) string {
+	ver := outputnf(name, "--version")
+	if ver != "" {
+		f := strings.Fields(ver)
+		if len(f) >= 3 {
+			ver = f[2]
+		}
+	}
+	return ver
 }
 
 func applyNumCPU(cmd string, numCPU int) string {
@@ -225,6 +254,20 @@ func (p *Package) gitVersion() string {
 	ver := output("git", "log", "-1", "--format=%h")
 	cd(dir)
 	return ver
+}
+
+func dependents(arg string) []string {
+	var names []string
+	for _, p := range packages {
+		if p.Name == arg {
+			continue
+		}
+		p.configDeps()
+		if in(p.Deps, arg) {
+			names = append(names, p.Name)
+		}
+	}
+	return names
 }
 
 func addDeps(args []string) []string {
@@ -298,11 +341,6 @@ func (p *Package) checkDeps() {
 	}
 	if p.Name != "sim-recon" {
 		return
-	}
-	amptools := getPackage("amptools")
-	if !isPath(filepath.Join(amptools.Path, "success.hdpm")) {
-		unsetenv("AMPTOOLS")
-		unsetenv("AMPPLOTTER")
 	}
 	// Check version compatibility of deps
 	for _, shlib := range packages {
