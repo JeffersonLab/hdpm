@@ -1,11 +1,11 @@
 FROM centos:7
 MAINTAINER Nathan Sparks <nsparks@jlab.org>
 RUN yum update -y && yum install -y epel-release && yum install -y \
-            git make gcc-c++ gcc binutils clang cmake3 boost-python \
+            git make gcc-c++ gcc binutils clang cmake3 scons boost-devel \
             libX11-devel libXpm-devel libXft-devel libXext-devel libXi-devel \
-            subversion scons gcc-gfortran imake patch expat-devel libXmu-devel \
+            mesa-libGLU-devel gcc-gfortran imake patch expat-devel libXmu-devel \
             mysql-devel fftw-devel bzip2-devel file tar python-devel \
             blas-devel blas-static lapack-devel lapack-static openmotif-devel \
             bzip2 tcsh sqlite-devel && yum clean all \
-            && ln -s /usr/lib64/liblapack.a /usr/lib64/liblapack3.a
+            && ln -s liblapack.a /usr/lib64/liblapack3.a
 CMD cd /home && /bin/bash

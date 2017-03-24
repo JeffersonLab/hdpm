@@ -2,10 +2,10 @@ FROM ubuntu:16.04
 MAINTAINER Nathan Sparks <nsparks@jlab.org>
 RUN apt-get update && apt-get install -y curl git dpkg-dev make g++ gcc binutils \
     libx11-dev libxpm-dev libxft-dev libxext-dev libfftw3-dev python-dev cmake \
-    scons subversion gfortran xutils-dev libxt-dev liblapack-dev libblas-dev libboost-python-dev \
+    scons gfortran xutils-dev libxt-dev liblapack-dev libblas-dev libboost-python-dev \
     libmotif-dev expect libgl1-mesa-dev libmysqlclient-dev sqlite3 lsb-release libxmu-dev libxi-dev \
     libglew-dev libsqlite3-dev tcsh libbz2-dev vim-tiny file ca-certificates --no-install-recommends \
     && apt-get clean && rm -rf /var/lib/apt/lists/* \
-    && ln -s /usr/bin/make /usr/bin/gmake \
-    && ln -s /usr/lib/liblapack.a /usr/lib/liblapack3.a
+    && ln -s make /usr/bin/gmake \
+    && ln -s liblapack.a /usr/lib/liblapack3.a
 CMD cd /home && /bin/bash
