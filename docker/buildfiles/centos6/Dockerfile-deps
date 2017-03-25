@@ -8,7 +8,6 @@ RUN mkdir -p /home/gx && groupadd -r gx -g 573 && useradd -u 1000 \
     && rm -rf hdpm-dev hdpm-dev.linux.tar.gz && chown -R gx:gx /home/gx
 USER gx
 WORKDIR /home/gx
-ENV CC=/usr/bin/clang CXX=/usr/bin/clang++
 RUN scl enable devtoolset-3 python27 "hdpm fetch -d cernlib amptools evio jana rcdb geant4 \
     && hdpm build cernlib amptools evio jana rcdb geant4 \
     && hdpm clean --obliterate --all"
