@@ -618,10 +618,12 @@ Path: /group/halld/www/halldweb/html/dist
 		Packs   []pack   `xml:"package"`
 	}
 	if filepath.Ext(file) != ".xml" {
-		fmt.Printf("%s: Unknown XML file extension (not .xml)\n", file)
+		fmt.Printf("\n%s: unexpected file extension (not .xml)\n", file)
 	}
 	b, err := ioutil.ReadFile(file)
 	if err != nil {
+		log.SetPrefix("read XML file: ")
+		log.SetFlags(0)
 		log.Fatalln(err)
 	}
 	var v *vXML
