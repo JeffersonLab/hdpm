@@ -47,6 +47,7 @@ Run "hdpm env" to write the env scripts to the .hdpm/env directory.`,
 }
 
 var XML string
+var useGroupPath bool
 
 func init() {
 	cmdHDPM.AddCommand(cmdSelect)
@@ -54,6 +55,7 @@ func init() {
 	cmdSelect.Flags().BoolVarP(&showList, "list", "l", false, "List all saved package settings")
 	cmdSelect.Flags().BoolVarP(&rm, "rm", "", false, "Remove one or more saved package settings")
 	cmdSelect.Flags().StringVarP(&XML, "xml", "", "", "Version XMLfile URL or path")
+	cmdSelect.Flags().BoolVarP(&useGroupPath, "group", "g", false, "Use group packages by passing a .hdpm XML")
 }
 
 func runSelect(cmd *cobra.Command, args []string) {

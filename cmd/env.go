@@ -20,7 +20,8 @@ var cmdEnv = &cobra.Command{
 
 Pass an environment variable as an argument to select it.
 
-bash and tcsh environment-setup scripts are written to
+-w,--write flag:
+Write bash and tcsh environment-setup scripts to
 $GLUEX_TOP/.hdpm/env/<settings-id>.[c]sh.
 
 This command can also be used to set/unset GlueX env variables in your shell.
@@ -34,11 +35,12 @@ See examples below.`,
 }
 
 var shell string
-var unset bool
+var unset, write bool
 
 func init() {
 	cmdHDPM.AddCommand(cmdEnv)
 
+	cmdEnv.Flags().BoolVarP(&write, "write", "w", false, "Write env scripts to $GLUEX_TOP/.hdpm/env/")
 	cmdEnv.Flags().BoolVarP(&unset, "unset", "u", false, "Print unset commands for GlueX env variables")
 	cmdEnv.Flags().StringVarP(&shell, "shell", "s", "", "Print commands for bash or tcsh shell")
 }
@@ -54,14 +56,17 @@ func runEnv(cmd *cobra.Command, args []string) {
 
 func env(arg string) {
 	ENV := getEnv()
-	if arg != "" {
+	if !write && arg != "" {
 		printEnv(arg, ENV)
 	}
-	printEnv("sh", ENV)
-	printEnv("csh", ENV)
+	if write || arg == "" {
+		printEnv("sh", ENV)
+		printEnv("csh", ENV)
+	}
 	if arg != "" {
 		return
 	}
+	delete(ENV, "PATH0")
 	for k, v := range ENV {
 		if v != "" {
 			setenv(k, v)
@@ -97,9 +102,15 @@ func printEnv(arg string, ENV map[string]string) {
 	}
 	var keys []string
 	for k, _ := range ENV {
-		keys = append(keys, k)
+		if k != "PATH0" {
+			keys = append(keys, k)
+		}
 	}
 	sort.Strings(keys)
+	ldlp := "LD_LIBRARY_PATH"
+	if runtime.GOOS == "darwin" {
+		ldlp = "DYLD_LIBRARY_PATH"
+	}
 	if unset && arg != "sh" && arg != "csh" {
 		if arg == "ALL" {
 			fmt.Printf("%s %s%s%s%s", sh.set, "PATH", sh.eq, ENV["PATH"], sh.end)
@@ -112,7 +123,7 @@ func printEnv(arg string, ENV map[string]string) {
 				fmt.Printf("%s %s%s", sh.unset, k, sh.uend)
 			}
 		}
-		for _, k := range []string{"LD_LIBRARY_PATH", "PYTHONPATH", "JANA_PLUGIN_PATH"} {
+		for _, k := range []string{ldlp, "PYTHONPATH", "JANA_PLUGIN_PATH"} {
 			if ENV[k] == "" {
 				if arg == "ALL" || arg == k {
 					fmt.Printf("%s %s%s", sh.unset, k, sh.uend)
@@ -155,10 +166,6 @@ func printEnv(arg string, ENV map[string]string) {
 	if ENV["JANA_RESOURCE_DIR"] == "" {
 		fmt.Fprintf(f, "#"+sh.set+" JANA_RESOURCE_DIR"+sh.eq+"/path/to/resources"+sh.end)
 	}
-	ldlp := "LD_LIBRARY_PATH"
-	if runtime.GOOS == "darwin" {
-		ldlp = "DYLD_LIBRARY_PATH"
-	}
 	for _, pn := range []string{"PATH", ldlp, "PYTHONPATH", "JANA_PLUGIN_PATH"} {
 		if ENV[pn] == "" {
 			continue
@@ -172,6 +179,9 @@ func printEnv(arg string, ENV map[string]string) {
 				continue
 			}
 			path = strings.Replace(path, v, "${"+k+"}", -1)
+		}
+		if pn == "PATH" {
+			path = strings.Replace(path, ENV["PATH0"], "${PATH}", 1)
 		}
 		path = strings.Replace(path, ENV["BMS_OSNAME"], "${BMS_OSNAME}", -1)
 		path = strings.Replace(path, ENV["GLUEX_TOP"], "${GLUEX_TOP}", -1)
@@ -227,29 +237,23 @@ func getEnv() map[string]string {
 			ENV["MCWRAPPER_CENTRAL"] = mcw
 		}
 	}
-	if path["geant4"] != "" {
-		ENV["G4ROOT"] = path["geant4"]
-		ENV["G4VERSION"] = ver["geant4"]
-		bss := strings.Split(ver["geant4"], ".")
-		minor, patch := bss[1], bss[2]
-		if strings.HasPrefix(minor, "0") {
-			minor = minor[1:2]
-		}
-		if strings.HasPrefix(patch, "p0") {
-			patch = patch[2:3]
-		} else {
-			patch = patch[1:]
-		}
-		bs := bss[0] + "." + minor + "." + patch
-		ENV["G4INSTALL"] = path["geant4"] + "/share/Geant4-" + bs + "/geant4make"
-	}
 	if path["hdgeant4"] != "" {
 		ENV["G4WORKDIR"] = path["hdgeant4"]
 		setenv("G4WORKDIR", ENV["G4WORKDIR"])
 	}
-	isG4Installed := isPath(ENV["G4INSTALL"])
-	if isG4Installed {
-		ENV = addG4(ENV)
+	var isG4Installed bool
+	if path["geant4"] != "" {
+		ENV["G4ROOT"] = path["geant4"]
+		ENV["G4VERSION"] = ver["geant4"]
+		g4c := path["geant4"] + "/bin/geant4-config"
+		if isPath(g4c) {
+			v := output("sh", "-c", g4c+" --version")
+			ENV["G4INSTALL"] = path["geant4"] + "/share/Geant4-" + v + "/geant4make"
+			if isPath(ENV["G4INSTALL"]) {
+				ENV = addG4(ENV)
+				isG4Installed = true
+			}
+		}
 	}
 	if isJLabFarm() {
 		ENV["http_proxy"] = "http://jprox.jlab.org:8081"
@@ -265,13 +269,31 @@ func getEnv() map[string]string {
 		ENV[n] = os.Getenv(n)
 	}
 	// PATH and LD_LIBRARY_PATH
-	if isJLabFarm() && isPath("/apps/cmake/cmake-3.5.1") {
-		ENV["PATH"] = addPath(ENV["PATH"], "/apps/cmake/cmake-3.5.1/bin")
-	}
+	// First remove old entries
 	cpaths := []string{filepath.Join(os.Getenv("CERN"), os.Getenv("CERN_LEVEL")), os.Getenv("ROOTSYS"), os.Getenv("XERCESCROOT"), os.Getenv("EVIOROOT"), filepath.Join(os.Getenv("RCDB_HOME"), "cpp"), os.Getenv("CCDB_HOME"), os.Getenv("JANA_HOME"), filepath.Join(os.Getenv("HALLD_HOME"), os.Getenv("BMS_OSNAME")), filepath.Join(os.Getenv("ROOT_ANALYSIS_HOME"), os.Getenv("BMS_OSNAME"))}
 	for _, p := range cpaths {
 		ENV["PATH"] = cleanPath(ENV["PATH"], filepath.Join(p, "bin"))
 		ENV[enames[2]] = cleanPath(ENV[enames[2]], filepath.Join(p, "lib"))
+	}
+	if ENV["RCDB_HOME"] != "" {
+		ENV["PATH"] = cleanPath(ENV["PATH"], filepath.Join(os.Getenv("RCDB_HOME"), "bin"))
+		ENV["PATH"] = cleanPath(ENV["PATH"], os.Getenv("RCDB_HOME"))
+	}
+	if ENV["G4ROOT"] != "" {
+		g4root := os.Getenv("G4ROOT")
+		ENV["PATH"] = cleanPath(ENV["PATH"], filepath.Join(g4root, "bin"))
+		ENV[enames[2]] = cleanPath(ENV[enames[2]], filepath.Join(g4root, "lib64"))
+	}
+	if ENV["G4WORKDIR"] != "" {
+		ENV["PATH"] = cleanPath(ENV["PATH"], filepath.Join(os.Getenv("G4WORKDIR"), "bin", os.Getenv("G4SYSTEM")))
+		ENV[enames[2]] = cleanPath(ENV[enames[2]], filepath.Join(os.Getenv("G4WORKDIR"), "tmp", os.Getenv("G4SYSTEM"), "hdgeant4"))
+	}
+	if ENV["MCWRAPPER_CENTRAL"] != "" {
+		ENV["PATH"] = cleanPath(ENV["PATH"], os.Getenv("MCWRAPPER_CENTRAL"))
+	}
+	ENV["PATH0"] = ENV["PATH"]
+	if isJLabFarm() && isPath("/apps/cmake/cmake-3.5.1") {
+		ENV["PATH"] = addPath(ENV["PATH"], "/apps/cmake/cmake-3.5.1/bin")
 	}
 	paths := []string{filepath.Join(ENV["CERN"], ENV["CERN_LEVEL"]), ENV["ROOTSYS"], ENV["XERCESCROOT"], ENV["EVIOROOT"], filepath.Join(ENV["RCDB_HOME"], "cpp"), ENV["CCDB_HOME"], ENV["JANA_HOME"], filepath.Join(ENV["HALLD_HOME"], ENV["BMS_OSNAME"]), filepath.Join(ENV["ROOT_ANALYSIS_HOME"], ENV["BMS_OSNAME"])}
 	for _, p := range paths {
@@ -279,27 +301,25 @@ func getEnv() map[string]string {
 		ENV[enames[2]] = addPath(ENV[enames[2]], filepath.Join(p, "lib"))
 	}
 	if ENV["RCDB_HOME"] != "" {
-		ENV["PATH"] = cleanPath(ENV["PATH"], filepath.Join(os.Getenv("RCDB_HOME"), "bin"))
 		ENV["PATH"] = addPath(ENV["PATH"], filepath.Join(ENV["RCDB_HOME"], "bin"))
-		ENV["PATH"] = cleanPath(ENV["PATH"], os.Getenv("RCDB_HOME"))
 		if !unset {
 			ENV["PATH"] = ENV["RCDB_HOME"] + ":" + ENV["PATH"]
 		}
 	}
 	if ENV["G4ROOT"] != "" {
-		g4root := os.Getenv("G4ROOT")
-		ENV["PATH"] = cleanPath(ENV["PATH"], filepath.Join(g4root, "bin"))
-		ENV[enames[2]] = cleanPath(ENV[enames[2]], filepath.Join(g4root, "lib64"))
 		if isG4Installed {
 			ENV["PATH"] = addPath(ENV["PATH"], filepath.Join(ENV["G4ROOT"], "bin"))
 			ENV[enames[2]] = addPath(ENV[enames[2]], filepath.Join(ENV["G4ROOT"], "lib64"))
 		}
 	}
 	if ENV["G4WORKDIR"] != "" {
-		ENV["PATH"] = cleanPath(ENV["PATH"], filepath.Join(os.Getenv("G4WORKDIR"), "bin", os.Getenv("G4SYSTEM")))
 		if isG4Installed {
 			ENV["PATH"] = addPath(ENV["PATH"], filepath.Join(ENV["G4WORKDIR"], "bin", ENV["G4SYSTEM"]))
+			ENV[enames[2]] = addPath(ENV[enames[2]], filepath.Join(ENV["G4WORKDIR"], "tmp", ENV["G4SYSTEM"], "hdgeant4"))
 		}
+	}
+	if ENV["MCWRAPPER_CENTRAL"] != "" {
+		ENV["PATH"] = addPath(ENV["PATH"], ENV["MCWRAPPER_CENTRAL"])
 	}
 	// PYTHONPATH
 	cpypaths := []string{filepath.Join(os.Getenv("ROOTSYS"), "lib"), filepath.Join(os.Getenv("RCDB_HOME"), "python"), filepath.Join(os.Getenv("CCDB_HOME"), "python") + ":" + filepath.Join(os.Getenv("CCDB_HOME"), "python", "ccdb", "ccdb_pyllapi/"), filepath.Join(os.Getenv("HALLD_HOME"), os.Getenv("BMS_OSNAME"), "lib/python")}
@@ -367,15 +387,6 @@ func cleanPath(path, old_path string) string {
 	return path
 }
 
-/*func setenvPath(path string) {
-	if isPath(path) {
-		p := os.Getenv("PATH")
-		if !strings.Contains(p, path) {
-			setenv("PATH", filepath.Join(path, "bin:")+p)
-		}
-	}
-}*/
-
 func setenvJLabProxy() {
 	if isJLabFarm() {
 		setenv("http_proxy", "http://jprox.jlab.org:8081")
@@ -384,8 +395,8 @@ func setenvJLabProxy() {
 }
 
 func setenvGCC() {
-	if isPath(filepath.Join(PD, ".dist")) || in(os.Args, "install") {
-		p := filepath.Join(PD, ".dist")
+	if isPath(filepath.Join(HD, "dist")) || in(os.Args, "install") {
+		p := filepath.Join(HD, "dist")
 		v := output("gcc", "-dumpversion")
 		b := p + "/opt/rh/python27/root/usr/bin:" + p + "/opt/rh/devtoolset-3/root/usr/bin:"
 		b0 := os.Getenv("PATH")

@@ -27,7 +27,19 @@ func runAdd(cmd *cobra.Command, args []string) {
 	if len(args) == 0 {
 		exitNoPackages(cmd)
 	}
-	pkgInit()
+	var names []string
+	for _, pkg := range masterPackages {
+		names = append(names, pkg.Name)
+	}
+	for _, pkg := range extraPackages {
+		names = append(names, pkg.Name)
+	}
+	for _, arg := range args {
+		if !in(names, arg) {
+			exitUnknownPackage(arg)
+		}
+	}
+	pathInit()
 	newDir := false
 	if !isPath(SD) {
 		newDir = true

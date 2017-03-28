@@ -145,37 +145,34 @@ func prereqs(arg string) {
 	switch {
 	case tag == "c6":
 		msg = `# CentOS/RHEL 6 prerequisites
-
 yum update -y && yum install -y centos-release-SCL epel-release \
-	centos-release-scl-rh \
-	&& yum install -y python27 git make gcc-c++ gcc binutils \
-	libX11-devel libXpm-devel libXft-devel libXext-devel cmake3 \
-	subversion scons gcc-gfortran imake patch expat-devel \
-	blas-devel lapack-devel openmotif-devel mysql-devel sqlite-devel \
-	fftw-devel bzip2 bzip2-devel tcsh devtoolset-3-toolchain \
-	&& ln -s /usr/lib64/liblapack.a /usr/lib64/liblapack3.a
+    centos-release-scl-rh \
+    && yum install -y python27 git make gcc-c++ gcc binutils cmake3 scons \
+    libX11-devel libXpm-devel libXft-devel libXext-devel mesa-libGLU-devel \
+    libXi-devel libXmu-devel gcc-gfortran imake patch expat-devel boost-devel \
+    blas-devel lapack-devel openmotif-devel mysql-devel sqlite-devel \
+    fftw-devel bzip2 bzip2-devel tcsh devtoolset-3-toolchain \
+    && ln -s liblapack.a /usr/lib64/liblapack3.a
 `
 	case tag == "c7":
 		msg = `# CentOS/RHEL 7 prerequisites
-
 yum update -y && yum install -y epel-release && yum install -y \
-	git make gcc-c++ gcc binutils python-devel cmake3 \
-	libX11-devel libXpm-devel libXft-devel libXext-devel \
-	subversion scons gcc-gfortran imake patch expat-devel \
-	mysql-devel sqlite-devel fftw-devel bzip2 bzip2-devel tcsh  \
-	blas-devel blas-static lapack-devel lapack-static openmotif-devel \
-	&& ln -s /usr/lib64/liblapack.a /usr/lib64/liblapack3.a
+    git make gcc-c++ gcc binutils python-devel cmake3 scons boost-devel \
+    libX11-devel libXpm-devel libXft-devel libXext-devel mesa-libGLU-devel \
+    gcc-gfortran imake patch expat-devel libXi-devel libXmu-devel \
+    mysql-devel sqlite-devel fftw-devel bzip2 bzip2-devel tcsh \
+    blas-devel blas-static lapack-devel lapack-static openmotif-devel \
+    && ln -s liblapack.a /usr/lib64/liblapack3.a
 `
 	case tag == "u14" || tag == "u16":
 		msg = `# Ubuntu 14.04/16.04 LTS prerequisites
-
 apt-get update && apt-get install -y curl git dpkg-dev make g++ gcc cmake \
-	binutils libx11-dev libxpm-dev libxft-dev libxext-dev libfftw3-dev tcsh \
-	python-dev scons subversion gfortran xutils-dev libxt-dev libboost-python-dev \
-	liblapack-dev libblas-dev libmotif-dev expect libgl1-mesa-dev libxmu-dev \
-	libxi-dev libglew-dev libmysqlclient-dev sqlite3 libsqlite3-dev libbz2-dev \
-	&& ln -s /usr/bin/make /usr/bin/gmake \
-	&& ln -s /usr/lib/liblapack.a /usr/lib/liblapack3.a
+   binutils libx11-dev libxpm-dev libxft-dev libxext-dev libfftw3-dev tcsh \
+   python-dev scons gfortran xutils-dev libxt-dev libboost-python-dev \
+   liblapack-dev libblas-dev libmotif-dev expect libgl1-mesa-dev libxmu-dev \
+   libxi-dev libglew-dev libmysqlclient-dev sqlite3 libsqlite3-dev libbz2-dev \
+   && ln -s make /usr/bin/gmake \
+   && ln -s liblapack.a /usr/lib/liblapack3.a
 `
 	case tag == "macOS":
 		msg = `# macOS prerequisites

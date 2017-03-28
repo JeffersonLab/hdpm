@@ -342,6 +342,11 @@ func (p *Package) checkDeps() {
 	if p.Name != "sim-recon" {
 		return
 	}
+	amptools := getPackage("amptools")
+	if !isPath(filepath.Join(amptools.Path, "success.hdpm")) {
+		unsetenv("AMPTOOLS")
+		unsetenv("AMPPLOTTER")
+	}
 	// Check version compatibility of deps
 	for _, shlib := range packages {
 		if !shlib.in([]string{"xerces-c", "root", "ccdb"}) {

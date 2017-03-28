@@ -16,16 +16,13 @@ if test $tag == c6; then
     cd root/usr/bin; rm -f ld; rm -f ../tmp
     ln -s ld.bfd ld; cd $cwd/$name-$tag
 fi
-rm -rf ../$tag/home/gx/.*
+mv ../$tag/home/gx/.hdpm/* .
+rm -rf ../$tag/home/gx/.[!.]*
 mv ../$tag/home/gx/* .
 if [[ $tag != u14 && $tag != u16 ]]; then
     mv ../$tag/usr/lib*/libblas.a cernlib/2005/lib/
     mv ../$tag/usr/lib*/liblapack.a cernlib/2005/lib/liblapack3.a
 fi
-#else
-#    mv ../$tag/usr/lib/*/libblas.a cernlib/2005/lib/
-#    mv ../$tag/usr/lib/*/liblapack.a cernlib/2005/lib/liblapack3.a
-#fi
 rm -rf ../$tag
 cp -p ../../.id-deps-$tag .; cp -p ../../.log-sim-recon-$tag sim-recon/master/
 commit=$(echo $(grep -i sim-recon sim-recon/master/*/success.hdpm) | sed -r 's/sim-recon-//g')

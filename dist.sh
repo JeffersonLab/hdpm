@@ -9,7 +9,7 @@ target2=/group/halld/Software/${name}
 mkdir -p ${target2}
 
 # Build for 64-bit Linux
-GOOS=linux GOARCH=amd64 go build
+GOOS=linux GOARCH=amd64 go build -ldflags '-s'
 
 # Pack and ship to halldweb
 dir=${name}-${ver}

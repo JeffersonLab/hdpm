@@ -24,6 +24,11 @@ func runRemove(cmd *cobra.Command, args []string) {
 		exitNoPackages(cmd)
 	}
 	pkgInit()
+	for _, arg := range args {
+		if !in(packageNames, arg) {
+			exitUnknownPackage(arg)
+		}
+	}
 	if !isPath(SD) {
 		mk(SD)
 		s := newSettings("master", "Default settings of hdpm version "+VERSION)

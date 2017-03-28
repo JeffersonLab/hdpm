@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"regexp"
 	"runtime"
@@ -18,9 +19,9 @@ var cmdSelfupdate = &cobra.Command{
 	Long: `Update hdpm to the latest release.
 
 hdpm is installed to the $GLUEX_TOP/.hdpm directory.
-The current version of hdpm is uninstalled/removed.`,
+Any previous installation of hdpm at that location is removed.`,
 	Example: `1. hdpm selfupdate
-2. hdpm selfupdate -v 0.5.0`,
+2. hdpm selfupdate -v 0.6.0`,
 	Run: runSelfupdate,
 }
 
@@ -33,7 +34,7 @@ func init() {
 }
 
 func runSelfupdate(cmd *cobra.Command, args []string) {
-	pkgInit()
+	pathInit()
 
 	// Set proxy env. variables if on JLab CUE
 	setenvJLabProxy()
@@ -60,9 +61,24 @@ func selfupdate() {
 	if runtime.GOOS == "darwin" {
 		url = strings.Replace(url, "linux", "macOS", 1)
 	}
-	//os.RemoveAll(HD + "/bin")
-	os.RemoveAll(HD + "/bin/hdpm")
-	fetchTarfile(url, HD)
+	checkURL(url)
+	if isPath(HD + "/bin/hdpm") {
+		run("cp", "-p", HD+"/bin/hdpm", HD+"/bin/hdpm.old")
+		os.Remove(HD + "/bin/hdpm")
+	}
+	if err := fetchTarfileError(url, HD); err != nil {
+		log.SetPrefix("fetch failed: ")
+		log.SetFlags(0)
+		log.Println(err)
+		if isPath(HD + "/bin/hdpm.old") {
+			os.Rename(HD+"/bin/hdpm.old", HD+"/bin/hdpm")
+			fmt.Printf("Update failed: restored hdpm version %s\n", VERSION)
+		}
+		return
+	}
+	os.Remove(HD + "/bin/hdpm.old")
+	fmt.Printf("Installed: %s\n", HD+"/bin/hdpm")
+	fmt.Printf("Update succeeded: hdpm version %s\n", ver)
 }
 
 func latestRelease(name string) string {

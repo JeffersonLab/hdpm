@@ -156,8 +156,7 @@ func fetchDist(arg string) {
 		`Tarfile base URL:   https://halldweb.jlab.org/dist
 Path on JLab CUE:   /group/halld/www/halldweb/html/dist
 Filename format:    sim-recon-<commit>-<id_deps>-<os_tag>.tar.gz
-Available OS tags:  c6 (CentOS 6), c7 (CentOS 7),
-                    u14 (Ubuntu 14.04), u16 (Ubuntu 16.04)
+Available OS tags:  c6 (CentOS 6), c7 (CentOS 7), u16 (Ubuntu 16.04)
 `
 	fmt.Print(msg)
 	fmt.Println(strings.Repeat("-", 80))
@@ -280,11 +279,11 @@ func updateEnvScript(path string) {
 	data := readFile(path)
 	gx := filepath.Dir(filepath.Dir(path))
 	set := "export"
-	top_i, top_f := "GLUEX_TOP=.+", "GLUEX_TOP="+gx
+	top_i, top_f := "GLUEX_TOP=.+", "GLUEX_TOP=\""+gx+"\""
 	ci, cf := "\\${GLUEX_TOP}/cmake/.{5,7}/bin:", ""
 	if strings.HasSuffix(path, ".csh") {
 		set = "setenv"
-		top_i, top_f = "GLUEX_TOP .+", "GLUEX_TOP "+gx
+		top_i, top_f = "GLUEX_TOP .+", "GLUEX_TOP \""+gx+"\";"
 	}
 	tobeReplaced := [2]string{top_i, ci}
 	replacement := [2]string{top_f, cf}

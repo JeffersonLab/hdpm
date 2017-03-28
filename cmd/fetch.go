@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"path"
@@ -18,9 +20,7 @@ var cmdFetch = &cobra.Command{
 	Short: "Fetch packages",
 	Long: `Fetch packages.
 
-Download and unpack packages into the $GLUEX_TOP directory.
-If GLUEX_TOP is not set, packages are unpacked into the
-current working directory.`,
+Download and unpack packages into the $GLUEX_TOP directory.`,
 	Example: `1. hdpm fetch sim-recon --deps
 2. hdpm fetch root geant4
 3. hdpm fetch --all
@@ -127,29 +127,61 @@ func (p *Package) isFetched() bool {
 }
 
 func fetchTarfile(url, path string) {
+	if err := fetchTarfileError(url, path); err != nil {
+		log.SetPrefix("fetch failed: ")
+		log.SetFlags(0)
+		log.Fatalln(err)
+	}
+}
+
+func checkURL(url string) {
+	resp, err := http.Head(url)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		fmt.Fprintf(os.Stderr, "URL-check failed: %s\n", url)
+		log.SetPrefix("fetch failed: HTTP status: ")
+		log.SetFlags(0)
+		log.Fatalln(resp.Status)
+	}
+}
+
+func fetchTarfileError(url, path string) error {
 	file := filepath.Base(url)
 	fmt.Printf("Downloading %s ...\n", file)
+	var err error
 	if strings.Contains(url, "https://") || strings.Contains(url, "http://") {
-		run("curl", "-OL", url)
+		checkURL(url)
+		err = runE("curl", "-OL", url)
 	} else {
-		run("cp", "-p", url, ".")
+		err = runE("cp", "-p", url, ".")
+	}
+	if err != nil {
+		return err
 	}
 	fmt.Printf("\nUnpacking %s ...\n", file)
-	if path != "" {
-		mk(path)
-		tar := exec.Command("tar", "tf", file)
-		head := exec.Command("head", "-n1")
-		tarOut, _ := tar.StdoutPipe()
-		tar.Start()
-		head.Stdin = tarOut
-		headOut, _ := head.Output()
-		ncomp := "2"
-		if !strings.HasPrefix(string(headOut), "./") {
-			ncomp = "1"
-		}
-		run("tar", "xf", file, "-C", path, "--strip-components="+ncomp)
-	} else {
-		run("tar", "xf", file)
+	defer os.Remove(file)
+	if path == "" {
+		return runE("tar", "xf", file)
 	}
-	os.Remove(file)
+	tar := exec.Command("tar", "tf", file)
+	head := exec.Command("head", "-n1")
+	tarOut, err := tar.StdoutPipe()
+	if err != nil {
+		return err
+	}
+	tar.Start()
+	head.Stdin = tarOut
+	headOut, err := head.Output()
+	if err != nil {
+		return err
+	}
+	ncomp := "2"
+	if !strings.HasPrefix(string(headOut), "./") {
+		ncomp = "1"
+	}
+	mk(path)
+	return runE("tar", "xf", file, "-C", path, "--strip-components="+ncomp)
 }

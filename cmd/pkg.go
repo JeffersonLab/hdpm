@@ -115,7 +115,7 @@ var masterPackages = [...]Package{
 		Cmds:       []string{"scons"},
 		Deps:       nil,
 		IsPrebuilt: false},
-	{Name: "jana", Version: "0.7.7p1",
+	{Name: "jana", Version: "0.7.8",
 		URL:        "https://www.jlab.org/JANA/releases/jana_[VER].tgz",
 		Path:       "jana/[VER]",
 		Cmds:       []string{"scons -u -j8 install"},
@@ -188,20 +188,13 @@ var SD string
 // Hidden directory
 var HD string
 
-func pkgInit() {
+func pathInit() {
 	PD = os.Getenv("GLUEX_TOP")
 	if PD == "" {
-		fmt.Println("GLUEX_TOP env variable is not set.\nhdpm will use the current working directory...")
 		PD, _ = os.Getwd()
+		fmt.Fprintf(os.Stderr, "GLUEX_TOP env variable is not set.\nPlease set your package directory.\nExamples:\ntcsh: setenv GLUEX_TOP %s\nbash: export GLUEX_TOP=%s\n", PD, PD)
+		os.Exit(2)
 	}
-
-	OS = osrelease()
-	if strings.Contains(OS, "CentOS6") || strings.Contains(OS, "RHEL6") {
-		if strings.Contains(OS, "gcc") {
-			setenvGCC()
-		}
-	}
-
 	HD = filepath.Join(PD, ".hdpm")
 	SD = filepath.Join(HD, "settings")
 	if isPath(PD+"/settings") && !isPath(SD) {
@@ -211,6 +204,17 @@ func pkgInit() {
 	if isPath(PD+"/env-setup") && !isPath(HD+"/env") {
 		mk(HD)
 		os.Rename(PD+"/env-setup", HD+"/env")
+	}
+}
+
+func pkgInit() {
+	pathInit()
+
+	OS = osrelease()
+	if strings.Contains(OS, "CentOS6") || strings.Contains(OS, "RHEL6") {
+		if strings.Contains(OS, "gcc") {
+			setenvGCC()
+		}
 	}
 
 	nOther := 0
@@ -285,6 +289,7 @@ var jsep = map[string]string{
 	"sim-recon":           "-",
 	"hdgeant4":            "-",
 	"gluex_root_analysis": "-",
+	"hd_utilities":        "-",
 }
 
 func ver_i(ver string, i int) string {
@@ -544,6 +549,18 @@ func (p *Package) jlabPathConfig(dirtag string) {
 	p.template()
 }
 
+func (p *Package) groupPathConfig(path string) {
+	pp := filepath.Join(path, p.Name, p.Version)
+	if p.Name == "cernlib" {
+		pp = filepath.Join(path, p.Name)
+	}
+	if isPath(pp) {
+		p.Path = pp
+		p.IsPrebuilt = true
+	}
+	p.template()
+}
+
 func versionXML(file string) {
 	msg :=
 		`Version XMLfile Directory
@@ -568,8 +585,25 @@ Path: /group/halld/www/halldweb/html/dist
 	if strings.Contains(file, "https://") || strings.Contains(file, "http://") {
 		wasurl = true
 		fmt.Printf("\nDownloading %s ...\n", file)
+		checkURL(file)
 		run("curl", "-OL", file)
 		file = filepath.Base(file)
+	}
+	gp := ""
+	if useGroupPath && !wasurl {
+		if !filepath.IsAbs(file) {
+			cwd, _ := os.Getwd()
+			file = filepath.Join(cwd, file)
+		}
+		gp = filepath.Dir(file)
+		if filepath.Base(gp) != ".hdpm" {
+			gp = ""
+		} else {
+			gp = filepath.Dir(gp)
+		}
+	}
+	if gp == "" || gp == PD {
+		useGroupPath = false
 	}
 	type pack struct {
 		Name       string `xml:"name,attr"`
@@ -583,6 +617,9 @@ Path: /group/halld/www/halldweb/html/dist
 		XMLName xml.Name `xml:"gversions"`
 		Packs   []pack   `xml:"package"`
 	}
+	if filepath.Ext(file) != ".xml" {
+		fmt.Printf("%s: Unknown XML file extension (not .xml)\n", file)
+	}
 	b, err := ioutil.ReadFile(file)
 	if err != nil {
 		log.Fatalln(err)
@@ -590,17 +627,20 @@ Path: /group/halld/www/halldweb/html/dist
 	var v *vXML
 	xml.Unmarshal(b, &v)
 	mk(SD)
-	id, c := "master", "Version XML"
+	id, c := "master", "version XML"
 	s := &Settings{}
 	if isPath(SD + "/.info.json") {
 		s.read(SD)
 		id = s.Name
 	}
 	if jlab && !jdev {
-		id, c = "jlab", "JLab CUE"
+		c = "jlab version XML"
 	}
 	if jlab && jdev {
-		id, c = "jlab-dev", "JLab-dev CUE"
+		c = "jlab-dev version XML"
+	}
+	if useGroupPath {
+		c = "group version XML"
 	}
 	s = newSettings(id, c)
 	s.write(SD)
@@ -617,8 +657,12 @@ Path: /group/halld/www/halldweb/html/dist
 				if p2.URL != "" {
 					p1.URL = p2.URL
 				}
+				if useGroupPath {
+					p1.groupPathConfig(gp)
+					continue
+				}
 				if jlab || jdev {
-					if jdev && p1.in([]string{"hdds", "sim-recon", "hdgeant4", "gluex_root_analysis"}) {
+					if jdev && p1.in([]string{"hdds", "sim-recon", "hdgeant4", "gluex_root_analysis", "hd_utilities"}) {
 						p1.Version = "master"
 						if strings.HasPrefix(p1.Path, JPD) {
 							p1.Path = filepath.Join(p1.Name, "[VER]")
@@ -819,6 +863,13 @@ func run(name string, args ...string) {
 	if err := command(name, args...).Run(); err != nil {
 		log.Fatalln(err)
 	}
+}
+
+func runE(name string, args ...string) error {
+	if err := command(name, args...).Run(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func command(name string, args ...string) *exec.Cmd {
