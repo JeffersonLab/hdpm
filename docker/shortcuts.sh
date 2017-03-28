@@ -5,5 +5,5 @@ docker-rmi() { docker rmi $(docker images -f "dangling=true" -q); }
 alias docker-run="docker run -it --rm"
 WORKDIR=$(pwd)
 dock() { docker run -it --rm -v $WORKDIR:/home/gx sim-recon \
-    /bin/bash -c "source /home/gx/env-setup/master.sh &&
+    /bin/bash -c "source /home/gx/.hdpm/env/master.sh &&
     export CCDB_USER=$USER && $1"; }
