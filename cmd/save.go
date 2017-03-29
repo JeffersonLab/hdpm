@@ -23,7 +23,7 @@ Saved settings are restored by using the select command:
   hdpm select NAME`,
 	Example: `1. hdpm save test
 2. hdpm save root5
-3. hdpm save whatever`,
+3. hdpm save jlab -c "hdgeant4 test"`,
 	Run: runSave,
 }
 

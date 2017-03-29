@@ -22,7 +22,7 @@ Pass an environment variable as an argument to select it.
 
 -w,--write flag:
 Write bash and tcsh environment-setup scripts to
-$GLUEX_TOP/.hdpm/env/<settings-id>.[c]sh.
+$GLUEX_TOP/.hdpm/env/NAME.[c]sh.
 
 This command can also be used to set/unset GlueX env variables in your shell.
 See examples below.`,

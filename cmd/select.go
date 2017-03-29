@@ -42,7 +42,7 @@ JLab development settings (for JLab CUE use only):
 
 If you use "jlab" instead of "jlab-dev", hdds and sim-recon will also
 be set to the latest prebuilt packages on the JLab CUE.
-Run "hdpm env" to write the env scripts to the .hdpm/env directory.`,
+Run "hdpm env -w" to write the env scripts to the .hdpm/env directory.`,
 	Run: runSelect,
 }
 
