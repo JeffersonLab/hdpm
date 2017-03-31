@@ -47,7 +47,7 @@ func runClean(cmd *cobra.Command, args []string) {
 		dir := filepath.Join(cwd, args[0])
 		if isPath(filepath.Join(dir, "SConstruct")) || isPath(filepath.Join(dir, "SConscript")) {
 			cd(dir)
-			env("")
+			setEnv()
 			run("scons", "-u", "-c", "install")
 			return
 		}
@@ -93,7 +93,7 @@ func runClean(cmd *cobra.Command, args []string) {
 	}
 
 	// Set environment variables
-	env("")
+	setEnv()
 	for _, pkg := range packages {
 		pkg.config()
 		if !pkg.in(args) || !pkg.isFetched() || pkg.IsPrebuilt {

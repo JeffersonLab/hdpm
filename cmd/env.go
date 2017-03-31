@@ -47,25 +47,23 @@ func init() {
 
 func runEnv(cmd *cobra.Command, args []string) {
 	pkgInit()
-	arg := "ALL"
+	arg := ""
 	if len(args) >= 1 {
 		arg = args[0]
 	}
-	env(arg)
-}
-
-func env(arg string) {
 	ENV := getEnv()
-	if !write && arg != "" {
-		printEnv(arg, ENV)
-	}
-	if write || arg == "" {
-		printEnv("sh", ENV)
-		printEnv("csh", ENV)
-	}
-	if arg != "" {
+	if write {
+		writeEnv("sh", ENV)
+		writeEnv("csh", ENV)
 		return
 	}
+	env(arg, ENV)
+}
+
+func setEnv() {
+	ENV := getEnv()
+	writeEnv("sh", ENV)
+	writeEnv("csh", ENV)
 	delete(ENV, "PATH0")
 	for k, v := range ENV {
 		if v != "" {
@@ -74,7 +72,63 @@ func env(arg string) {
 	}
 }
 
-func printEnv(arg string, ENV map[string]string) {
+func env(arg string, ENV map[string]string) {
+	if shell == "" {
+		shell = filepath.Base(os.Getenv("SHELL"))
+	}
+	type shSyntax struct {
+		name, set, unset, eq, end, uend string
+	}
+	sh := shSyntax{"tcsh", "setenv", "unsetenv", " \"", "\";\n", ";\n"}
+	if shell == "bash" || shell == "sh" {
+		sh = shSyntax{"bash", "export", "unset", "=\"", "\"\n", "\n"}
+	}
+	var keys []string
+	for k, _ := range ENV {
+		if k != "PATH0" {
+			keys = append(keys, k)
+		}
+	}
+	sort.Strings(keys)
+	if unset {
+		if arg == "" {
+			fmt.Printf("%s %s%s%s%s", sh.set, "PATH", sh.eq, ENV["PATH"], sh.end)
+		}
+		for _, k := range keys {
+			if k == "GLUEX_TOP" || k == "PATH" || k == "HALLD_MY" {
+				continue
+			}
+			if arg == "" || arg == k {
+				fmt.Printf("%s %s%s", sh.unset, k, sh.uend)
+			}
+		}
+		ldlp := "LD_LIBRARY_PATH"
+		if runtime.GOOS == "darwin" {
+			ldlp = "DYLD_LIBRARY_PATH"
+		}
+		for _, k := range []string{ldlp, "PYTHONPATH", "JANA_PLUGIN_PATH"} {
+			if ENV[k] == "" {
+				if arg == "" || arg == k {
+					fmt.Printf("%s %s%s", sh.unset, k, sh.uend)
+				}
+			}
+		}
+		return
+	}
+	for _, k := range []string{"GLUEX_TOP", "BMS_OSNAME"} {
+		fmt.Printf("%s %s%s%s%s", sh.set, k, sh.eq, ENV[k], sh.end)
+	}
+	for _, k := range keys {
+		if k == "GLUEX_TOP" || k == "BMS_OSNAME" {
+			continue
+		}
+		if arg == "" || arg == k {
+			fmt.Printf("%s %s%s%s%s", sh.set, k, sh.eq, ENV[k], sh.end)
+		}
+	}
+}
+
+func writeEnv(arg string, ENV map[string]string) {
 	s := &Settings{}
 	if isPath(SD + "/.info.json") {
 		s.read(SD)
@@ -87,18 +141,15 @@ func printEnv(arg string, ENV map[string]string) {
 	}
 	id := s.Name
 	mk(filepath.Join(HD, "env"))
-	if shell == "" {
-		shell = filepath.Base(os.Getenv("SHELL"))
-	}
 	type shSyntax struct {
 		name, set, unset, eq, end, uend string
 	}
-	sh := shSyntax{"tcsh", "setenv", "unsetenv", " \"", "\";\n", ";\n"}
-	if arg == "sh" || shell == "bash" || shell == "sh" {
-		sh = shSyntax{"bash", "export", "unset", "=\"", "\"\n", "\n"}
+	if arg != "sh" {
+		arg = "csh"
 	}
-	if arg == "csh" || shell == "tcsh" || shell == "csh" {
-		sh = shSyntax{"tcsh", "setenv", "unsetenv", " \"", "\";\n", ";\n"}
+	sh := shSyntax{"tcsh", "setenv", "unsetenv", " \"", "\";\n", ";\n"}
+	if arg == "sh" {
+		sh = shSyntax{"bash", "export", "unset", "=\"", "\"\n", "\n"}
 	}
 	var keys []string
 	for k, _ := range ENV {
@@ -107,45 +158,6 @@ func printEnv(arg string, ENV map[string]string) {
 		}
 	}
 	sort.Strings(keys)
-	ldlp := "LD_LIBRARY_PATH"
-	if runtime.GOOS == "darwin" {
-		ldlp = "DYLD_LIBRARY_PATH"
-	}
-	if unset && arg != "sh" && arg != "csh" {
-		if arg == "ALL" {
-			fmt.Printf("%s %s%s%s%s", sh.set, "PATH", sh.eq, ENV["PATH"], sh.end)
-		}
-		for _, k := range keys {
-			if k == "GLUEX_TOP" || k == "PATH" || k == "HALLD_MY" {
-				continue
-			}
-			if arg == "ALL" || arg == k {
-				fmt.Printf("%s %s%s", sh.unset, k, sh.uend)
-			}
-		}
-		for _, k := range []string{ldlp, "PYTHONPATH", "JANA_PLUGIN_PATH"} {
-			if ENV[k] == "" {
-				if arg == "ALL" || arg == k {
-					fmt.Printf("%s %s%s", sh.unset, k, sh.uend)
-				}
-			}
-		}
-		return
-	}
-	if arg != "sh" && arg != "csh" {
-		for _, k := range []string{"GLUEX_TOP", "BMS_OSNAME"} {
-			fmt.Printf("%s %s%s%s%s", sh.set, k, sh.eq, ENV[k], sh.end)
-		}
-		for _, k := range keys {
-			if k == "GLUEX_TOP" || k == "BMS_OSNAME" {
-				continue
-			}
-			if arg == "ALL" || arg == k {
-				fmt.Printf("%s %s%s%s%s", sh.set, k, sh.eq, ENV[k], sh.end)
-			}
-		}
-		return
-	}
 	f, err := os.Create(filepath.Join(HD, "env", id+"."+arg))
 	if err != nil {
 		log.Fatalln(err)
@@ -165,6 +177,10 @@ func printEnv(arg string, ENV map[string]string) {
 	fmt.Fprintf(f, "#"+sh.set+" JANA_CALIB_CONTEXT"+sh.eq+"variation=mc"+sh.end)
 	if ENV["JANA_RESOURCE_DIR"] == "" {
 		fmt.Fprintf(f, "#"+sh.set+" JANA_RESOURCE_DIR"+sh.eq+"/path/to/resources"+sh.end)
+	}
+	ldlp := "LD_LIBRARY_PATH"
+	if runtime.GOOS == "darwin" {
+		ldlp = "DYLD_LIBRARY_PATH"
 	}
 	for _, pn := range []string{"PATH", ldlp, "PYTHONPATH", "JANA_PLUGIN_PATH"} {
 		if ENV[pn] == "" {

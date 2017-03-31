@@ -166,9 +166,9 @@ yum update -y && yum install -y epel-release && yum install -y \
 `
 	case tag == "u14" || tag == "u16":
 		msg = `# Ubuntu 14.04/16.04 LTS prerequisites
-apt-get update && apt-get install -y curl git dpkg-dev make g++ gcc cmake \
+apt-get update && apt-get install -y curl git dpkg-dev make g++ gcc \
    binutils libx11-dev libxpm-dev libxft-dev libxext-dev libfftw3-dev tcsh \
-   python-dev scons gfortran xutils-dev libxt-dev libboost-python-dev \
+   python-dev cmake scons gfortran xutils-dev libxt-dev libboost-python-dev \
    liblapack-dev libblas-dev libmotif-dev expect libgl1-mesa-dev libxmu-dev \
    libxi-dev libglew-dev libmysqlclient-dev sqlite3 libsqlite3-dev libbz2-dev \
    && ln -s make /usr/bin/gmake \

@@ -38,7 +38,7 @@ func runRun(cmd *cobra.Command, args []string) {
 		os.Exit(2)
 	}
 	pkgInit()
-	env("")
+	setEnv()
 	setenv("CCDB_USER", os.Getenv("USER"))
 	arg := "bash"
 	if len(args) == 1 {

@@ -56,7 +56,7 @@ func runBuild(cmd *cobra.Command, args []string) {
 		}
 		if isPath(filepath.Join(dir, "SConstruct")) || isPath(filepath.Join(dir, "SConscript")) {
 			cd(dir)
-			env("")
+			setEnv()
 			if jobs == "" {
 				run("scons", "-u", "install")
 			} else {
@@ -92,7 +92,7 @@ func runBuild(cmd *cobra.Command, args []string) {
 	writeVersionXML()
 
 	// Set environment variables
-	env("")
+	setEnv()
 
 	// Fetch and build packages
 	mkcd(PD)
@@ -137,7 +137,7 @@ func (p *Package) build(isBuilt *bool) {
 			cd("src")
 		}
 		if p.Name == "hdgeant4" {
-			env("") // For geant4 env variables
+			setEnv() // For geant4 env variables
 		}
 		if p.usesCMake() {
 			p.configCMake()
