@@ -17,8 +17,8 @@ var cmdClean = &cobra.Command{
 
 The following packages are supported:
   ccdb, jana, hdds, sim-recon, hdgeant4, gluex_root_analysis`,
-	Example: `1. hdpm clean hdds sim-recon
-2. hdpm clean --all
+	Example: `1. hdpm clean
+2. hdpm clean hdds sim-recon
 3. hdpm clean sim-recon --deps
 
 Usage:
@@ -37,6 +37,7 @@ func init() {
 	cmdClean.Flags().BoolVarP(&rm, "rm", "", false, "Remove packages not under Git/SVN version control")
 	cmdClean.Flags().BoolVarP(&deps, "deps", "d", false, "Include dependencies")
 	cmdClean.Flags().BoolVarP(&all, "all", "a", false, "Clean all packages in the package settings")
+	cmdClean.Flags().MarkDeprecated("all", "and is no longer required to clean all packages (hdpm clean).")
 }
 
 func runClean(cmd *cobra.Command, args []string) {
@@ -63,10 +64,7 @@ func runClean(cmd *cobra.Command, args []string) {
 			exitUnknownPackage(arg)
 		}
 	}
-	if len(args) == 0 && !all {
-		exitNoPackages(cmd)
-	}
-	if all {
+	if all || len(args) == 0 {
 		args = packageNames
 	} else if deps {
 		args = addDeps(args)

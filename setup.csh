@@ -16,7 +16,7 @@ else
         exit 1
     endif
 endif
-echo $PATH | grep -q $HDPM_PATH
+echo $PATH | grep -q ${HDPM_PATH}/bin
 if ( $? != 0 ) then
     echo "Adding hdpm binary to PATH..."
     setenv PATH ${HDPM_PATH}/bin:$PATH

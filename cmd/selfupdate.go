@@ -31,6 +31,7 @@ func init() {
 	cmdHDPM.AddCommand(cmdSelfupdate)
 
 	cmdSelfupdate.Flags().StringVarP(&version, "version", "v", "", "Request a specific version")
+	cmdSelfupdate.Flags().BoolVarP(&noCheckURL, "no-check-url", "", false, "Do not check URL")
 }
 
 func runSelfupdate(cmd *cobra.Command, args []string) {

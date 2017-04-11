@@ -136,7 +136,7 @@ var masterPackages = [...]Package{
 	{Name: "hdgeant4", Version: "master",
 		URL:        "https://github.com/JeffersonLab/hdgeant4/archive/[VER].tar.gz",
 		Path:       "hdgeant4/[VER]",
-		Cmds:       []string{"ln -sfn G4.${G4VERSION}fixes src/G4fixes", "make"},
+		Cmds:       []string{"ln -sfn G4.${G4VERSION}fixes src/G4fixes", "make -j8"},
 		Deps:       []string{"geant4", "sim-recon"},
 		IsPrebuilt: false},
 	{Name: "gluex_root_analysis", Version: "master",
@@ -145,6 +145,12 @@ var masterPackages = [...]Package{
 		Cmds:       []string{"./make_all.sh"},
 		Deps:       []string{"sim-recon"},
 		IsPrebuilt: false},
+	{Name: "hd_utilities", Version: "master",
+		URL:        "https://github.com/JeffersonLab/hd_utilities/archive/[VER].tar.gz",
+		Path:       "hd_utilities/[VER]",
+		Cmds:       nil,
+		Deps:       nil,
+		IsPrebuilt: true},
 }
 
 // Extra package settings
@@ -161,12 +167,6 @@ var extraPackages = [...]Package{
 		Cmds:       []string{"cd physics_workshop_2016/session2/omega_ref; scons install", "cd physics_workshop_2016/session2/omega_skim_rest; scons install", "cd physics_workshop_2016/session2/omega_solutions; scons install", "cd physics_workshop_2016/session3b/omega_skim_tree; scons install", "cd physics_workshop_2016/session5b/p2gamma_workshop; scons install"},
 		Deps:       []string{"gluex_root_analysis"},
 		IsPrebuilt: false},
-	{Name: "hd_utilities", Version: "master",
-		URL:        "https://github.com/JeffersonLab/hd_utilities/archive/[VER].tar.gz",
-		Path:       "hd_utilities/[VER]",
-		Cmds:       nil,
-		Deps:       nil,
-		IsPrebuilt: true},
 }
 
 // Packages to use
@@ -194,6 +194,9 @@ func pathInit() {
 		PD, _ = os.Getwd()
 		fmt.Fprintf(os.Stderr, "GLUEX_TOP env variable is not set.\nPlease set your package directory.\nExamples:\ntcsh: setenv GLUEX_TOP %s\nbash: export GLUEX_TOP=%s\n", PD, PD)
 		os.Exit(2)
+	}
+	if strings.HasSuffix(filepath.Clean(PD), "/.hdpm/dist") {
+		PD = strings.TrimSuffix(PD, "/.hdpm/dist")
 	}
 	HD = filepath.Join(PD, ".hdpm")
 	SD = filepath.Join(HD, "settings")

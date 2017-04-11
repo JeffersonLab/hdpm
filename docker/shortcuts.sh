@@ -3,7 +3,12 @@ alias docker-ip="docker inspect --format {{.NetworkSettings.IPAddress}}"
 docker-rm() { docker rm $(docker ps -aq); }
 docker-rmi() { docker rmi $(docker images -f "dangling=true" -q); }
 alias docker-run="docker run -it --rm"
-WORKDIR=$(pwd)
-dock() { docker run -it --rm -v $WORKDIR:/home/gx sim-recon \
-    /bin/bash -c "source /home/gx/.hdpm/env/master.sh &&
-    export CCDB_USER=$USER && $1"; }
+if [[ -z "$WORKDIR" ]]; then
+    WORKDIR=$(pwd)
+fi
+dock() {
+    local w=/home/gx/work
+    docker run -it --rm -w $w -v $WORKDIR:$w sim-recon \
+    /bin/bash -c ". /home/gx/.hdpm/env/master.sh &&
+    export CCDB_USER=$USER && $1"
+}

@@ -16,7 +16,7 @@ if test $tag == c6; then
     cd root/usr/bin; rm -f ld; rm -f ../tmp
     ln -s ld.bfd ld; cd $cwd/$name-$tag
 fi
-mv ../$tag/home/gx/.hdpm/* .
+mv ../$tag/home/gx/.hdpm . && mv .hdpm/env .
 rm -rf ../$tag/home/gx/.[!.]*
 mv ../$tag/home/gx/* .
 if [[ $tag != u14 && $tag != u16 ]]; then
@@ -27,8 +27,7 @@ rm -rf ../$tag
 cp -p ../../.id-deps-$tag .; cp -p ../../.log-sim-recon-$tag sim-recon/master/
 commit=$(echo $(grep -i sim-recon sim-recon/master/*/success.hdpm) | sed -r 's/sim-recon-//g')
 mkdir $cwd/$name-$tag-tmp
-mv hdds $cwd/$name-$tag-tmp; mv sim-recon $cwd/$name-$tag-tmp
-cp -p .id-deps-$tag $cwd/$name-$tag-tmp/hdds/master/; cp -p .id-deps-$tag $cwd/$name-$tag-tmp/sim-recon/master/
+mv hdds sim-recon hdgeant4 gluex_root_analysis $cwd/$name-$tag-tmp
 cd $cwd
 mv $name-$tag $name-deps-$tag; mv $name-$tag-tmp $name-$tag
 if ! test -f $target/$name-deps-$id_deps-$tag.tar.gz; then

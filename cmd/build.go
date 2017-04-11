@@ -20,9 +20,9 @@ var cmdBuild = &cobra.Command{
 	Use:   "build [PACKAGE...]",
 	Short: "Build packages and dependencies",
 	Long:  `Build packages and dependencies.`,
-	Example: `1. hdpm build sim-recon
-2. hdpm build geant4 amptools xerces-c
-3. hdpm build --all
+	Example: `1. hdpm build
+2. hdpm build sim-recon
+3. hdpm build geant4 amptools xerces-c
 4. hdpm build sim-recon --xml https://halldweb.jlab.org/dist/version.xml
 5. hdpm build gluex_root_analysis -i
 
@@ -41,8 +41,10 @@ func init() {
 
 	cmdBuild.Flags().StringVarP(&XML, "xml", "", "", "Version XMLfile URL or path")
 	cmdBuild.Flags().BoolVarP(&all, "all", "a", false, "Build all packages in the package settings")
+	cmdBuild.Flags().MarkDeprecated("all", "and is no longer required to build all packages (hdpm build).")
 	cmdBuild.Flags().StringVarP(&jobs, "jobs", "j", "", "Number of jobs to run in parallel")
 	cmdBuild.Flags().BoolVarP(&showInfo, "info", "i", false, "Show current build information and exit")
+	cmdBuild.Flags().BoolVarP(&noCheckURL, "no-check-url", "", false, "Do not check URL")
 }
 
 func runBuild(cmd *cobra.Command, args []string) {
@@ -73,10 +75,7 @@ func runBuild(cmd *cobra.Command, args []string) {
 			exitUnknownPackage(arg)
 		}
 	}
-	if len(args) == 0 && !all {
-		exitNoPackages(cmd)
-	}
-	if all {
+	if all || len(args) == 0 {
 		args = packageNames
 	}
 	args = addDeps(args)

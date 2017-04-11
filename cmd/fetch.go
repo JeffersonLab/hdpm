@@ -21,14 +21,14 @@ var cmdFetch = &cobra.Command{
 	Long: `Fetch packages.
 
 Download and unpack packages into the $GLUEX_TOP directory.`,
-	Example: `1. hdpm fetch sim-recon --deps
-2. hdpm fetch root geant4
-3. hdpm fetch --all
+	Example: `1. hdpm fetch
+2. hdpm fetch sim-recon --deps
+3. hdpm fetch root geant4
 4. hdpm fetch sim-recon -d --xml https://halldweb.jlab.org/dist/version.xml`,
 	Run: runFetch,
 }
 
-var force, deps, all bool
+var force, deps, all, noCheckURL bool
 
 func init() {
 	cmdHDPM.AddCommand(cmdFetch)
@@ -37,6 +37,8 @@ func init() {
 	cmdFetch.Flags().BoolVarP(&force, "force", "f", false, "Do not skip cernlib on macOS")
 	cmdFetch.Flags().BoolVarP(&deps, "deps", "d", false, "Include dependencies")
 	cmdFetch.Flags().BoolVarP(&all, "all", "a", false, "Fetch all packages in the package settings")
+	cmdFetch.Flags().MarkDeprecated("all", "and is no longer required to fetch all packages (hdpm fetch).")
+	cmdFetch.Flags().BoolVarP(&noCheckURL, "no-check-url", "", false, "Do not check URL")
 }
 
 func runFetch(cmd *cobra.Command, args []string) {
@@ -49,10 +51,7 @@ func runFetch(cmd *cobra.Command, args []string) {
 			exitUnknownPackage(arg)
 		}
 	}
-	if len(args) == 0 && !all {
-		exitNoPackages(cmd)
-	}
-	if all {
+	if all || len(args) == 0 {
 		args = packageNames
 	} else if deps {
 		args = addDeps(args)
@@ -135,6 +134,9 @@ func fetchTarfile(url, path string) {
 }
 
 func checkURL(url string) {
+	if noCheckURL {
+		return
+	}
 	resp, err := http.Head(url)
 	if err != nil {
 		log.Fatalln(err)

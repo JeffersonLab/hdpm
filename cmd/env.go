@@ -170,6 +170,9 @@ func writeEnv(arg string, ENV map[string]string) {
 		if k == "GLUEX_TOP" || k == "BMS_OSNAME" || strings.Contains(k, "PATH") {
 			continue
 		}
+		if k == "CCDB_USER" {
+			v = "${USER}"
+		}
 		v = strings.Replace(v, ENV["GLUEX_TOP"], "${GLUEX_TOP}", -1)
 		v = strings.Replace(v, ENV["BMS_OSNAME"], "${BMS_OSNAME}", -1)
 		fmt.Fprintf(f, sh.set+" "+k+sh.eq+v+sh.end)
@@ -229,7 +232,6 @@ func getEnv() map[string]string {
 		"RCDB_CONNECTION":    "mysql://rcdb@hallddb.jlab.org/rcdb",
 		"CCDB_HOME":          path["ccdb"],
 		"CCDB_CONNECTION":    CCDB_CONNECTION,
-		"CCDB_USER":          "${USER}",
 		"HDDS_HOME":          path["hdds"],
 		"JANA_HOME":          filepath.Join(path["jana"], BMS_OSNAME),
 		"JANA_CALIB_URL":     CCDB_CONNECTION,
@@ -240,6 +242,10 @@ func getEnv() map[string]string {
 	}
 	if !isPath(ENV["JANA_RESOURCE_DIR"]) {
 		ENV["JANA_RESOURCE_DIR"] = ""
+	}
+	ENV["CCDB_USER"] = os.Getenv("CCDB_USER")
+	if ENV["CCDB_USER"] == "" {
+		ENV["CCDB_USER"] = os.Getenv("USER")
 	}
 	if path["amptools"] != "" {
 		ENV["AMPTOOLS"] = filepath.Join(path["amptools"], "AmpTools")

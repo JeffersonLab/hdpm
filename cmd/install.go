@@ -37,6 +37,7 @@ func init() {
 	cmdInstall.Flags().BoolVarP(&showList, "list", "l", false, "List available binary distribution tarfiles")
 	cmdInstall.Flags().BoolVarP(&cleanLinks, "clean", "c", false, "Clean/remove symbolic links")
 	cmdInstall.Flags().StringVarP(&osTag, "tag", "t", "", "Force selection of a OS tag")
+	cmdInstall.Flags().BoolVarP(&noCheckURL, "no-check-url", "", false, "Do not check URL")
 }
 
 func runInstall(cmd *cobra.Command, args []string) {
@@ -72,13 +73,17 @@ func runInstall(cmd *cobra.Command, args []string) {
 		return
 	}
 	for _, sh := range []string{"sh", "csh"} {
-		if isPath(distDir + "/env-setup/master." + sh) {
-			s := distDir + "/env-setup/master." + sh
+		switch {
+		case isPath(distDir + "/.hdpm/env/master." + sh):
+			s := distDir + "/.hdpm/env/master." + sh
 			l := HD + "/env/dist." + sh
 			run("ln", "-s", relPath(filepath.Dir(l), s), l)
-		}
-		if isPath(distDir + "/env/master." + sh) {
+		case isPath(distDir + "/env/master." + sh):
 			s := distDir + "/env/master." + sh
+			l := HD + "/env/dist." + sh
+			run("ln", "-s", relPath(filepath.Dir(l), s), l)
+		case isPath(distDir + "/env-setup/master." + sh):
+			s := distDir + "/env-setup/master." + sh
 			l := HD + "/env/dist." + sh
 			run("ln", "-s", relPath(filepath.Dir(l), s), l)
 		}
@@ -216,8 +221,9 @@ Available OS tags:  c6 (CentOS 6), c7 (CentOS 7), u16 (Ubuntu 16.04)
 		fetchTarfile(urlDeps, dir)
 		fetchTarfile(URL, dir)
 	} else if update || commit != currentCommit(dir) {
-		os.RemoveAll(dir + "/sim-recon")
-		os.RemoveAll(dir + "/hdds")
+		for _, n := range []string{"sim-recon", "hdds", "hdgeant4", "gluex_root_analysis"} {
+			os.RemoveAll(filepath.Join(dir, n))
+		}
 		mkcd(dir)
 		fetchTarfile(URL, dir)
 		update = true
@@ -229,18 +235,21 @@ Available OS tags:  c6 (CentOS 6), c7 (CentOS 7), u16 (Ubuntu 16.04)
 		run("touch", dir+"/version_sim-recon-"+commit+"_deps-"+idDeps)
 	}
 	if updateDeps {
-		if isPath(dir + "/env-setup/master.sh") {
-			updateEnvScript(dir + "/env-setup/master.sh")
-			updateEnvScript(dir + "/env-setup/master.csh")
-		}
-		if isPath(dir + "/env/master.sh") {
+		switch {
+		case isPath(dir + "/.hdpm/env/master.sh"):
+			updateEnvScript(dir + "/.hdpm/env/master.sh")
+			updateEnvScript(dir + "/.hdpm/env/master.csh")
+		case isPath(dir + "/env/master.sh"):
 			updateEnvScript(dir + "/env/master.sh")
 			updateEnvScript(dir + "/env/master.csh")
+		case isPath(dir + "/env-setup/master.sh"):
+			updateEnvScript(dir + "/env-setup/master.sh")
+			updateEnvScript(dir + "/env-setup/master.csh")
 		}
 	}
 	fmt.Println(strings.Repeat("-", 80))
 	fmt.Println("Environment setup")
-	fmt.Println("source " + dir + "/env/master.[c]sh")
+	fmt.Println("source $GLUEX_TOP/.hdpm/env/dist.[c]sh")
 	// Check consistency between commit records
 	for _, d := range readDir(dir + "/sim-recon/master") {
 		if strings.HasPrefix(d, "Linux_") || strings.HasPrefix(d, "Darwin_") {

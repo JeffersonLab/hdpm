@@ -5,7 +5,7 @@ if [[ -h $SCRIPT_PATH ]]; then
     SCRIPT_PATH=$(readlink $SCRIPT_PATH)
 fi
 HDPM_PATH=$(cd $(dirname $SCRIPT_PATH); pwd)
-echo $PATH | grep -q $HDPM_PATH
+echo $PATH | grep -q $HDPM_PATH/bin
 if [[ $? -ne 0 ]]; then
     echo "Adding hdpm binary to PATH..."
     export PATH=$HDPM_PATH/bin:$PATH
