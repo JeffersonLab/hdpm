@@ -37,7 +37,6 @@ func init() {
 }
 
 func runShow(cmd *cobra.Command, args []string) {
-	pkgInit()
 	arg := "version"
 	if len(args) == 1 {
 		arg = args[0]
@@ -46,6 +45,7 @@ func runShow(cmd *cobra.Command, args []string) {
 		prereqs(arg)
 		return
 	}
+	pkgInit()
 	if showMaster {
 		fmt.Println("Master (default) packages")
 		fmt.Println(strings.Repeat("-", 80))
@@ -118,17 +118,18 @@ func (p *Package) show(arg string) {
 }
 
 func prereqs(arg string) {
+	OS = osrelease()
 	tag := ""
-	if strings.Contains(OS, "CentOS6") || strings.Contains(OS, "RHEL6") {
+	if OS == "CentOS6" || OS == "RHEL6" {
 		tag = "c6"
 	}
-	if strings.Contains(OS, "CentOS7") || strings.Contains(OS, "RHEL7") {
+	if OS == "CentOS7" || OS == "RHEL7" {
 		tag = "c7"
 	}
-	if strings.Contains(OS, "Ubuntu14") || strings.Contains(OS, "LinuxMint17") {
+	if OS == "Ubuntu14" || OS == "LinuxMint17" {
 		tag = "u14"
 	}
-	if strings.Contains(OS, "Ubuntu16") || strings.Contains(OS, "LinuxMint18") {
+	if OS == "Ubuntu16" || OS == "LinuxMint18" {
 		tag = "u16"
 	}
 	if runtime.GOOS == "darwin" {

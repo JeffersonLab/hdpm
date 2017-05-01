@@ -245,7 +245,7 @@ func applyNumCPU(cmd string, numCPU int) string {
 }
 
 func (p *Package) gitVersion() string {
-	if !isPath(p.Path + "/.git") {
+	if p.IsPrebuilt || !isPath(p.Path+"/.git") {
 		return p.Version
 	}
 	dir, _ := os.Getwd()

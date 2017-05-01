@@ -78,7 +78,7 @@ func runClean(cmd *cobra.Command, args []string) {
 	if rm {
 		for _, pkg := range packages {
 			pkg.config()
-			if !pkg.in(args) || !pkg.isFetched() || pkg.IsPrebuilt {
+			if pkg.IsPrebuilt || !pkg.in(args) || !pkg.isFetched() {
 				continue
 			}
 			if isPath(pkg.Path+"/.git") || isPath(pkg.Path+"/.svn") {
@@ -94,7 +94,7 @@ func runClean(cmd *cobra.Command, args []string) {
 	setEnv()
 	for _, pkg := range packages {
 		pkg.config()
-		if !pkg.in(args) || !pkg.isFetched() || pkg.IsPrebuilt {
+		if pkg.IsPrebuilt || !pkg.in(args) || !pkg.isFetched() {
 			continue
 		}
 		pkg.cd()

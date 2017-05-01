@@ -213,7 +213,7 @@ func pathInit() {
 func pkgInit() {
 	pathInit()
 
-	OS = osrelease()
+	OS = getBMSOSName()
 	if strings.Contains(OS, "CentOS6") || strings.Contains(OS, "RHEL6") {
 		if strings.Contains(OS, "gcc") {
 			setenvGCC()
@@ -223,7 +223,7 @@ func pkgInit() {
 	nOther := 0
 	files := readDir(SD)
 	var tmp []Package
-	for _, fn := range readDir(SD) {
+	for _, fn := range files {
 		if !strings.HasSuffix(fn, ".json") || strings.HasPrefix(fn, ".") {
 			nOther++
 			continue
@@ -282,7 +282,7 @@ var jsep = map[string]string{
 	"xerces-c":            "-",
 	"cernlib":             "",
 	"root":                "-",
-	"amptools":            "_",
+	"amptools":            "-",
 	"geant4":              ".",
 	"evio":                "-",
 	"rcdb":                "_",
@@ -308,7 +308,7 @@ func ver_i(ver string, i int) string {
 }
 func (p *Package) configBinary() {
 	s := ""
-	if strings.Contains(OS, "Darwin_macosx10.12") {
+	if strings.Contains(OS, "macosx10.12") {
 		s = "macosx64-10.12-clang80"
 	}
 	if strings.Contains(OS, "Fedora24") {
@@ -536,7 +536,12 @@ func (p *Package) jlabPathConfig(dirtag string) {
 	sep, ok := jsep[p.Name]
 	jp := ""
 	if ok {
-		jp = filepath.Join(dir, p.Name+sep+p.Version)
+		switch p.Name {
+		case "amptools":
+			jp = filepath.Join(dir, "AmpTools"+sep+p.Version)
+		default:
+			jp = filepath.Join(dir, p.Name+sep+p.Version)
+		}
 	}
 	if dirtag != "" {
 		jp += "^" + dirtag
@@ -918,41 +923,40 @@ func isJLabFarm() bool {
 }
 
 func osrelease() string {
-	uname := output("uname")
-	release := ""
-	switch uname {
-	case "Linux":
+	release := "unknown"
+	switch runtime.GOOS {
+	case "linux":
 		if isPath("/etc/fedora-release") {
 			rs := readFile("/etc/fedora-release")
 			if strings.HasPrefix(rs, "Fedora release") {
-				release = "_Fedora" + strings.Split(rs, " ")[2]
+				release = "Fedora" + strings.Split(rs, " ")[2]
 			} else {
 				fmt.Fprintln(os.Stderr, "unrecognized Fedora release")
-				release = "_Fedora"
+				release = "Fedora"
 			}
 		} else if isPath("/etc/redhat-release") {
 			rs := readFile("/etc/redhat-release")
 			if strings.HasPrefix(rs, "Red Hat Enterprise Linux Workstation release 6.") {
-				release = "_RHEL6"
+				release = "RHEL6"
 			} else if strings.HasPrefix(rs, "Red Hat Enterprise Linux Server release 6.") {
-				release = "_RHEL6"
+				release = "RHEL6"
 			} else if strings.HasPrefix(rs, "Red Hat Enterprise Linux Workstation release 7.") {
-				release = "_RHEL7"
+				release = "RHEL7"
 			} else if strings.HasPrefix(rs, "Red Hat Enterprise Linux Server release 7.") {
-				release = "_RHEL7"
+				release = "RHEL7"
 			} else if strings.HasPrefix(rs, "CentOS release 6.") {
-				release = "_CentOS6"
+				release = "CentOS6"
 			} else if strings.HasPrefix(rs, "CentOS Linux release 7.") {
-				release = "_CentOS7"
+				release = "CentOS7"
 			} else if strings.HasPrefix(rs, "Scientific Linux release 6.") {
-				release = "_SL6"
+				release = "SL6"
 			} else {
 				fmt.Fprintln(os.Stderr, "unrecognized Red Hat release")
-				release = "_RH"
+				release = "RH"
 			}
 		} else if isPath("/etc/lsb-release") {
 			rs := readFile("/etc/lsb-release")
-			release = "_"
+			release = ""
 			for _, l := range strings.Split(rs, "\n") {
 				if strings.HasPrefix(l, "DISTRIB_ID=") {
 					release += strings.TrimPrefix(l, "DISTRIB_ID=")
@@ -963,12 +967,17 @@ func osrelease() string {
 			}
 		} else {
 			fmt.Fprintln(os.Stderr, "unrecognized Linux release")
-			release = "_Linux"
+			release = "Linux"
 		}
-	case "Darwin":
+	case "darwin":
 		rs := output("sw_vers", "-productVersion")
-		release = "_macosx10." + strings.Split(rs, ".")[1]
+		release = "macosx10." + strings.Split(rs, ".")[1]
 	}
+	return release
+}
+
+func getBMSOSName() string {
+	uname := output("uname")
 	ccv := output("cc", "-dumpversion")
 	ccverbose := output("cc", "-v")
 	cct := "cc"
@@ -997,5 +1006,5 @@ func osrelease() string {
 	if proc == "unknown" {
 		proc = output("uname", "-m")
 	}
-	return uname + release + "-" + proc + "-" + cct + ccv
+	return uname + "_" + osrelease() + "-" + proc + "-" + cct + ccv
 }
