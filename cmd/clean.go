@@ -36,8 +36,6 @@ func init() {
 	cmdClean.Flags().BoolVarP(&obliterate, "obliterate", "", false, "Clean packages for distribution, obliterate source code!")
 	cmdClean.Flags().BoolVarP(&rm, "rm", "", false, "Remove packages not under Git/SVN version control")
 	cmdClean.Flags().BoolVarP(&deps, "deps", "d", false, "Include dependencies")
-	cmdClean.Flags().BoolVarP(&all, "all", "a", false, "Clean all packages in the package settings")
-	cmdClean.Flags().MarkDeprecated("all", "and is no longer required to clean all packages (hdpm clean).")
 }
 
 func runClean(cmd *cobra.Command, args []string) {
@@ -64,7 +62,7 @@ func runClean(cmd *cobra.Command, args []string) {
 			exitUnknownPackage(arg)
 		}
 	}
-	if all || len(args) == 0 {
+	if len(args) == 0 {
 		args = packageNames
 	} else if deps {
 		args = addDeps(args)

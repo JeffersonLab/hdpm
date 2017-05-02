@@ -11,5 +11,5 @@ WORKDIR /home/gx
 ENV GLUEX_TOP=/home/gx
 RUN scl enable devtoolset-3 python27 "hdpm fetch -d cernlib amptools evio jana rcdb geant4 \
     && hdpm build cernlib amptools evio jana rcdb geant4 \
-    && hdpm clean --obliterate --all"
+    && hdpm clean --obliterate"
 CMD /bin/bash

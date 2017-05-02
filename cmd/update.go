@@ -23,8 +23,6 @@ func init() {
 	cmdHDPM.AddCommand(cmdUpdate)
 
 	cmdUpdate.Flags().BoolVarP(&deps, "deps", "d", false, "Include dependencies")
-	cmdUpdate.Flags().BoolVarP(&all, "all", "a", false, "Update all Git/SVN repos in the package settings")
-	cmdUpdate.Flags().MarkDeprecated("all", "and is no longer required to update all repos (hdpm update).")
 }
 
 func runUpdate(cmd *cobra.Command, args []string) {
@@ -37,7 +35,7 @@ func runUpdate(cmd *cobra.Command, args []string) {
 			exitUnknownPackage(arg)
 		}
 	}
-	if all || len(args) == 0 {
+	if len(args) == 0 {
 		args = packageNames
 	} else if deps {
 		args = addDeps(args)

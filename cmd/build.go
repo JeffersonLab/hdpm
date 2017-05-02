@@ -40,8 +40,6 @@ func init() {
 	cmdHDPM.AddCommand(cmdBuild)
 
 	cmdBuild.Flags().StringVarP(&XML, "xml", "", "", "Version XMLfile URL or path")
-	cmdBuild.Flags().BoolVarP(&all, "all", "a", false, "Build all packages in the package settings")
-	cmdBuild.Flags().MarkDeprecated("all", "and is no longer required to build all packages (hdpm build).")
 	cmdBuild.Flags().StringVarP(&jobs, "jobs", "j", "", "Number of jobs to run in parallel")
 	cmdBuild.Flags().BoolVarP(&showInfo, "info", "i", false, "Show current build information and exit")
 	cmdBuild.Flags().BoolVarP(&noCheckURL, "no-check-url", "", false, "Do not check URL")
@@ -75,7 +73,7 @@ func runBuild(cmd *cobra.Command, args []string) {
 			exitUnknownPackage(arg)
 		}
 	}
-	if all || len(args) == 0 {
+	if len(args) == 0 {
 		args = packageNames
 	}
 	args = addDeps(args)

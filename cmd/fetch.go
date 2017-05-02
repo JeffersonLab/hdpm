@@ -28,7 +28,7 @@ Download and unpack packages into the $GLUEX_TOP directory.`,
 	Run: runFetch,
 }
 
-var force, deps, all, noCheckURL bool
+var force, deps, noCheckURL bool
 
 func init() {
 	cmdHDPM.AddCommand(cmdFetch)
@@ -36,8 +36,6 @@ func init() {
 	cmdFetch.Flags().StringVarP(&XML, "xml", "", "", "Version XMLfile URL or path")
 	cmdFetch.Flags().BoolVarP(&force, "force", "f", false, "Do not skip cernlib on macOS")
 	cmdFetch.Flags().BoolVarP(&deps, "deps", "d", false, "Include dependencies")
-	cmdFetch.Flags().BoolVarP(&all, "all", "a", false, "Fetch all packages in the package settings")
-	cmdFetch.Flags().MarkDeprecated("all", "and is no longer required to fetch all packages (hdpm fetch).")
 	cmdFetch.Flags().BoolVarP(&noCheckURL, "no-check-url", "", false, "Do not check URL")
 }
 
@@ -51,7 +49,7 @@ func runFetch(cmd *cobra.Command, args []string) {
 			exitUnknownPackage(arg)
 		}
 	}
-	if all || len(args) == 0 {
+	if len(args) == 0 {
 		args = packageNames
 	} else if deps {
 		args = addDeps(args)
