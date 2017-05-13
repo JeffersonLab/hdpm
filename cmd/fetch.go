@@ -21,6 +21,7 @@ var cmdFetch = &cobra.Command{
 	Long: `Fetch packages.
 
 Download and unpack packages into the $GLUEX_TOP directory.`,
+	Aliases: []string{"get", "pull", "update"},
 	Example: `1. hdpm fetch
 2. hdpm fetch sim-recon --deps
 3. hdpm fetch root geant4
@@ -78,7 +79,11 @@ func runFetch(cmd *cobra.Command, args []string) {
 		}
 		pkg.config()
 		if pkg.isFetched() {
-			fmt.Printf("Path exists: %s\n", pkg.Path)
+			if !pkg.isRepo() {
+				fmt.Printf("Path exists: %s\n", pkg.Path)
+				continue
+			}
+			pkg.update()
 			continue
 		}
 		pkg.fetch()
@@ -105,15 +110,21 @@ func (p *Package) fetch() {
 			run("mv", "-f", path.Base(p.URL), "cernlib.2005.corr.tgz")
 		}
 	case false:
-		if strings.Contains(p.URL, "svn") {
+		switch {
+		case strings.Contains(p.URL, "svn"):
 			if p.Version != "master" && !strings.Contains(p.URL, "tags") {
 				run("svn", "checkout", "--non-interactive", "--trust-server-cert", "-r", p.Version, p.URL, p.Path)
 			} else {
 				run("svn", "checkout", "--non-interactive", "--trust-server-cert", p.URL, p.Path)
 			}
-		}
-		if strings.Contains(p.URL, "git") && !strings.Contains(p.URL, "archive") {
+		case strings.Contains(p.URL, "git") && !strings.Contains(p.URL, "archive"):
 			run("git", "clone", "-b", p.Version, p.URL, p.Path)
+		default:
+			p.mkcd()
+			err := fetchURL(p.URL)
+			if err != nil {
+				log.Fatalln(err)
+			}
 		}
 	}
 	fmt.Println()
@@ -148,9 +159,8 @@ func checkURL(url string) {
 	}
 }
 
-func fetchTarfileError(url, path string) error {
-	file := filepath.Base(url)
-	fmt.Printf("Downloading %s ...\n", file)
+func fetchURL(url string) error {
+	fmt.Printf("Downloading %s ...\n", filepath.Base(url))
 	var err error
 	if strings.Contains(url, "https://") || strings.Contains(url, "http://") {
 		checkURL(url)
@@ -158,9 +168,15 @@ func fetchTarfileError(url, path string) error {
 	} else {
 		err = runE("cp", "-p", url, ".")
 	}
+	return err
+}
+
+func fetchTarfileError(url, path string) error {
+	err := fetchURL(url)
 	if err != nil {
 		return err
 	}
+	file := filepath.Base(url)
 	fmt.Printf("\nUnpacking %s ...\n", file)
 	defer os.Remove(file)
 	if path == "" {
@@ -184,4 +200,25 @@ func fetchTarfileError(url, path string) error {
 	}
 	mk(path)
 	return runE("tar", "xf", file, "-C", path, "--strip-components="+ncomp)
+}
+
+func (p *Package) update() {
+	p.cd()
+	if strings.Contains(p.URL, "svn") && !strings.Contains(p.URL, "tags") {
+		fmt.Printf("%s: Updating to svn revision %s ...\n", p.Name, p.Version)
+		if p.Version != "master" {
+			run("svn", "update", "--non-interactive", "-r"+p.Version)
+		} else {
+			run("svn", "update")
+		}
+	}
+	if strings.Contains(p.URL, "git") && !strings.Contains(p.URL, "archive") {
+		fmt.Printf("%s: Updating %s branch ...\n", p.Name, p.Version)
+		run("git", "checkout", p.Version)
+		run("git", "pull")
+	}
+}
+
+func (p *Package) isRepo() bool {
+	return isPath(p.Path+"/.git") || isPath(p.Path+"/.svn")
 }

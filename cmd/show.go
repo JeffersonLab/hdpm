@@ -119,32 +119,15 @@ func (p *Package) show(arg string) {
 
 func prereqs(arg string) {
 	OS = osrelease()
-	tag := ""
-	if OS == "CentOS6" || OS == "RHEL6" {
-		tag = "c6"
-	}
-	if OS == "CentOS7" || OS == "RHEL7" {
-		tag = "c7"
-	}
-	if OS == "Ubuntu14" || OS == "LinuxMint17" {
-		tag = "u14"
-	}
-	if OS == "Ubuntu16" || OS == "LinuxMint18" {
-		tag = "u16"
-	}
 	if runtime.GOOS == "darwin" {
-		tag = "macOS"
+		OS = "macOS"
 	}
 	if arg != "version" {
-		tag = arg
-	}
-	if tag == "" {
-		fmt.Fprintf(os.Stderr, "%s: Unsupported operating system\n", OS)
-		os.Exit(2)
+		OS = arg
 	}
 	var msg string
-	switch {
-	case tag == "c6":
+	switch OS {
+	case "CentOS6", "RHEL6":
 		msg = `# CentOS/RHEL 6 prerequisites
 yum update -y && yum install -y centos-release-SCL epel-release \
     centos-release-scl-rh \
@@ -155,7 +138,7 @@ yum update -y && yum install -y centos-release-SCL epel-release \
     fftw-devel bzip2 bzip2-devel tcsh devtoolset-3-toolchain \
     && ln -s liblapack.a /usr/lib64/liblapack3.a
 `
-	case tag == "c7":
+	case "CentOS7", "RHEL7":
 		msg = `# CentOS/RHEL 7 prerequisites
 yum update -y && yum install -y epel-release && yum install -y \
     git make gcc-c++ gcc binutils python-devel cmake3 scons boost-devel \
@@ -165,7 +148,7 @@ yum update -y && yum install -y epel-release && yum install -y \
     blas-devel blas-static lapack-devel lapack-static openmotif-devel \
     && ln -s liblapack.a /usr/lib64/liblapack3.a
 `
-	case tag == "u14" || tag == "u16":
+	case "Ubuntu14", "LinuxMint17", "Ubuntu16", "LinuxMint18":
 		msg = `# Ubuntu 14.04/16.04 LTS prerequisites
 apt-get update && apt-get install -y curl git dpkg-dev make g++ gcc \
    binutils libx11-dev libxpm-dev libxft-dev libxext-dev libfftw3-dev tcsh \
@@ -175,7 +158,7 @@ apt-get update && apt-get install -y curl git dpkg-dev make g++ gcc \
    && ln -s make /usr/bin/gmake \
    && ln -s liblapack.a /usr/lib/liblapack3.a
 `
-	case tag == "macOS":
+	case "macOS", "OSX":
 		msg = `# macOS prerequisites
 
 1. xcode-select --install
@@ -183,6 +166,8 @@ apt-get update && apt-get install -y curl git dpkg-dev make g++ gcc \
 3. Install Homebrew (http://brew.sh)
 4. brew install scons cmake gcc mariadb
 `
+	default:
+		fmt.Fprintf(os.Stderr, "%s: Unknown operating system\n", OS)
 	}
 	fmt.Print(msg)
 }

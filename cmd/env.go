@@ -173,8 +173,8 @@ func writeEnv(arg string, ENV map[string]string) {
 		if k == "CCDB_USER" {
 			v = "${USER}"
 		}
-		v = strings.Replace(v, ENV["GLUEX_TOP"], "${GLUEX_TOP}", -1)
-		v = strings.Replace(v, ENV["BMS_OSNAME"], "${BMS_OSNAME}", -1)
+		v = strings.Replace(v, ENV["GLUEX_TOP"], "${GLUEX_TOP}", 1)
+		v = strings.Replace(v, ENV["BMS_OSNAME"], "${BMS_OSNAME}", 1)
 		fmt.Fprintf(f, sh.set+" "+k+sh.eq+v+sh.end)
 	}
 	fmt.Fprintf(f, "#"+sh.set+" JANA_CALIB_CONTEXT"+sh.eq+"variation=mc"+sh.end)

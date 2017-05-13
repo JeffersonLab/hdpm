@@ -150,22 +150,28 @@ var masterPackages = [...]Package{
 		Path:       "hd_utilities/[VER]",
 		Cmds:       nil,
 		Deps:       nil,
-		IsPrebuilt: true},
+		IsPrebuilt: false},
 }
 
 // Extra package settings
 var extraPackages = [...]Package{
-	{Name: "cmake", Version: "3.7.2",
-		URL:        "https://cmake.org/files/v3.7/cmake-[VER]-Linux-x86_64.tar.gz",
-		Path:       "cmake/[VER]",
-		Cmds:       nil,
-		Deps:       nil,
-		IsPrebuilt: true},
 	{Name: "gluex_workshops", Version: "master",
 		URL:        "https://github.com/JeffersonLab/gluex_workshops",
 		Path:       "gluex_workshops/[VER]",
 		Cmds:       []string{"cd physics_workshop_2016/session2/omega_ref; scons install", "cd physics_workshop_2016/session2/omega_skim_rest; scons install", "cd physics_workshop_2016/session2/omega_solutions; scons install", "cd physics_workshop_2016/session3b/omega_skim_tree; scons install", "cd physics_workshop_2016/session5b/p2gamma_workshop; scons install"},
 		Deps:       []string{"gluex_root_analysis"},
+		IsPrebuilt: false},
+	{Name: "virtualenv", Version: "15.1.0",
+		URL:        "https://github.com/pypa/virtualenv/archive/[VER].tar.gz",
+		Path:       "virtualenv/[VER]",
+		Cmds:       nil,
+		Deps:       nil,
+		IsPrebuilt: false},
+	{Name: "pypwa", Version: "2.0.0",
+		URL:        "https://halldweb.jlab.org/dist/hdpm/PyPWA-[VER]-py2.py3-none-any.whl",
+		Path:       "pypwa/[VER]",
+		Cmds:       nil,
+		Deps:       []string{"virtualenv"},
 		IsPrebuilt: false},
 }
 
@@ -334,24 +340,26 @@ func (p *Package) configBinary() {
 
 func (p *Package) config() {
 	if p.Version == "" {
-		p.URL = ""
-		p.Path = ""
+		p.URL, p.Path = "", ""
 		p.Cmds, p.Deps = nil, nil
 		p.IsPrebuilt = true
 		return
 	}
 
-	if p.Name == "evio" {
-		p.configMajorMinorInURL()
-	}
-	p.configDeps()
-	p.URL = strings.Replace(p.URL, "[VER]", p.Version, -1)
-
-	p.Path = strings.Replace(p.Path, "[OS]", OS, -1)
-	p.Path = strings.Replace(p.Path, "[VER]", p.Version, -1)
+	p.Path = strings.Replace(p.Path, "[OS]", OS, 1)
+	p.Path = strings.Replace(p.Path, "[VER]", p.Version, 1)
 	if !strings.HasPrefix(p.Path, "/") && p.Path != "" {
 		p.Path = filepath.Join(PD, p.Path)
 	}
+
+	if p.inDist() {
+		p.IsPrebuilt = true
+	}
+
+	if p.Name == "evio" {
+		p.configMajorMinorInURL()
+	}
+	p.URL = strings.Replace(p.URL, "[VER]", p.Version, 1)
 
 	if p.Version == "master" && strings.Contains(p.URL, "https://github.com/JeffersonLab/"+p.Name+"/archive/") {
 		p.URL = "https://github.com/JeffersonLab/" + p.Name
@@ -369,10 +377,7 @@ func (p *Package) config() {
 			p.Cmds = append(p.Cmds, "make -j8; make clean")
 		}
 	}
-
-	if p.inDist() {
-		p.IsPrebuilt = true
-	}
+	p.configDeps()
 }
 
 func (p *Package) configDeps() {
@@ -404,11 +409,11 @@ func (p *Package) template() {
 	if p.Version == "" {
 		return
 	}
-	p.URL = strings.Replace(p.URL, p.Version, "[VER]", -1)
+	p.URL = strings.Replace(p.URL, p.Version, "[VER]", 1)
 	p.configCmds(p.Path, "[PATH]")
-	p.Path = strings.Replace(p.Path, PD+"/", "", -1)
-	p.Path = strings.Replace(p.Path, p.Version, "[VER]", -1)
-	p.Path = strings.Replace(p.Path, OS, "[OS]", -1)
+	p.Path = strings.Replace(p.Path, PD+"/", "", 1)
+	p.Path = strings.Replace(p.Path, p.Version, "[VER]", 1)
+	p.Path = strings.Replace(p.Path, OS, "[OS]", 1)
 }
 
 func write_text(fname, text string) {
@@ -786,7 +791,7 @@ func (p *Package) cd() {
 }
 
 func (p *Package) inDist() bool {
-	if isSymLink(p.Path) {
+	if isSymlink(p.Path) {
 		s := readLink(p.Path)
 		if strings.HasPrefix(s, "../.dist/") || strings.HasPrefix(s, ".dist/") {
 			return true
@@ -806,7 +811,7 @@ func isPath(path string) bool {
 	return true
 }
 
-func isSymLink(path string) bool {
+func isSymlink(path string) bool {
 	stat, err := os.Lstat(path)
 	if err != nil {
 		return false

@@ -51,9 +51,6 @@ func runClean(cmd *cobra.Command, args []string) {
 			return
 		}
 	}
-	if obliterate {
-		os.RemoveAll(PD + "/cmake")
-	}
 	// Parse args
 	versions := extractVersions(args)
 	args = extractNames(args)

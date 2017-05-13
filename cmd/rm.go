@@ -10,8 +10,9 @@ var cmdRemove = &cobra.Command{
 
 To see the current packages use:
   hdpm show`,
-	Example: `1. hdpm rm hd_utilities amptools
-2. hdpm rm cmake gluex_workshops`,
+	Aliases: []string{"remove"},
+	Example: `1. hdpm rm amptools
+2. hdpm rm pypwa gluex_workshops`,
 	Run: runRemove,
 }
 

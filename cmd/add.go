@@ -13,8 +13,8 @@ Restore one or more packages to the default settings.
 To see available packages use:
 1. hdpm show -e   (for extra packages)
 2. hdpm show -m   (for default/master packages)`,
-	Example: `1. hdpm add hd_utilities
-2. hdpm add cmake gluex_workshops
+	Example: `1. hdpm add pypwa
+2. hdpm add virtualenv gluex_workshops
 3. hdpm add sim-recon   (to restore default settings)`,
 	Run: runAdd,
 }
@@ -49,6 +49,9 @@ func runAdd(cmd *cobra.Command, args []string) {
 		for _, pkg := range masterPackages {
 			pkg.write(SD)
 		}
+	}
+	if in(args, "pypwa") {
+		args = append(args, "virtualenv")
 	}
 	for _, pkg := range extraPackages {
 		if !pkg.in(args) {
