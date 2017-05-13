@@ -13,7 +13,7 @@ var cmdBuild = &cobra.Command{
 	Short: "Build docker images",
 	Long: `Build docker images.
 
-tags: c6, c7, u14, u16
+tags: c6, c7, u16
 stages: base, deps, sim-recon
 
 All tags/stages will be built if no arguments are given.`,
@@ -34,11 +34,10 @@ func runBuild(cmd *cobra.Command, args []string) {
 	var names = map[string]string{
 		"c6":  "centos6",
 		"c7":  "centos7",
-		"u14": "ubuntu14",
 		"u16": "ubuntu16",
 	}
 
-	var tags = []string{"c6", "c7", "u14", "u16"}
+	var tags = []string{"c6", "c7", "u16"}
 	var stages = []string{"base", "deps", "sim-recon"}
 
 	var ts, ss []string

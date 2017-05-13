@@ -19,7 +19,7 @@ var cmdCull = &cobra.Command{
 	Short: "Cull distribution tarfiles",
 	Long: `Cull distribution tarfiles.
 
-tags: c6, c7, u14, u16
+tags: c6, c7, u16
 
 All tags will be culled if no arguments are given.`,
 	Example: `1. gxd cull -n 10 c6`,
@@ -37,7 +37,7 @@ func init() {
 }
 
 func runCull(cmd *cobra.Command, args []string) {
-	var tags = []string{"c6", "c7", "u14", "u16"}
+	var tags = []string{"c6", "c7", "u16"}
 
 	for _, arg := range args {
 		if !in(tags, arg) {

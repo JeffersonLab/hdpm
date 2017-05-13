@@ -13,7 +13,7 @@ var cmdPull = &cobra.Command{
 	Short: "Pull docker images",
 	Long: `Pull docker images.
 
-tags: c6, c7, u14, u16
+tags: c6, c7, u16
 
 All tags will be pulled if no arguments are given.`,
 	Example: `1. gxd pull -u USER c6`,
@@ -34,11 +34,10 @@ func runPull(cmd *cobra.Command, args []string) {
 	var names = map[string]string{
 		"c6":  "centos6",
 		"c7":  "centos7",
-		"u14": "ubuntu14",
 		"u16": "ubuntu16",
 	}
 
-	var tags = []string{"c6", "c7", "u14", "u16"}
+	var tags = []string{"c6", "c7", "u16"}
 
 	for _, arg := range args {
 		if !in(tags, arg) {

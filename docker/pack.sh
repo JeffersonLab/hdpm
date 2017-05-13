@@ -19,7 +19,7 @@ fi
 mv ../$tag/home/gx/.hdpm . && mv .hdpm/env .
 rm -rf ../$tag/home/gx/.[!.]*
 mv ../$tag/home/gx/* .
-if [[ $tag != u14 && $tag != u16 ]]; then
+if [[ $tag != u16 ]]; then
     mv ../$tag/usr/lib*/libblas.a cernlib/2005/lib/
     mv ../$tag/usr/lib*/liblapack.a cernlib/2005/lib/liblapack3.a
 fi
