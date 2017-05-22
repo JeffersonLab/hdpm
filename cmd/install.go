@@ -449,10 +449,6 @@ func installDist(args []string) {
 			s := distDir + "/env/master." + sh
 			l := HD + "/env/dist." + sh
 			run("ln", "-s", relPath(filepath.Dir(l), s), l)
-		case isPath(distDir + "/env-setup/master." + sh):
-			s := distDir + "/env-setup/master." + sh
-			l := HD + "/env/dist." + sh
-			run("ln", "-s", relPath(filepath.Dir(l), s), l)
 		}
 	}
 }
@@ -496,9 +492,6 @@ func removeSymlinks(dir string) {
 		file := dir + "/" + lc
 		if isSymlink(file) {
 			s := readLink(file)
-			if strings.HasPrefix(s, "../.dist/") || strings.HasPrefix(s, ".dist/") {
-				os.Remove(file)
-			}
 			if strings.HasPrefix(s, "../.hdpm/dist/") || strings.HasPrefix(s, ".hdpm/dist/") {
 				os.Remove(file)
 			}
@@ -546,7 +539,7 @@ Available OS tags:  c6 (CentOS 6), c7 (CentOS 7), u16 (Ubuntu 16.04)
 		tag = osTag
 	}
 	if tag == "" {
-		fmt.Fprintf(os.Stderr, "%s: Unsupported operating system\n", OS)
+		fmt.Fprintf(os.Stderr, "%s: Binary distribution does not exist for this OS\n", OS)
 		os.Exit(2)
 	}
 	if !in([]string{"c6", "c7", "u16"}, tag) {
@@ -606,9 +599,6 @@ Available OS tags:  c6 (CentOS 6), c7 (CentOS 7), u16 (Ubuntu 16.04)
 		case isPath(dir + "/env/master.sh"):
 			updateEnvScript(dir + "/env/master.sh")
 			updateEnvScript(dir + "/env/master.csh")
-		case isPath(dir + "/env-setup/master.sh"):
-			updateEnvScript(dir + "/env-setup/master.sh")
-			updateEnvScript(dir + "/env-setup/master.csh")
 		}
 	}
 	fmt.Println(strings.Repeat("-", 80))
@@ -659,7 +649,6 @@ func updateEnvScript(path string) {
 	}
 	re := regexp.MustCompile(top_i)
 	data = re.ReplaceAllString(data, top_f)
-	data = strings.Replace(data, "/opt/rh/", "${GLUEX_TOP}/opt/rh/", -1)
 	res_path := "/u/group/halld/www/halldweb/html/resources"
 	if isPath(res_path) {
 		data = strings.Replace(data, "#"+set+" JANA_RES", set+" JANA_RES", 1)

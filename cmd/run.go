@@ -29,7 +29,7 @@ func init() {
 
 func runRun(cmd *cobra.Command, args []string) {
 	if runtime.GOOS == "darwin" {
-		fmt.Fprintln(os.Stderr, "run: macOS is unsupported (due to SIP).")
+		fmt.Fprintln(os.Stderr, "run cmd aborted: Incompatible with macOS System Integrity Protection")
 		os.Exit(2)
 	}
 	if len(args) > 1 {

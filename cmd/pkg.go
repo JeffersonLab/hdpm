@@ -85,7 +85,7 @@ var masterPackages = [...]Package{
 		Deps:       nil,
 		IsPrebuilt: false},
 	{Name: "amptools", Version: "0.9.2",
-		URL:        "http://downloads.sourceforge.net/project/amptools/AmpTools_v[VER].tgz",
+		URL:        "https://github.com/mashephe/AmpTools/archive/v[VER].tar.gz",
 		Path:       "amptools/[VER]",
 		Cmds:       []string{"cd AmpTools; make", "cd AmpPlotter; make"},
 		Deps:       []string{"root"},
@@ -206,14 +206,6 @@ func pathInit() {
 	}
 	HD = filepath.Join(PD, ".hdpm")
 	SD = filepath.Join(HD, "settings")
-	if isPath(PD+"/settings") && !isPath(SD) {
-		mk(HD)
-		os.Rename(PD+"/settings", SD)
-	}
-	if isPath(PD+"/env-setup") && !isPath(HD+"/env") {
-		mk(HD)
-		os.Rename(PD+"/env-setup", HD+"/env")
-	}
 }
 
 func pkgInit() {
@@ -793,9 +785,6 @@ func (p *Package) cd() {
 func (p *Package) inDist() bool {
 	if isSymlink(p.Path) {
 		s := readLink(p.Path)
-		if strings.HasPrefix(s, "../.dist/") || strings.HasPrefix(s, ".dist/") {
-			return true
-		}
 		if strings.HasPrefix(s, "../.hdpm/dist/") || strings.HasPrefix(s, ".hdpm/dist/") {
 			return true
 		}

@@ -72,9 +72,6 @@ func runShow(cmd *cobra.Command, args []string) {
 	if isPath(SD + "/.info.json") {
 		s.read(SD)
 	}
-	if s.Name == "" && isPath(SD+"/.id") {
-		s.Name = readFile(SD + "/.id")
-	}
 	if s.Name == "" {
 		s.Name = "master"
 	}
