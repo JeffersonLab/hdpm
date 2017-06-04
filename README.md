@@ -7,7 +7,7 @@
 ## Documentation
 For documentation on how to install and use `hdpm`, visit its wiki at https://github.com/JeffersonLab/hdpm/wiki.
 
-## Tested platforms
+## Tested platforms (x86-64)
 - CentOS/RHEL 6
 - CentOS/RHEL 7
 - Ubuntu 16.04 LTS

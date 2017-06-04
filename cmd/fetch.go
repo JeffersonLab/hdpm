@@ -20,7 +20,8 @@ var cmdFetch = &cobra.Command{
 	Short: "Fetch packages",
 	Long: `Fetch packages.
 
-Download and unpack packages into the $GLUEX_TOP directory.`,
+Download and unpack packages into the $GLUEX_TOP directory.
+Update Git/SVN repositories.`,
 	Aliases: []string{"get", "pull", "update"},
 	Example: `1. hdpm fetch
 2. hdpm fetch sim-recon --deps
@@ -29,13 +30,12 @@ Download and unpack packages into the $GLUEX_TOP directory.`,
 	Run: runFetch,
 }
 
-var force, deps, noCheckURL bool
+var deps, noCheckURL bool
 
 func init() {
 	cmdHDPM.AddCommand(cmdFetch)
 
 	cmdFetch.Flags().StringVarP(&XML, "xml", "", "", "Version XMLfile URL or path")
-	cmdFetch.Flags().BoolVarP(&force, "force", "f", false, "Do not skip cernlib on macOS")
 	cmdFetch.Flags().BoolVarP(&deps, "deps", "d", false, "Include dependencies")
 	cmdFetch.Flags().BoolVarP(&noCheckURL, "no-check-url", "", false, "Do not check URL")
 }
@@ -73,7 +73,7 @@ func runFetch(cmd *cobra.Command, args []string) {
 		if !pkg.in(args) {
 			continue
 		}
-		if runtime.GOOS == "darwin" && !force && pkg.Name == "cernlib" {
+		if runtime.GOOS == "darwin" && pkg.Name == "cernlib" {
 			fmt.Printf("macOS detected: Skipping %s\n", pkg.Name)
 			continue
 		}

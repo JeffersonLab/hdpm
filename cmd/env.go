@@ -182,6 +182,12 @@ func writeEnv(arg string, ENV map[string]string) {
 	if runtime.GOOS == "darwin" {
 		ldlp = "DYLD_LIBRARY_PATH"
 	}
+	isCentOS6JLabFarm := false
+	if strings.Contains(OS, "CentOS6") || strings.Contains(OS, "RHEL6") {
+		if strings.Contains(OS, "gcc") && isPath("/apps/gcc/4.9.2/bin") && isPath("/apps/python/PRO/bin") {
+			isCentOS6JLabFarm = true
+		}
+	}
 	for _, pn := range []string{"PATH", ldlp, "PYTHONPATH", "JANA_PLUGIN_PATH"} {
 		if ENV[pn] == "" {
 			continue
@@ -196,7 +202,7 @@ func writeEnv(arg string, ENV map[string]string) {
 			}
 			path = strings.Replace(path, v, "${"+k+"}", -1)
 		}
-		if pn == "PATH" {
+		if pn == "PATH" && !isCentOS6JLabFarm {
 			path = strings.Replace(path, ENV["PATH0"], "${PATH}", 1)
 		}
 		path = strings.Replace(path, ENV["BMS_OSNAME"], "${BMS_OSNAME}", -1)
