@@ -112,7 +112,9 @@ func runInstall(cmd *cobra.Command, args []string) {
 				continue
 			}
 			pkg.config()
-			pkg.fetch()
+			if !pkg.isFetched() {
+				pkg.fetch()
+			}
 			if pkg.isInstalled() {
 				fmt.Printf("Already installed: %s\n", pkg.Path)
 				continue

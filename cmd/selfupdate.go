@@ -55,15 +55,18 @@ func selfupdate() {
 		ver = latestRelease("hdpm")
 		url = strings.Replace(url, "latest", ver, 1)
 	}
-	if ver == VERSION {
-		fmt.Printf("Already up-to-date: hdpm version %s\n", ver)
-		return
+	ver0 := ""
+	if isPath(HD + "/bin/hdpm") {
+		ver0 = strings.Fields(output(HD+"/bin/hdpm", "version"))[2]
+		if ver == ver0 {
+			fmt.Printf("Already up-to-date: hdpm version %s\n", ver)
+			return
+		}
 	}
 	if runtime.GOOS == "darwin" {
 		url = strings.Replace(url, "linux", "macOS", 1)
 	}
-	checkURL(url)
-	if isPath(HD + "/bin/hdpm") {
+	if ver0 != "" {
 		run("cp", "-p", HD+"/bin/hdpm", HD+"/bin/hdpm.old")
 		os.Remove(HD + "/bin/hdpm")
 	}
@@ -73,13 +76,12 @@ func selfupdate() {
 		log.Println(err)
 		if isPath(HD + "/bin/hdpm.old") {
 			os.Rename(HD+"/bin/hdpm.old", HD+"/bin/hdpm")
-			fmt.Printf("Update failed: restored hdpm version %s\n", VERSION)
+			fmt.Printf("Restored hdpm version %s\n", ver0)
 		}
 		return
 	}
 	os.Remove(HD + "/bin/hdpm.old")
-	fmt.Printf("Installed: %s\n", HD+"/bin/hdpm")
-	fmt.Printf("Update succeeded: hdpm version %s\n", ver)
+	fmt.Printf("Installed hdpm version %s to %s\n", ver, HD+"/bin/hdpm")
 }
 
 func latestRelease(name string) string {

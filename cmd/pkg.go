@@ -168,7 +168,7 @@ var extraPackages = [...]Package{
 		Deps:       nil,
 		IsPrebuilt: false},
 	{Name: "pypwa", Version: "2.0.0",
-		URL:        "https://halldweb.jlab.org/dist/hdpm/PyPWA-[VER]-py2.py3-none-any.whl",
+		URL:        "https://github.com/JeffersonLab/PyPWA/releases/download/v[VER]/PyPWA-[VER]-py2.py3-none-any.whl",
 		Path:       "pypwa/[VER]",
 		Cmds:       nil,
 		Deps:       []string{"virtualenv"},
@@ -351,7 +351,7 @@ func (p *Package) config() {
 	if p.Name == "evio" {
 		p.configMajorMinorInURL()
 	}
-	p.URL = strings.Replace(p.URL, "[VER]", p.Version, 1)
+	p.URL = strings.Replace(p.URL, "[VER]", p.Version, 2)
 
 	if p.Version == "master" && strings.Contains(p.URL, "https://github.com/JeffersonLab/"+p.Name+"/archive/") {
 		p.URL = "https://github.com/JeffersonLab/" + p.Name
@@ -401,7 +401,7 @@ func (p *Package) template() {
 	if p.Version == "" {
 		return
 	}
-	p.URL = strings.Replace(p.URL, p.Version, "[VER]", 1)
+	p.URL = strings.Replace(p.URL, p.Version, "[VER]", 2)
 	p.configCmds(p.Path, "[PATH]")
 	p.Path = strings.Replace(p.Path, PD+"/", "", 1)
 	p.Path = strings.Replace(p.Path, p.Version, "[VER]", 1)

@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"os/exec"
 	"path"
@@ -78,22 +77,16 @@ func runFetch(cmd *cobra.Command, args []string) {
 			continue
 		}
 		pkg.config()
-		if pkg.isFetched() {
-			if !pkg.isRepo() {
-				fmt.Printf("Path exists: %s\n", pkg.Path)
-				continue
-			}
+		switch pkg.isFetched() {
+		case true:
 			pkg.update()
-			continue
+		case false:
+			pkg.fetch()
 		}
-		pkg.fetch()
 	}
 }
 
 func (p *Package) fetch() {
-	if p.isFetched() {
-		return
-	}
 	switch strings.HasSuffix(p.URL, ".tar.gz") || strings.HasSuffix(p.URL, ".tgz") {
 	case true:
 		if p.Name != "cernlib" {
@@ -117,12 +110,16 @@ func (p *Package) fetch() {
 			} else {
 				run("svn", "checkout", "--non-interactive", "--trust-server-cert", p.URL, p.Path)
 			}
-		case strings.Contains(p.URL, "git") && !strings.Contains(p.URL, "archive"):
+		case strings.Contains(p.URL, "git") && !strings.Contains(p.URL, "archive") &&
+			!strings.Contains(p.URL, "releases"):
 			run("git", "clone", "-b", p.Version, p.URL, p.Path)
 		default:
 			p.mkcd()
-			err := fetchURL(p.URL)
-			if err != nil {
+			if err := fetchURL(p.URL); err != nil {
+				cd(PD)
+				os.RemoveAll(p.Path)
+				log.SetPrefix("fetch failed: ")
+				log.SetFlags(0)
 				log.Fatalln(err)
 			}
 		}
@@ -142,28 +139,32 @@ func fetchTarfile(url, path string) {
 	}
 }
 
-func checkURL(url string) {
+func checkURL(url string) error {
 	if noCheckURL {
-		return
+		return nil
 	}
-	resp, err := http.Head(url)
-	if err != nil {
-		log.Fatalln(err)
+	s := output("curl", "-ILs", url)
+	if strings.Contains(s, "200 OK") ||
+		(strings.Contains(s, "403 Forbidden") && strings.Contains(s, "AmazonS3")) {
+		return nil
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		fmt.Fprintf(os.Stderr, "URL-check failed: %s\n", url)
-		log.SetPrefix("fetch failed: HTTP status: ")
-		log.SetFlags(0)
-		log.Fatalln(resp.Status)
+	status := "unknown"
+	for _, line := range strings.Split(s, "\n") {
+		if strings.HasPrefix(line, "HTTP/") {
+			status = strings.Join(strings.Fields(line)[1:], " ")
+		}
 	}
+	return fmt.Errorf("HTTP status: %s", status)
 }
 
 func fetchURL(url string) error {
-	fmt.Printf("Downloading %s ...\n", filepath.Base(url))
+	fmt.Printf("Downloading %s ...\nURL: %s\n", filepath.Base(url), url)
 	var err error
-	if strings.Contains(url, "https://") || strings.Contains(url, "http://") {
-		checkURL(url)
+	if strings.HasPrefix(url, "https://") || strings.HasPrefix(url, "http://") {
+		err = checkURL(url)
+		if err != nil {
+			return err
+		}
 		err = runE("curl", "-OL", url)
 	} else {
 		err = runE("cp", "-p", url, ".")
@@ -177,7 +178,7 @@ func fetchTarfileError(url, path string) error {
 		return err
 	}
 	file := filepath.Base(url)
-	fmt.Printf("\nUnpacking %s ...\n", file)
+	fmt.Printf("Unpacking %s ...\nPath: %s\n", file, path)
 	defer os.Remove(file)
 	if path == "" {
 		return runE("tar", "xf", file)
@@ -204,18 +205,21 @@ func fetchTarfileError(url, path string) error {
 
 func (p *Package) update() {
 	p.cd()
-	if strings.Contains(p.URL, "svn") && !strings.Contains(p.URL, "tags") {
-		fmt.Printf("%s: Updating to svn revision %s ...\n", p.Name, p.Version)
-		if p.Version != "master" {
-			run("svn", "update", "--non-interactive", "-r"+p.Version)
-		} else {
-			run("svn", "update")
-		}
-	}
-	if strings.Contains(p.URL, "git") && !strings.Contains(p.URL, "archive") {
+	switch {
+	case isPath(".git"):
 		fmt.Printf("%s: Updating %s branch ...\n", p.Name, p.Version)
 		run("git", "checkout", p.Version)
 		run("git", "pull")
+	case isPath(".svn") && strings.Contains(p.URL, "svn") && !strings.Contains(p.URL, "tags"):
+		fmt.Printf("%s: Updating to svn revision %s ...\n", p.Name, p.Version)
+		switch p.Version {
+		case "master":
+			run("svn", "update")
+		default:
+			run("svn", "update", "--non-interactive", "-r"+p.Version)
+		}
+	default:
+		fmt.Printf("Path exists: %s\n", p.Path)
 	}
 }
 

@@ -9,7 +9,7 @@ id=`docker run -d sim-recon:$tag`
 docker export -o $tag.tar $id; docker rm $id
 mkdir $tag; tar xf $tag.tar -C $tag; chmod -R u+w $tag; rm -f $tag.tar
 mkdir $name-$tag; cd $name-$tag
-mv ../$tag/home/gx/.hdpm . && mv .hdpm/env .
+mv ../$tag/home/gx/.hdpm .
 rm -rf ../$tag/home/gx/.[!.]*
 mv ../$tag/home/gx/* .
 if [[ $tag != u16 ]]; then

@@ -10,6 +10,6 @@ USER gx
 WORKDIR /home/gx
 ENV GLUEX_TOP=/home/gx
 RUN /bin/bash -c "hdpm fetch -d cernlib root@binary amptools evio jana rcdb geant4 \
-    && hdpm build cernlib amptools evio jana rcdb geant4 \
+    && hdpm install cernlib amptools evio jana rcdb geant4 \
     && hdpm clean --obliterate"
 CMD /bin/bash
