@@ -77,51 +77,52 @@ func runFetch(cmd *cobra.Command, args []string) {
 			continue
 		}
 		pkg.config()
-		switch pkg.isFetched() {
-		case true:
+		if pkg.isFetched() {
 			pkg.update()
-		case false:
+		} else {
 			pkg.fetch()
 		}
 	}
 }
 
 func (p *Package) fetch() {
-	switch strings.HasSuffix(p.URL, ".tar.gz") || strings.HasSuffix(p.URL, ".tgz") {
-	case true:
-		if p.Name != "cernlib" {
-			if p.usesCMake() {
-				fetchTarfile(p.URL, p.Path+"/src")
-			} else {
-				fetchTarfile(p.URL, p.Path)
-			}
-		} else if p.Version == "2005" {
+	if strings.HasSuffix(p.URL, ".tar.gz") || strings.HasSuffix(p.URL, ".tgz") {
+		switch p.Name {
+		case "cernlib":
 			p.mkcd()
 			fetchTarfile(strings.Replace(p.URL, ".2005.corr.2014.04.17", "-2005-all-new", 1), "")
 			fetchTarfile(strings.Replace(p.URL, "corr", "install", 1), "")
 			run("curl", "-OL", p.URL)
 			run("mv", "-f", path.Base(p.URL), "cernlib.2005.corr.tgz")
-		}
-	case false:
-		switch {
-		case strings.Contains(p.URL, "svn"):
-			if p.Version != "master" && !strings.Contains(p.URL, "tags") {
-				run("svn", "checkout", "--non-interactive", "--trust-server-cert", "-r", p.Version, p.URL, p.Path)
+			cd(PD)
+		default:
+			if p.usesCMake() {
+				fetchTarfile(p.URL, p.Path+"/src")
 			} else {
-				run("svn", "checkout", "--non-interactive", "--trust-server-cert", p.URL, p.Path)
+				fetchTarfile(p.URL, p.Path)
 			}
+		}
+	} else {
+		switch {
 		case strings.Contains(p.URL, "git") && !strings.Contains(p.URL, "archive") &&
 			!strings.Contains(p.URL, "releases"):
 			run("git", "clone", "-b", p.Version, p.URL, p.Path)
+		case strings.Contains(p.URL, "svn") && !strings.Contains(p.URL, "tags"):
+			switch p.Version {
+			case "master":
+				run("svn", "checkout", "--non-interactive", "--trust-server-cert", p.URL, p.Path)
+			default:
+				run("svn", "checkout", "--non-interactive", "--trust-server-cert", "-r", p.Version, p.URL, p.Path)
+			}
 		default:
-			p.mkcd()
 			if err := fetchURL(p.URL); err != nil {
-				cd(PD)
-				os.RemoveAll(p.Path)
 				log.SetPrefix("fetch failed: ")
 				log.SetFlags(0)
 				log.Fatalln(err)
 			}
+			mk(p.Path)
+			f := filepath.Base(p.URL)
+			os.Rename(f, filepath.Join(p.Path, f))
 		}
 	}
 	fmt.Println()
@@ -204,13 +205,15 @@ func fetchTarfileError(url, path string) error {
 }
 
 func (p *Package) update() {
-	p.cd()
 	switch {
-	case isPath(".git"):
+	case isPath(p.Path + "/.git"):
+		p.cd()
 		fmt.Printf("%s: Updating %s branch ...\n", p.Name, p.Version)
 		run("git", "checkout", p.Version)
 		run("git", "pull")
-	case isPath(".svn") && strings.Contains(p.URL, "svn") && !strings.Contains(p.URL, "tags"):
+		cd(PD)
+	case isPath(p.Path+"/.svn") && strings.Contains(p.URL, "svn") && !strings.Contains(p.URL, "tags"):
+		p.cd()
 		fmt.Printf("%s: Updating to svn revision %s ...\n", p.Name, p.Version)
 		switch p.Version {
 		case "master":
@@ -218,11 +221,13 @@ func (p *Package) update() {
 		default:
 			run("svn", "update", "--non-interactive", "-r"+p.Version)
 		}
+		cd(PD)
 	default:
 		fmt.Printf("Path exists: %s\n", p.Path)
 	}
 }
 
 func (p *Package) isRepo() bool {
-	return isPath(p.Path+"/.git") || isPath(p.Path+"/.svn")
+	return isPath(p.Path+"/.git") || (isPath(p.Path+"/.svn") &&
+		strings.Contains(p.URL, "svn") && !strings.Contains(p.URL, "tags"))
 }

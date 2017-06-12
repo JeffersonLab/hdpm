@@ -1,8 +1,9 @@
 FROM hdbase:c7
 MAINTAINER Nathan Sparks <nsparks@jlab.org>
-RUN mkdir -p /home/gx && groupadd -r gx -g 573 && useradd -u 1000 \
+RUN cd /home && curl -OL https://halldweb.jlab.org/dist/hdpm/gxsrc.tar.gz \
+    && tar xf gxsrc.tar.gz && rm gxsrc.tar.gz && cd gx \
+    && groupadd -r gx -g 573 && useradd -u 1000 \
     -r -g gx -d /home/gx -s /sbin/nologin -c "Docker image user" gx \
-    && cd /home/gx \
     && curl -OL https://halldweb.jlab.org/dist/hdpm/hdpm-dev.linux.tar.gz \
     && tar xf hdpm-dev.linux.tar.gz && mv hdpm-dev/bin/hdpm /usr/bin/ \
     && rm -rf hdpm-dev hdpm-dev.linux.tar.gz && chown -R gx:gx /home/gx
