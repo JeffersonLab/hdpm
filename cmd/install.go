@@ -416,12 +416,7 @@ func installDist(args []string) {
 	if len(args) >= 1 {
 		arg = args[0]
 	}
-	distDirOld := filepath.Join(PD, ".dist")
 	distDir := filepath.Join(HD, "dist")
-	if isPath(distDirOld) && !isPath(distDir) {
-		mk(HD)
-		os.Rename(distDirOld, distDir)
-	}
 	if !cleanLinks {
 		fetchDist(arg)
 	}

@@ -307,7 +307,12 @@ func getEnv() map[string]string {
 	if ENV["G4ROOT"] != "" {
 		g4root := os.Getenv("G4ROOT")
 		ENV["PATH"] = cleanPath(ENV["PATH"], filepath.Join(g4root, "bin"))
-		ENV[enames[2]] = cleanPath(ENV[enames[2]], filepath.Join(g4root, "lib64"))
+		switch runtime.GOOS {
+		case "linux":
+			ENV[enames[2]] = cleanPath(ENV[enames[2]], filepath.Join(g4root, "lib64"))
+		case "darwin":
+			ENV[enames[2]] = cleanPath(ENV[enames[2]], filepath.Join(g4root, "lib"))
+		}
 	}
 	if ENV["G4WORKDIR"] != "" {
 		ENV["PATH"] = cleanPath(ENV["PATH"], filepath.Join(os.Getenv("G4WORKDIR"), "bin", os.Getenv("G4SYSTEM")))
@@ -334,7 +339,12 @@ func getEnv() map[string]string {
 	if ENV["G4ROOT"] != "" {
 		if isG4Installed {
 			ENV["PATH"] = addPath(ENV["PATH"], filepath.Join(ENV["G4ROOT"], "bin"))
-			ENV[enames[2]] = addPath(ENV[enames[2]], filepath.Join(ENV["G4ROOT"], "lib64"))
+			switch runtime.GOOS {
+			case "linux":
+				ENV[enames[2]] = addPath(ENV[enames[2]], filepath.Join(ENV["G4ROOT"], "lib64"))
+			case "darwin":
+				ENV[enames[2]] = addPath(ENV[enames[2]], filepath.Join(ENV["G4ROOT"], "lib"))
+			}
 		}
 	}
 	if ENV["G4WORKDIR"] != "" {

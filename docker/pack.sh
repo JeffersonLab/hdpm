@@ -20,7 +20,7 @@ rm -rf ../$tag
 cp -p ../../.id-deps-$tag .; cp -p ../../.log-sim-recon-$tag sim-recon/master/
 commit=$(echo $(grep -i sim-recon sim-recon/master/*/success.hdpm) | sed -r 's/sim-recon-//g')
 mkdir $cwd/$name-$tag-tmp
-mv hdds sim-recon hdgeant4 gluex_root_analysis $cwd/$name-$tag-tmp
+mv hdds sim-recon hdgeant4 gluex_root_analysis hd_utilities $cwd/$name-$tag-tmp
 cd $cwd
 mv $name-$tag $name-deps-$tag; mv $name-$tag-tmp $name-$tag
 if ! test -f $target/$name-deps-$id_deps-$tag.tar.gz; then

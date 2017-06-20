@@ -161,7 +161,7 @@ apt-get update && apt-get install -y curl git dpkg-dev make g++ gcc \
 1. xcode-select --install
 2. Install XQuartz (https://www.xquartz.org)
 3. Install Homebrew (http://brew.sh)
-4. brew install scons cmake gcc mariadb
+4. brew install scons cmake gcc mariadb boost-python
 `
 	default:
 		fmt.Fprintf(os.Stderr, "%s: Unknown operating system\n", OS)
