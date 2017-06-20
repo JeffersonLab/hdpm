@@ -437,13 +437,8 @@ func installDist(args []string) {
 		return
 	}
 	for _, sh := range []string{"sh", "csh"} {
-		switch {
-		case isPath(distDir + "/.hdpm/env/master." + sh):
+		if isPath(distDir + "/.hdpm/env/master." + sh) {
 			s := distDir + "/.hdpm/env/master." + sh
-			l := HD + "/env/dist." + sh
-			run("ln", "-s", relPath(filepath.Dir(l), s), l)
-		case isPath(distDir + "/env/master." + sh):
-			s := distDir + "/env/master." + sh
 			l := HD + "/env/dist." + sh
 			run("ln", "-s", relPath(filepath.Dir(l), s), l)
 		}
@@ -588,15 +583,9 @@ Available OS tags:  c6 (CentOS 6), c7 (CentOS 7), u16 (Ubuntu 16.04)
 		rmGlob(dir + "/version_*")
 		run("touch", dir+"/version_sim-recon-"+commit+"_deps-"+idDeps)
 	}
-	if updateDeps {
-		switch {
-		case isPath(dir + "/.hdpm/env/master.sh"):
-			updateEnvScript(dir + "/.hdpm/env/master.sh")
-			updateEnvScript(dir + "/.hdpm/env/master.csh")
-		case isPath(dir + "/env/master.sh"):
-			updateEnvScript(dir + "/env/master.sh")
-			updateEnvScript(dir + "/env/master.csh")
-		}
+	if updateDeps && isPath(dir+"/.hdpm/env/master.sh") {
+		updateEnvScript(dir + "/.hdpm/env/master.sh")
+		updateEnvScript(dir + "/.hdpm/env/master.csh")
 	}
 	fmt.Println(strings.Repeat("-", 80))
 	fmt.Println("Environment setup")

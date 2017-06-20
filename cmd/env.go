@@ -285,10 +285,12 @@ func getEnv() map[string]string {
 		ENV["https_proxy"] = "https://jprox.jlab.org:8081"
 	}
 	enames := []string{"HALLD_MY", "PATH", "LD_LIBRARY_PATH", "PYTHONPATH", "JANA_PLUGIN_PATH"}
+	g4LibDir := "lib64"
 	if runtime.GOOS == "darwin" {
 		ENV["CERN"] = ""
 		ENV["CERN_LEVEL"] = ""
 		enames[2] = "DYLD_LIBRARY_PATH"
+		g4LibDir = "lib"
 	}
 	for _, n := range enames {
 		ENV[n] = os.Getenv(n)
@@ -307,12 +309,7 @@ func getEnv() map[string]string {
 	if ENV["G4ROOT"] != "" {
 		g4root := os.Getenv("G4ROOT")
 		ENV["PATH"] = cleanPath(ENV["PATH"], filepath.Join(g4root, "bin"))
-		switch runtime.GOOS {
-		case "linux":
-			ENV[enames[2]] = cleanPath(ENV[enames[2]], filepath.Join(g4root, "lib64"))
-		case "darwin":
-			ENV[enames[2]] = cleanPath(ENV[enames[2]], filepath.Join(g4root, "lib"))
-		}
+		ENV[enames[2]] = cleanPath(ENV[enames[2]], filepath.Join(g4root, g4LibDir))
 	}
 	if ENV["G4WORKDIR"] != "" {
 		ENV["PATH"] = cleanPath(ENV["PATH"], filepath.Join(os.Getenv("G4WORKDIR"), "bin", os.Getenv("G4SYSTEM")))
@@ -339,12 +336,7 @@ func getEnv() map[string]string {
 	if ENV["G4ROOT"] != "" {
 		if isG4Installed {
 			ENV["PATH"] = addPath(ENV["PATH"], filepath.Join(ENV["G4ROOT"], "bin"))
-			switch runtime.GOOS {
-			case "linux":
-				ENV[enames[2]] = addPath(ENV[enames[2]], filepath.Join(ENV["G4ROOT"], "lib64"))
-			case "darwin":
-				ENV[enames[2]] = addPath(ENV[enames[2]], filepath.Join(ENV["G4ROOT"], "lib"))
-			}
+			ENV[enames[2]] = addPath(ENV[enames[2]], filepath.Join(ENV["G4ROOT"], g4LibDir))
 		}
 	}
 	if ENV["G4WORKDIR"] != "" {
