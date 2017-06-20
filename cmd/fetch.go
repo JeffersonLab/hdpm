@@ -144,7 +144,7 @@ func checkURL(url string) error {
 	if noCheckURL {
 		return nil
 	}
-	s := output("curl", "-ILs", url)
+	s := output("curl", "-ILsS", url)
 	if strings.Contains(s, "200 OK") ||
 		(strings.Contains(s, "403 Forbidden") && strings.Contains(s, "AmazonS3")) {
 		return nil

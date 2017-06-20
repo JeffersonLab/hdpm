@@ -64,10 +64,16 @@ func command(name string, args ...string) *exec.Cmd {
 }
 
 func output(name string, args ...string) string {
-	c := exec.Command(name, args...)
-	b, err := c.CombinedOutput()
+	b, err := exec.Command(name, args...).CombinedOutput()
+	s := strings.TrimRight(string(b), "\n")
 	if err != nil {
-		log.Fatalln(err)
+		d := name + " " + strings.Join(args, " ")
+		if s != "" {
+			fmt.Fprintf(os.Stderr, "%s failed: %s\n%s\n%s\n", name, d, s, err.Error())
+		} else {
+			fmt.Fprintf(os.Stderr, "%s failed: %s\n%s\n", name, d, err.Error())
+		}
+		os.Exit(1)
 	}
-	return strings.TrimRight(string(b), "\n")
+	return s
 }
