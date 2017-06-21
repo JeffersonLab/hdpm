@@ -394,7 +394,7 @@ func (p *Package) checkDeps() {
 			d := strings.Split(text, "\n")
 			record := d[len(d)-1]
 			if !strings.Contains(record, name_ver) {
-				fmt.Println("Error: " + name_ver + " is incompatible with " + user_name_ver + ".\n\t" + user_name_ver + " depends on " + record + ".\n\tRebuild " + user_name_ver + " against " + name_ver + ", or use required " + shlib.Name + " version.")
+				fmt.Fprintln(os.Stderr, "Error: "+name_ver+" is incompatible with "+user_name_ver+".\n\t"+user_name_ver+" depends on "+record+".\n\tRebuild "+user_name_ver+" against "+name_ver+", or use required "+shlib.Name+" version.")
 				os.Exit(2)
 			}
 		}

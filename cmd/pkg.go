@@ -293,17 +293,21 @@ var jsep = map[string]string{
 	"hd_utilities":        "-",
 }
 
-func ver_i(ver string, i int) string {
-	if i < 0 || i > 2 {
-		return ver
-	}
-	for _, v := range strings.Split(ver, "-") {
-		if strings.Contains(v, ".") {
-			return strings.Split(v, ".")[i]
+func splitVersion(ver string) (string, string, string) {
+	major, minor, patch := "x", "x", "x"
+	for i, v := range strings.Split(ver, ".") {
+		if i == 0 {
+			major = v
+		} else if i == 1 {
+			minor = v
+		} else if i == 2 {
+			patch = v
+			break
 		}
 	}
-	return ver
+	return major, minor, patch
 }
+
 func (p *Package) configBinary() {
 	s := ""
 	if strings.Contains(OS, "macosx10.12") {
@@ -362,7 +366,7 @@ func (p *Package) config() {
 
 	p.configCmds("[PATH]", p.Path)
 
-	if p.Name == "root" && ver_i(p.Version, 0) == "6" && strings.Contains(os.Getenv("PATH"), "/opt/rh/devtoolset-3/root/usr/bin") && (strings.Contains(OS, "CentOS6") || strings.Contains(OS, "RHEL6")) {
+	if p.Name == "root" && strings.HasPrefix(p.Version, "6.") && strings.Contains(os.Getenv("PATH"), "/opt/rh/devtoolset-3/root/usr/bin") && (strings.Contains(OS, "CentOS6") || strings.Contains(OS, "RHEL6")) {
 		if len(p.Cmds) > 0 && !strings.Contains(p.Cmds[0], "./configure") {
 			p.Cmds = nil
 			p.Cmds = append(p.Cmds, "./configure --enable-roofit")
@@ -379,8 +383,8 @@ func (p *Package) configDeps() {
 }
 
 func (p *Package) configMajorMinorInURL() {
-	major := ver_i(p.Version, 0)
-	major_minor := major + "." + ver_i(p.Version, 1)
+	major, minor, _ := splitVersion(p.Version)
+	major_minor := major + "." + minor
 	re := regexp.MustCompile(major + ".[0-9]")
 	if !strings.Contains(p.URL, major_minor) {
 		p.URL = re.ReplaceAllString(p.URL, major_minor)
@@ -969,8 +973,8 @@ func osrelease() string {
 			release = "Linux"
 		}
 	case "darwin":
-		rs := output("sw_vers", "-productVersion")
-		release = "macosx10." + strings.Split(rs, ".")[1]
+		a, b, _ := splitVersion(output("sw_vers", "-productVersion"))
+		release = "macosx" + a + "." + b
 	}
 	return release
 }
