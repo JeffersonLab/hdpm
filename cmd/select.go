@@ -25,7 +25,7 @@ Usage:
   hdpm select --xml XMLFILE-URL | XMLFILE-PATH
 Examples:
 1. hdpm select --xml latest
-2. hdpm select --xml https://halldweb.jlab.org/dist/version_1.27.xml
+2. hdpm select --xml https://halldweb.jlab.org/dist/version.xml
 
 The XMLfile versions are applied on top of the current settings.
 

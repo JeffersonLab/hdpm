@@ -456,7 +456,7 @@ func (p *Package) symlink() {
 	if p.Name == "hdds" || p.Name == "sim-recon" {
 		v = distVersion(pd + "/" + v + "/" + OS)
 	}
-	if p.in([]string{"hdgeant4", "gluex_root_analysis", "hd_utilities"}) {
+	if p.in([]string{"hdgeant4", "gluex_root_analysis"}) {
 		v = distVersion(pd + "/" + v)
 	}
 	pi := filepath.Join(PD, p.Name, v)
@@ -570,7 +570,7 @@ Available OS tags:  c6 (CentOS 6), c7 (CentOS 7), u16 (Ubuntu 16.04)
 		fetchTarfile(urlDeps, dir)
 		fetchTarfile(URL, dir)
 	} else if update || commit != currentCommit(dir) {
-		for _, n := range []string{"sim-recon", "hdds", "hdgeant4", "gluex_root_analysis", "hd_utilities"} {
+		for _, n := range []string{"sim-recon", "hdds", "hdgeant4", "gluex_root_analysis"} {
 			os.RemoveAll(filepath.Join(dir, n))
 		}
 		mkcd(dir)
