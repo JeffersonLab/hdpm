@@ -1,5 +1,4 @@
 FROM hdbase:c6
-MAINTAINER Nathan Sparks <nsparks@jlab.org>
 RUN cd /home && curl -OL https://halldweb.jlab.org/dist/hdpm/gxsrc.tar.gz \
     && tar xf gxsrc.tar.gz && rm gxsrc.tar.gz && cd gx \
     && groupadd -r gx -g 573 && useradd -u 1000 \

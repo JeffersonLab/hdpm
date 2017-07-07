@@ -1,5 +1,4 @@
 FROM centos:7
-MAINTAINER Nathan Sparks <nsparks@jlab.org>
 RUN yum update -y && yum install -y epel-release && yum install -y \
             git make gcc-c++ gcc binutils clang cmake3 scons boost-devel \
             libX11-devel libXpm-devel libXft-devel libXext-devel libXi-devel \

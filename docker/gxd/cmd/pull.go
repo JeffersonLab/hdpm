@@ -55,10 +55,7 @@ func runPull(cmd *cobra.Command, args []string) {
 		if !in(args, tag) {
 			continue
 		}
-		repo := "quay.io" + "/" + USER + "/" + name + ":" + names[tag]
-		if tag != "c6" && tag != "c7" {
-			repo = USER + "/" + name + ":" + names[tag]
-		}
+		repo := USER + "/" + name + ":" + names[tag]
 		run("docker", "pull", repo)
 		if rmi {
 			run("docker", "rmi", name+":"+tag)

@@ -56,10 +56,7 @@ func runPush(cmd *cobra.Command, args []string) {
 		if !in(args, tag) {
 			continue
 		}
-		repo := "quay.io" + "/" + USER + "/" + name + ":" + names[tag]
-		if tag != "c6" && tag != "c7" {
-			repo = USER + "/" + name + ":" + names[tag]
-		}
+		repo := USER + "/" + name + ":" + names[tag]
 		run("docker", "tag", "hddeps:"+tag, repo)
 		run("docker", "push", repo)
 		run("docker", "rmi", repo)

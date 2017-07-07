@@ -17,26 +17,15 @@ var cmdWrite = &cobra.Command{
 tags: c6, c7, u16
 
 The ids of all tags will be written if no arguments are given.`,
-	Example: `1. gxd write -u USER c6`,
+	Example: `1. gxd write c6`,
 	Run:     runWrite,
 }
 
 func init() {
 	cmdGXD.AddCommand(cmdWrite)
-
-	cmdWrite.Flags().StringVarP(&USER, "user", "u", "", "Docker username")
 }
 
 func runWrite(cmd *cobra.Command, args []string) {
-	if USER == "" {
-		exitNoUsername(cmd)
-	}
-	var names = map[string]string{
-		"c6":  "centos6",
-		"c7":  "centos7",
-		"u16": "ubuntu16",
-	}
-
 	var tags = []string{"c6", "c7", "u16"}
 
 	for _, arg := range args {
@@ -50,17 +39,12 @@ func runWrite(cmd *cobra.Command, args []string) {
 		args = tags
 	}
 
-	name := "sim-recon-deps"
 	wd := workDir()
 	for _, tag := range tags {
 		if !in(args, tag) {
 			continue
 		}
-		repo := "quay.io" + "/" + USER + "/" + name + ":" + names[tag]
-		if tag != "c6" && tag != "c7" {
-			repo = USER + "/" + name + ":" + names[tag]
-		}
-		s := output("docker", "inspect", "--format='{{.Id}}'", repo)
+		s := output("docker", "inspect", "--format='{{.Id}}'", "hddeps:"+tag)
 		write_text(wd+"/.id-deps-"+tag, strings.Split(s, ":")[1][0:5])
 	}
 }

@@ -1,5 +1,4 @@
-FROM quay.io/nathansparks/sim-recon-deps:centos6
-MAINTAINER Nathan Sparks <nsparks@jlab.org>
+FROM hddeps:c6
 RUN scl enable devtoolset-3 python27 "hdpm install \
     && hdpm clean --obliterate"
 WORKDIR /home/gx

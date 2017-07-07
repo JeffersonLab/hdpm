@@ -1,5 +1,4 @@
 FROM centos:6
-MAINTAINER Nathan Sparks <nsparks@jlab.org>
 RUN yum update -y && yum install -y centos-release-SCL epel-release centos-release-scl-rh \
             && yum install -y python27 git make gcc-c++ gcc binutils boost-devel \
             libX11-devel libXpm-devel libXft-devel libXext-devel mesa-libGLU-devel \
