@@ -184,7 +184,7 @@ func writeEnv(arg string, ENV map[string]string) {
 	}
 	isCentOS6JLabFarm := false
 	if strings.Contains(OS, "CentOS6") || strings.Contains(OS, "RHEL6") {
-		if strings.Contains(OS, "gcc") && isPath("/apps/gcc/4.9.2/bin") && isPath("/apps/python/PRO/bin") {
+		if strings.Contains(OS, "gcc") && isPath("/apps/gcc/4.9.2/bin") {
 			isCentOS6JLabFarm = true
 		}
 	}
@@ -421,24 +421,27 @@ func setenvJLabProxy() {
 	}
 }
 
+func setenvp(name, path string) {
+	p0 := os.Getenv(name)
+	if p0 == "" {
+		setenv(name, path)
+		return
+	}
+	if !strings.Contains(p0, path) {
+		setenv(name, path+":"+p0)
+	}
+}
+
 func setenvGCC() {
-	if isPath("/apps/gcc/4.9.2/bin") && isPath("/apps/python/PRO/bin") {
-		p := "/apps"
+	if isPath("/apps/gcc/4.9.2/bin") {
 		v := output("gcc", "-dumpversion")
-		b := p + "/python/PRO/bin:" + p + "/gcc/4.9.2/bin:"
-		b0 := os.Getenv("PATH")
-		if !strings.Contains(b0, b) {
-			setenv("PATH", b+b0)
-		}
-		a := p + "/python/PRO/lib:" + p + "/gcc/4.9.2/lib64:" + p + "/gcc/4.9.2/lib"
-		a0 := os.Getenv("LD_LIBRARY_PATH")
-		if a0 == "" {
-			setenv("LD_LIBRARY_PATH", a)
-		} else {
-			if !strings.Contains(a0, a) {
-				setenv("LD_LIBRARY_PATH", a+":"+a0)
-			}
-		}
+		setenvp("PATH", "/apps/gcc/4.9.2/bin")
+		setenvp("LD_LIBRARY_PATH", "/apps/gcc/4.9.2/lib64:/apps/gcc/4.9.2/lib")
 		OS = strings.Replace(OS, v, "4.9.2", 1)
+		pyp := JPD + "/" + OS + "/python/Python-2.7.13"
+		if isPath(pyp) {
+			setenvp("PATH", pyp+"/bin")
+			setenvp("LD_LIBRARY_PATH", pyp+"/lib")
+		}
 	}
 }

@@ -373,7 +373,8 @@ func (p *Package) checkDeps() {
 		if !shlib.in([]string{"xerces-c", "root", "ccdb"}) {
 			continue
 		}
-		name_ver := shlib.Name + "-" + shlib.Version
+		shlib.config()
+		name_ver := shlib.Name + "-" + shlib.gitVersion()
 		for _, user := range packages {
 			if !user.in([]string{"amptools", "jana", "hdds"}) {
 				continue
@@ -389,7 +390,7 @@ func (p *Package) checkDeps() {
 			if !isPath(filepath.Join(path, "success.hdpm")) {
 				continue
 			}
-			user_name_ver := user.Name + "-" + user.Version
+			user_name_ver := user.Name + "-" + user.gitVersion()
 			text := readFile(filepath.Join(path, "success.hdpm"))
 			d := strings.Split(text, "\n")
 			record := d[len(d)-1]

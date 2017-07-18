@@ -109,7 +109,7 @@ var masterPackages = [...]Package{
 		Cmds:       []string{"cd cpp; scons"},
 		Deps:       nil,
 		IsPrebuilt: false},
-	{Name: "ccdb", Version: "1.06.04",
+	{Name: "ccdb", Version: "1.06.05",
 		URL:        "https://github.com/JeffersonLab/ccdb/archive/v[VER].tar.gz",
 		Path:       "ccdb/[VER]",
 		Cmds:       []string{"scons"},
