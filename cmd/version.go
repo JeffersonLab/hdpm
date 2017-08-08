@@ -14,7 +14,7 @@ var cmdVersion = &cobra.Command{
 	Run:   runVersion,
 }
 
-const VERSION = "0.7.2"
+const VERSION = "0.7.2b"
 
 func init() {
 	cmdHDPM.AddCommand(cmdVersion)
