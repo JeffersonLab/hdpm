@@ -235,6 +235,7 @@ func getEnv() map[string]string {
 		"RCDB_CONNECTION":    "mysql://rcdb@hallddb.jlab.org/rcdb",
 		"CCDB_HOME":          path["ccdb"],
 		"CCDB_CONNECTION":    CCDB_CONNECTION,
+		"SQLITECPP_HOME":     path["sqlitecpp"],
 		"HDDS_HOME":          path["hdds"],
 		"JANA_HOME":          filepath.Join(path["jana"], BMS_OSNAME),
 		"JANA_CALIB_URL":     CCDB_CONNECTION,
@@ -297,7 +298,7 @@ func getEnv() map[string]string {
 	}
 	// PATH and LD_LIBRARY_PATH
 	// First remove old entries
-	cpaths := []string{filepath.Join(os.Getenv("CERN"), os.Getenv("CERN_LEVEL")), os.Getenv("ROOTSYS"), os.Getenv("XERCESCROOT"), os.Getenv("EVIOROOT"), filepath.Join(os.Getenv("RCDB_HOME"), "cpp"), os.Getenv("CCDB_HOME"), os.Getenv("JANA_HOME"), filepath.Join(os.Getenv("HALLD_HOME"), os.Getenv("BMS_OSNAME")), filepath.Join(os.Getenv("ROOT_ANALYSIS_HOME"), os.Getenv("BMS_OSNAME"))}
+	cpaths := []string{filepath.Join(os.Getenv("CERN"), os.Getenv("CERN_LEVEL")), os.Getenv("ROOTSYS"), os.Getenv("XERCESCROOT"), os.Getenv("EVIOROOT"), filepath.Join(os.Getenv("RCDB_HOME"), "cpp"), os.Getenv("CCDB_HOME"), os.Getenv("SQLITECPP_HOME"), os.Getenv("JANA_HOME"), filepath.Join(os.Getenv("HALLD_HOME"), os.Getenv("BMS_OSNAME")), filepath.Join(os.Getenv("ROOT_ANALYSIS_HOME"), os.Getenv("BMS_OSNAME"))}
 	for _, p := range cpaths {
 		ENV["PATH"] = cleanPath(ENV["PATH"], filepath.Join(p, "bin"))
 		ENV[enames[2]] = cleanPath(ENV[enames[2]], filepath.Join(p, "lib"))
@@ -322,7 +323,7 @@ func getEnv() map[string]string {
 	if isJLabFarm() && isPath("/apps/cmake/cmake-3.5.1") {
 		ENV["PATH"] = addPath(ENV["PATH"], "/apps/cmake/cmake-3.5.1/bin")
 	}
-	paths := []string{filepath.Join(ENV["CERN"], ENV["CERN_LEVEL"]), ENV["ROOTSYS"], ENV["XERCESCROOT"], ENV["EVIOROOT"], filepath.Join(ENV["RCDB_HOME"], "cpp"), ENV["CCDB_HOME"], ENV["JANA_HOME"], filepath.Join(ENV["HALLD_HOME"], ENV["BMS_OSNAME"]), filepath.Join(ENV["ROOT_ANALYSIS_HOME"], ENV["BMS_OSNAME"])}
+	paths := []string{filepath.Join(ENV["CERN"], ENV["CERN_LEVEL"]), ENV["ROOTSYS"], ENV["XERCESCROOT"], ENV["EVIOROOT"], filepath.Join(ENV["RCDB_HOME"], "cpp"), ENV["CCDB_HOME"], ENV["SQLITECPP_HOME"], ENV["JANA_HOME"], filepath.Join(ENV["HALLD_HOME"], ENV["BMS_OSNAME"]), filepath.Join(ENV["ROOT_ANALYSIS_HOME"], ENV["BMS_OSNAME"])}
 	for _, p := range paths {
 		ENV["PATH"] = addPath(ENV["PATH"], filepath.Join(p, "bin"))
 		ENV[enames[2]] = addPath(ENV[enames[2]], filepath.Join(p, "lib"))
