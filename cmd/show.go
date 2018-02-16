@@ -132,7 +132,7 @@ yum update -y && yum install -y centos-release-SCL epel-release \
     libX11-devel libXpm-devel libXft-devel libXext-devel mesa-libGLU-devel \
     libXi-devel libXmu-devel gcc-gfortran imake patch expat-devel boost-devel \
     blas-devel lapack-devel openmotif-devel mysql-devel sqlite-devel \
-    fftw-devel bzip2 bzip2-devel tcsh devtoolset-3-toolchain \
+    fftw-devel bzip2 bzip2-devel tcsh devtoolset-3-toolchain gsl-devel \
     && ln -s liblapack.a /usr/lib64/liblapack3.a
 `
 	case "CentOS7", "RHEL7":
@@ -142,7 +142,7 @@ yum update -y && yum install -y epel-release && yum install -y \
     libX11-devel libXpm-devel libXft-devel libXext-devel mesa-libGLU-devel \
     gcc-gfortran imake patch expat-devel libXi-devel libXmu-devel \
     mysql-devel sqlite-devel fftw-devel bzip2 bzip2-devel tcsh \
-    blas-devel blas-static lapack-devel lapack-static openmotif-devel \
+    blas-devel blas-static lapack-devel lapack-static openmotif-devel gsl-devel \
     && ln -s liblapack.a /usr/lib64/liblapack3.a
 `
 	case "Ubuntu14", "LinuxMint17", "Ubuntu16", "LinuxMint18":
@@ -152,6 +152,7 @@ apt-get update && apt-get install -y curl git dpkg-dev make g++ gcc \
    python-dev cmake scons gfortran xutils-dev libxt-dev libboost-python-dev \
    liblapack-dev libblas-dev libmotif-dev expect libgl1-mesa-dev libxmu-dev \
    libxi-dev libglew-dev libmysqlclient-dev sqlite3 libsqlite3-dev libbz2-dev \
+   libgsl-dev \
    && ln -s make /usr/bin/gmake \
    && ln -s liblapack.a /usr/lib/liblapack3.a
 `
