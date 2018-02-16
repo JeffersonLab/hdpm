@@ -115,6 +115,12 @@ var masterPackages = [...]Package{
 		Cmds:       []string{"scons"},
 		Deps:       nil,
 		IsPrebuilt: false},
+	{Name: "sqlitecpp", Version: "2.2.0",
+		URL:        "https://github.com/SRombauts/SQLiteCpp/archive/[VER].tar.gz",
+		Path:       "sqlitecpp/[VER]",
+	        Cmds:       []string{"cmake -DSQLITECPP_INTERNAL_SQLITE=OFF -DSQLITE_USE_LEGACY_STRUCT=ON -DCMAKE_INSTALL_PREFIX=[PATH] ../src", "make", "make install"},
+		Deps:       nil,
+		IsPrebuilt: false},
 	{Name: "jana", Version: "0.7.9",
 		URL:        "https://www.jlab.org/JANA/releases/jana_[VER].tgz",
 		Path:       "jana/[VER]",
@@ -131,7 +137,7 @@ var masterPackages = [...]Package{
 		URL:        "https://github.com/JeffersonLab/sim-recon/archive/[VER].tar.gz",
 		Path:       "sim-recon/[VER]",
 		Cmds:       []string{"scons -u -j8 install DEBUG=0"},
-		Deps:       []string{"cernlib", "amptools", "evio", "rcdb", "jana", "hdds"},
+	        Deps:       []string{"cernlib", "amptools", "evio", "rcdb", "jana", "hdds", "sqlitecpp"},
 		IsPrebuilt: false},
 	{Name: "hdgeant4", Version: "master",
 		URL:        "https://github.com/JeffersonLab/hdgeant4/archive/[VER].tar.gz",
@@ -286,6 +292,7 @@ var jsep = map[string]string{
 	"rcdb":                "_",
 	"ccdb":                "_",
 	"jana":                "_",
+	"sqlitecpp":           "-",
 	"hdds":                "-",
 	"sim-recon":           "-",
 	"hdgeant4":            "-",
@@ -540,6 +547,8 @@ func (p *Package) jlabPathConfig(dirtag string) {
 		switch p.Name {
 		case "amptools":
 			jp = filepath.Join(dir, "AmpTools"+sep+p.Version)
+		case "sqlitecpp":
+			jp = filepath.Join(dir, "SQLiteCpp"+sep+p.Version)
 		default:
 			jp = filepath.Join(dir, p.Name+sep+p.Version)
 		}
@@ -673,7 +682,7 @@ Path: /group/halld/www/halldweb/html/dist
 					continue
 				}
 				if jlab || jdev {
-					if jdev && p1.in([]string{"hdds", "sim-recon", "hdgeant4", "gluex_root_analysis", "hd_utilities"}) {
+				        if jdev && p1.in([]string{"hdds", "sim-recon", "hdgeant4", "gluex_root_analysis", "hd_utilities"}) {
 						p1.Version = "master"
 						if strings.HasPrefix(p1.Path, JPD) {
 							p1.Path = filepath.Join(p1.Name, "[VER]")
