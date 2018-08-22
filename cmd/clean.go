@@ -16,15 +16,15 @@ var cmdClean = &cobra.Command{
 	Long: `Clean/remove build products of selected packages.
 
 The following packages are supported:
-  ccdb, jana, hdds, sim-recon, hdgeant4, gluex_root_analysis`,
+  ccdb, jana, hdds, halld_recon, halld_sim, hdgeant4, gluex_root_analysis`,
 	Example: `1. hdpm clean
-2. hdpm clean hdds sim-recon
-3. hdpm clean sim-recon --deps
+2. hdpm clean hdds halld_recon
+3. hdpm clean halld_recon --deps
 
 Usage:
   hdpm clean DIRECTORY
 Example:
-  hdpm clean sim-recon/master/src/plugins/Analysis/pi0omega`,
+  hdpm clean halld_recon/master/src/plugins/Analysis/pi0omega`,
 	Run: runClean,
 }
 
@@ -40,7 +40,7 @@ func init() {
 
 func runClean(cmd *cobra.Command, args []string) {
 	pkgInit()
-	// Clean a sim-recon subdirectory if passed as argument
+	// Clean a halld_recon subdirectory if passed as argument
 	cwd, _ := os.Getwd()
 	if len(args) == 1 && isPath(filepath.Join(cwd, args[0])) {
 		dir := filepath.Join(cwd, args[0])
@@ -106,7 +106,7 @@ func (p *Package) clean() {
 		run("rm", "-f", "success.hdpm", ".sconsign.dblite")
 		run("scons", "-c")
 	}
-	if p.in([]string{"jana", "hdds", "sim-recon", "hdgeant4", "gluex_root_analysis"}) {
+	if p.in([]string{"jana", "hdds", "halld_recon", "halld_sim", "hdgeant4", "gluex_root_analysis"}) {
 		run("rm", "-f", "success.hdpm", ".sconsign.dblite", "src/.sconsign.dblite")
 		run("rm", "-rf", OS, "."+OS)
 		if isPath("src") {
@@ -140,7 +140,7 @@ func (p *Package) distclean() {
 		}
 		run("mv", "success.hdpm", p.Version)
 	} else {
-		if p.Name == "sim-recon" {
+		if p.Name == "halld_recon" || p.Name == "halld_sim" {
 			run("rm", "-rf", "src/."+OS, "src/.sconsign.dblite", "."+OS)
 		} else {
 			run("rm", "-rf", "src", "."+OS)

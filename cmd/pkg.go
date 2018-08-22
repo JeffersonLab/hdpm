@@ -121,11 +121,11 @@ var masterPackages = [...]Package{
 	        Cmds:       []string{"cmake -DSQLITECPP_INTERNAL_SQLITE=OFF -DSQLITE_USE_LEGACY_STRUCT=ON -DCMAKE_INSTALL_PREFIX=[PATH] ../src", "make", "make install"},
 		Deps:       nil,
 		IsPrebuilt: false},
-	{Name: "jana", Version: "0.7.9",
+	{Name: "jana", Version: "0.7.9p1",
 		URL:        "https://www.jlab.org/JANA/releases/jana_[VER].tgz",
 		Path:       "jana/[VER]",
 		Cmds:       []string{"scons -u -j8 install"},
-		Deps:       []string{"xerces-c", "root", "ccdb"},
+	        Deps:       []string{"xerces-c", "root", "ccdb", "evio"},
 		IsPrebuilt: false},
 	{Name: "hdds", Version: "master",
 		URL:        "https://github.com/JeffersonLab/hdds/archive/[VER].tar.gz",
@@ -133,27 +133,39 @@ var masterPackages = [...]Package{
 		Cmds:       []string{"scons -u install"},
 		Deps:       []string{"xerces-c", "root"},
 		IsPrebuilt: false},
-	{Name: "sim-recon", Version: "master",
-		URL:        "https://github.com/JeffersonLab/sim-recon/archive/[VER].tar.gz",
-		Path:       "sim-recon/[VER]",
+	{Name: "halld_recon", Version: "master",
+		URL:        "https://github.com/JeffersonLab/halld_recon/archive/[VER].tar.gz",
+		Path:       "halld_recon/[VER]",
 		Cmds:       []string{"scons -u -j8 install DEBUG=0"},
 	        Deps:       []string{"cernlib", "amptools", "evio", "rcdb", "jana", "hdds", "sqlitecpp"},
+		IsPrebuilt: false},
+	{Name: "halld_sim", Version: "master",
+		URL:        "https://github.com/JeffersonLab/halld_sim/archive/[VER].tar.gz",
+		Path:       "halld_sim/[VER]",
+		Cmds:       []string{"scons -u -j8 install DEBUG=0"},
+	        Deps:       []string{"halld_recon","cernlib", "amptools", "evio", "rcdb", "jana", "hdds", "sqlitecpp"},
 		IsPrebuilt: false},
 	{Name: "hdgeant4", Version: "master",
 		URL:        "https://github.com/JeffersonLab/hdgeant4/archive/[VER].tar.gz",
 		Path:       "hdgeant4/[VER]",
 		Cmds:       []string{"ln -sfn G4.${G4VERSION}fixes src/G4fixes", "make -j8"},
-		Deps:       []string{"geant4", "sim-recon"},
+	        Deps:       []string{"geant4", "halld_recon", "halld_sim"},
 		IsPrebuilt: false},
 	{Name: "gluex_root_analysis", Version: "master",
 		URL:        "https://github.com/JeffersonLab/gluex_root_analysis/archive/[VER].tar.gz",
 		Path:       "gluex_root_analysis/[VER]",
 		Cmds:       []string{"./make_all.sh"},
-		Deps:       []string{"sim-recon"},
+	        Deps:       []string{"halld_recon", "halld_sim"},
 		IsPrebuilt: false},
 	{Name: "hd_utilities", Version: "master",
 		URL:        "https://github.com/JeffersonLab/hd_utilities/archive/[VER].tar.gz",
 		Path:       "hd_utilities/[VER]",
+		Cmds:       nil,
+		Deps:       nil,
+		IsPrebuilt: false},
+	{Name: "gluex_MCwrapper", Version: "master",
+		URL:        "https://github.com/JeffersonLab/gluex_MCwrapper/archive/[VER].tar.gz",
+		Path:       "gluex_MCwrapper/[VER]",
 		Cmds:       nil,
 		Deps:       nil,
 		IsPrebuilt: false},
@@ -294,10 +306,12 @@ var jsep = map[string]string{
 	"jana":                "_",
 	"sqlitecpp":           "-",
 	"hdds":                "-",
-	"sim-recon":           "-",
+	"halld_recon":         "-",
+	"halld_sim":           "-",
 	"hdgeant4":            "-",
 	"gluex_root_analysis": "-",
 	"hd_utilities":        "-",
+	"gluex_MCwrapper":     "-",
 }
 
 func splitVersion(ver string) (string, string, string) {
@@ -384,7 +398,7 @@ func (p *Package) config() {
 }
 
 func (p *Package) configDeps() {
-	if p.Name == "sim-recon" && runtime.GOOS == "darwin" {
+        if ( p.Name == "halld_recon" || p.Name == "halld_sim" ) && runtime.GOOS == "darwin" {
 		p.Deps = []string{"evio", "rcdb", "jana", "hdds"}
 	}
 }
@@ -682,7 +696,7 @@ Path: /group/halld/www/halldweb/html/dist
 					continue
 				}
 				if jlab || jdev {
-				        if jdev && p1.in([]string{"hdds", "sim-recon", "hdgeant4", "gluex_root_analysis", "hd_utilities"}) {
+				    if jdev && p1.in([]string{"hdds", "halld_recon", "halld_sim", "hdgeant4", "gluex_root_analysis", "hd_utilities", "gluex_MCwrapper"}) {
 						p1.Version = "master"
 						if strings.HasPrefix(p1.Path, JPD) {
 							p1.Path = filepath.Join(p1.Name, "[VER]")

@@ -15,7 +15,7 @@ To see available packages use:
 2. hdpm show -m   (for default/master packages)`,
 	Example: `1. hdpm add pypwa
 2. hdpm add virtualenv gluex_workshops
-3. hdpm add sim-recon   (to restore default settings)`,
+3. hdpm add halld_recon   (to restore default settings)`,
 	Run: runAdd,
 }
 

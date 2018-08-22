@@ -23,9 +23,9 @@ Download and unpack packages into the $GLUEX_TOP directory.
 Update Git/SVN repositories.`,
 	Aliases: []string{"get", "pull", "update"},
 	Example: `1. hdpm fetch
-2. hdpm fetch sim-recon --deps
+2. hdpm fetch halld_recon --deps
 3. hdpm fetch root geant4
-4. hdpm fetch sim-recon -d --xml https://halldweb.jlab.org/dist/version.xml`,
+4. hdpm fetch halld_recon -d --xml https://halldweb.jlab.org/dist/version.xml`,
 	Run: runFetch,
 }
 
