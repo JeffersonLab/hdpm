@@ -240,7 +240,8 @@ func getEnv() map[string]string {
 		"JANA_HOME":          filepath.Join(path["jana"], BMS_OSNAME),
 		"JANA_CALIB_URL":     CCDB_CONNECTION,
 		"JANA_GEOMETRY_URL":  "xmlfile://" + path["hdds"] + "/main_HDDS.xml",
-		"HALLD_HOME":         path["sim-recon"],
+		"HALLD_RECON_HOME":   path["halld_recon"],
+		"HALLD_SIM_HOME":     path["halld_sim"],
 		"JANA_RESOURCE_DIR":  "/u/group/halld/www/halldweb/html/resources",
 		"ROOT_ANALYSIS_HOME": path["gluex_root_analysis"],
 	}
@@ -298,7 +299,7 @@ func getEnv() map[string]string {
 	}
 	// PATH and LD_LIBRARY_PATH
 	// First remove old entries
-	cpaths := []string{filepath.Join(os.Getenv("CERN"), os.Getenv("CERN_LEVEL")), os.Getenv("ROOTSYS"), os.Getenv("XERCESCROOT"), os.Getenv("EVIOROOT"), filepath.Join(os.Getenv("RCDB_HOME"), "cpp"), os.Getenv("CCDB_HOME"), os.Getenv("SQLITECPP_HOME"), os.Getenv("JANA_HOME"), filepath.Join(os.Getenv("HALLD_HOME"), os.Getenv("BMS_OSNAME")), filepath.Join(os.Getenv("ROOT_ANALYSIS_HOME"), os.Getenv("BMS_OSNAME"))}
+	cpaths := []string{filepath.Join(os.Getenv("CERN"), os.Getenv("CERN_LEVEL")), os.Getenv("ROOTSYS"), os.Getenv("XERCESCROOT"), os.Getenv("EVIOROOT"), filepath.Join(os.Getenv("RCDB_HOME"), "cpp"), os.Getenv("CCDB_HOME"), os.Getenv("SQLITECPP_HOME"), os.Getenv("JANA_HOME"), filepath.Join(os.Getenv("HALLD_RECON_HOME"), os.Getenv("BMS_OSNAME")),  filepath.Join(os.Getenv("HALLD_SIM_HOME"), os.Getenv("BMS_OSNAME")), filepath.Join(os.Getenv("ROOT_ANALYSIS_HOME"), os.Getenv("BMS_OSNAME"))}
 	for _, p := range cpaths {
 		ENV["PATH"] = cleanPath(ENV["PATH"], filepath.Join(p, "bin"))
 		ENV[enames[2]] = cleanPath(ENV[enames[2]], filepath.Join(p, "lib"))
@@ -323,7 +324,7 @@ func getEnv() map[string]string {
 	if isJLabFarm() && isPath("/apps/cmake/cmake-3.5.1") {
 		ENV["PATH"] = addPath(ENV["PATH"], "/apps/cmake/cmake-3.5.1/bin")
 	}
-	paths := []string{filepath.Join(ENV["CERN"], ENV["CERN_LEVEL"]), ENV["ROOTSYS"], ENV["XERCESCROOT"], ENV["EVIOROOT"], filepath.Join(ENV["RCDB_HOME"], "cpp"), ENV["CCDB_HOME"], ENV["SQLITECPP_HOME"], ENV["JANA_HOME"], filepath.Join(ENV["HALLD_HOME"], ENV["BMS_OSNAME"]), filepath.Join(ENV["ROOT_ANALYSIS_HOME"], ENV["BMS_OSNAME"])}
+ paths := []string{filepath.Join(ENV["CERN"], ENV["CERN_LEVEL"]), ENV["ROOTSYS"], ENV["XERCESCROOT"], ENV["EVIOROOT"], filepath.Join(ENV["RCDB_HOME"], "cpp"), ENV["CCDB_HOME"], ENV["SQLITECPP_HOME"], ENV["JANA_HOME"], filepath.Join(ENV["HALLD_RECON_HOME"], ENV["BMS_OSNAME"]), filepath.Join(ENV["HALLD_SIM_HOME"], ENV["BMS_OSNAME"]), filepath.Join(ENV["ROOT_ANALYSIS_HOME"], ENV["BMS_OSNAME"])}
 	for _, p := range paths {
 		ENV["PATH"] = addPath(ENV["PATH"], filepath.Join(p, "bin"))
 		ENV[enames[2]] = addPath(ENV[enames[2]], filepath.Join(p, "lib"))
@@ -350,20 +351,20 @@ func getEnv() map[string]string {
 		ENV["PATH"] = addPath(ENV["PATH"], ENV["MCWRAPPER_CENTRAL"])
 	}
 	// PYTHONPATH
-	cpypaths := []string{filepath.Join(os.Getenv("ROOTSYS"), "lib"), filepath.Join(os.Getenv("RCDB_HOME"), "python"), filepath.Join(os.Getenv("CCDB_HOME"), "python") + ":" + filepath.Join(os.Getenv("CCDB_HOME"), "python", "ccdb", "ccdb_pyllapi/"), filepath.Join(os.Getenv("HALLD_HOME"), os.Getenv("BMS_OSNAME"), "lib/python")}
+ cpypaths := []string{filepath.Join(os.Getenv("ROOTSYS"), "lib"), filepath.Join(os.Getenv("RCDB_HOME"), "python"), filepath.Join(os.Getenv("CCDB_HOME"), "python") + ":" + filepath.Join(os.Getenv("CCDB_HOME"), "python", "ccdb", "ccdb_pyllapi/"), filepath.Join(os.Getenv("HALLD_RECON_HOME"), os.Getenv("BMS_OSNAME"), "lib/python"),  filepath.Join(os.Getenv("HALLD_SIM_HOME"), os.Getenv("BMS_OSNAME"), "lib/python")}
 	for _, pyp := range cpypaths {
 		ENV["PYTHONPATH"] = cleanPath(ENV["PYTHONPATH"], pyp)
 	}
-	pypaths := []string{filepath.Join(ENV["ROOTSYS"], "lib"), filepath.Join(ENV["RCDB_HOME"], "python"), filepath.Join(ENV["CCDB_HOME"], "python") + ":" + filepath.Join(ENV["CCDB_HOME"], "python", "ccdb", "ccdb_pyllapi/"), filepath.Join(ENV["HALLD_HOME"], ENV["BMS_OSNAME"], "lib/python")}
+ pypaths := []string{filepath.Join(ENV["ROOTSYS"], "lib"), filepath.Join(ENV["RCDB_HOME"], "python"), filepath.Join(ENV["CCDB_HOME"], "python") + ":" + filepath.Join(ENV["CCDB_HOME"], "python", "ccdb", "ccdb_pyllapi/"), filepath.Join(ENV["HALLD_RECON_HOME"], ENV["BMS_OSNAME"], "lib/python"), filepath.Join(ENV["HALLD_SIM_HOME"], ENV["BMS_OSNAME"], "lib/python")}
 	for _, pyp := range pypaths {
 		ENV["PYTHONPATH"] = addPath(ENV["PYTHONPATH"], pyp)
 	}
 	// JANA_PLUGIN_PATH
-	cplugin_paths := []string{filepath.Join(os.Getenv("JANA_HOME"), "plugins"), filepath.Join(os.Getenv("HALLD_HOME"), os.Getenv("BMS_OSNAME"), "plugins"), filepath.Join(os.Getenv("HALLD_MY"), os.Getenv("BMS_OSNAME"), "plugins")}
+	cplugin_paths := []string{filepath.Join(os.Getenv("JANA_HOME"), "plugins"), filepath.Join(os.Getenv("HALLD_RECON_HOME"), os.Getenv("BMS_OSNAME"), "plugins"), filepath.Join(os.Getenv("HALLD_SIM_HOME"), os.Getenv("BMS_OSNAME"), "plugins"), filepath.Join(os.Getenv("HALLD_MY"), os.Getenv("BMS_OSNAME"), "plugins")}
 	for _, plugin_path := range cplugin_paths {
 		ENV["JANA_PLUGIN_PATH"] = cleanPath(ENV["JANA_PLUGIN_PATH"], plugin_path)
 	}
-	plugin_paths := []string{filepath.Join(ENV["JANA_HOME"], "plugins"), filepath.Join(ENV["HALLD_HOME"], ENV["BMS_OSNAME"], "plugins"), filepath.Join(ENV["HALLD_MY"], ENV["BMS_OSNAME"], "plugins")}
+	plugin_paths := []string{filepath.Join(ENV["JANA_HOME"], "plugins"), filepath.Join(ENV["HALLD_RECON_HOME"], ENV["BMS_OSNAME"], "plugins"),  filepath.Join(ENV["HALLD_SIM_HOME"], ENV["BMS_OSNAME"], "plugins"), filepath.Join(ENV["HALLD_MY"], ENV["BMS_OSNAME"], "plugins")}
 	for _, plugin_path := range plugin_paths {
 		ENV["JANA_PLUGIN_PATH"] = addPath(ENV["JANA_PLUGIN_PATH"], plugin_path)
 	}

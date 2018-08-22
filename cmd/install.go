@@ -23,16 +23,16 @@ var cmdInstall = &cobra.Command{
 	Long:    `Install packages and dependencies.`,
 	Aliases: []string{"build"},
 	Example: `1. hdpm install
-2. hdpm install sim-recon
+2. hdpm install halld_recon
 3. hdpm install geant4 amptools xerces-c
-4. hdpm install sim-recon --xml https://halldweb.jlab.org/dist/version.xml
+4. hdpm install halld_recon --xml https://halldweb.jlab.org/dist/version.xml
 5. hdpm install gluex_root_analysis -i
 6. hdpm install --dist
 
 Usage:
   hdpm install DIRECTORY
 Example:
-  hdpm install sim-recon/master/src/plugins/Analysis/pi0omega`,
+  hdpm install halld_recon/master/src/plugins/Analysis/pi0omega`,
 	Run: runInstall,
 }
 
@@ -55,7 +55,7 @@ func runInstall(cmd *cobra.Command, args []string) {
 		return
 	}
 	pkgInit()
-	// Build a sim-recon subdirectory if passed as argument
+	// Build a halld_recon subdirectory if passed as argument
 	cwd, _ := os.Getwd()
 	if len(args) == 1 && (isPath(filepath.Join(cwd, args[0])) || isPath(args[0])) {
 		dir := filepath.Join(cwd, args[0])
@@ -131,7 +131,7 @@ func (p *Package) isInstalled() bool {
 func (p *Package) install(isFirst *bool) {
 	ti := time.Now().Round(time.Second)
 	fname := p.Path + "/success.hdpm"
-	if p.in([]string{"jana", "hdds", "sim-recon"}) {
+    if p.in([]string{"jana", "hdds", "halld_recon", "halld_sim"}) {
 		fname = p.Path + "/" + OS + "/success.hdpm"
 	}
 	if isPath(fname) && (showInfo || !p.isRepo()) {
@@ -161,7 +161,7 @@ func (p *Package) install(isFirst *bool) {
 		run("bash", "-c", ". bin/activate; pip install --trusted-host=pypi.python.org "+whl)
 		os.Remove(whl)
 	default:
-		if p.Name == "sim-recon" {
+		if p.Name == "halld_recon" || p.Name == "halld_sim" {
 			cd("src")
 		}
 		if p.Name == "hdgeant4" {
@@ -345,7 +345,8 @@ func (p *Package) checkDeps() {
 		"ccdb":                commande("ccdb"),
 		"jana":                commande("jana"),
 		"hdds":                commande("ldd", hdds.Path+"/"+OS+"/"+"/lib/libhdds.so"),
-		"sim-recon":           commande("hd_root"),
+		"halld_recon":         commande("hd_root"),
+		"halld_sim":           commande("mcsmear"),
 		"gluex_root_analysis": commande("root", "-b", "-q", "-l"),
 	}
 	if runtime.GOOS == "darwin" {
@@ -360,7 +361,7 @@ func (p *Package) checkDeps() {
 			log.Fatalln(err)
 		}
 	}
-	if p.Name != "sim-recon" {
+	if p.Name != "halld_recon" && p.Name != "halld_sim" {
 		return
 	}
 	amptools := getPackage("amptools")
@@ -454,7 +455,7 @@ func (p *Package) symlink() {
 	}
 	v := dirVersion(pd)
 	vd := v
-	if p.Name == "hdds" || p.Name == "sim-recon" {
+	if p.Name == "hdds" || p.Name == "halld_recon" || p.Name == "halld_sim" {
 		v = distVersion(pd + "/" + v + "/" + OS)
 	}
 	if p.in([]string{"hdgeant4", "gluex_root_analysis"}) {
@@ -513,7 +514,7 @@ func fetchDist(arg string) {
 	msg :=
 		`Tarfile base URL:   https://halldweb.jlab.org/dist
 Path on JLab CUE:   /group/halld/www/halldweb/html/dist
-Filename format:    sim-recon-<commit>-<id_deps>-<os_tag>.tar.gz
+Filename format:    halld_recon-<commit>-<id_deps>-<os_tag>.tar.gz
 Available OS tags:  c6 (CentOS 6), c7 (CentOS 7), u16 (Ubuntu 16.04)
 `
 	fmt.Print(msg)
@@ -548,7 +549,7 @@ Available OS tags:  c6 (CentOS 6), c7 (CentOS 7), u16 (Ubuntu 16.04)
 		os.Exit(0)
 	}
 	parts := strings.Split(URL, "-")
-	if len(parts) != 5 || !strings.Contains(URL, "sim-recon") {
+	if len(parts) != 5 || !strings.Contains(URL, "halld_") {
 		fmt.Fprintf(os.Stderr, "%s: Unsupported filename format\n", URL)
 		os.Exit(2)
 	}
@@ -561,7 +562,7 @@ Available OS tags:  c6 (CentOS 6), c7 (CentOS 7), u16 (Ubuntu 16.04)
 	urlDeps := strings.Replace(URL, commit, "deps", 1)
 	deps := []string{"xerces-c", "cernlib", "root", "evio", "ccdb", "jana"}
 	updateDeps := !contains(readDir(dir), deps)
-	update := !isPath(filepath.Join(dir, "sim-recon")) || !isPath(filepath.Join(dir, "hdds"))
+	update := !isPath(filepath.Join(dir, "halld_recon")) ||!isPath(filepath.Join(dir, "halld_sim")) || !isPath(filepath.Join(dir, "hdds"))
 
 	if updateDeps || (isPath(dir+"/.id-deps-"+tag2) && idDeps != readFile(dir+"/.id-deps-"+tag2)) {
 		os.RemoveAll(dir)
@@ -571,7 +572,7 @@ Available OS tags:  c6 (CentOS 6), c7 (CentOS 7), u16 (Ubuntu 16.04)
 		fetchTarfile(urlDeps, dir)
 		fetchTarfile(URL, dir)
 	} else if update || commit != currentCommit(dir) {
-		for _, n := range []string{"sim-recon", "hdds", "hdgeant4", "gluex_root_analysis"} {
+		for _, n := range []string{"halld_recon", "halld_sim", "hdds", "hdgeant4", "gluex_root_analysis"} {
 			os.RemoveAll(filepath.Join(dir, n))
 		}
 		mkcd(dir)
@@ -582,7 +583,7 @@ Available OS tags:  c6 (CentOS 6), c7 (CentOS 7), u16 (Ubuntu 16.04)
 	}
 	if update {
 		rmGlob(dir + "/version_*")
-		run("touch", dir+"/version_sim-recon-"+commit+"_deps-"+idDeps)
+		run("touch", dir+"/version_halld_recon-"+commit+"_deps-"+idDeps)
 	}
 	if updateDeps && isPath(dir+"/.hdpm/env/master.sh") {
 		updateEnvScript(dir + "/.hdpm/env/master.sh")
@@ -592,14 +593,14 @@ Available OS tags:  c6 (CentOS 6), c7 (CentOS 7), u16 (Ubuntu 16.04)
 	fmt.Println("Environment setup")
 	fmt.Println("source $GLUEX_TOP/.hdpm/env/dist.[c]sh")
 	// Check consistency between commit records
-	for _, d := range readDir(dir + "/sim-recon/master") {
+	for _, d := range readDir(dir + "/halld_recon/master") {
 		if strings.HasPrefix(d, "Linux_") || strings.HasPrefix(d, "Darwin_") {
-			c := distVersion(dir + "/sim-recon/master/" + d)
+			c := distVersion(dir + "/halld_recon/master/" + d)
 			if commit != c {
 				fmt.Fprintf(os.Stderr, "Inconsistent commits: %s and %s\n", commit, c)
 				os.Exit(2)
 			}
-			for _, n := range []string{"jana", "hdds", "sim-recon", "gluex_root_analysis"} {
+			for _, n := range []string{"jana", "hdds", "halld_recon", "halld_sim", "gluex_root_analysis"} {
 				v := dirVersion(filepath.Join(dir, n))
 				if v == "" {
 					continue
@@ -616,8 +617,8 @@ Available OS tags:  c6 (CentOS 6), c7 (CentOS 7), u16 (Ubuntu 16.04)
 func currentCommit(path string) string {
 	commit := ""
 	for _, file := range readDir(path) {
-		if strings.HasPrefix(file, "version_sim-recon-") {
-			commit = strings.TrimPrefix(file, "version_sim-recon-")
+		if strings.HasPrefix(file, "version_halld_recon-") {
+			commit = strings.TrimPrefix(file, "version_halld_recon-")
 			commit = strings.Split(commit, "_")[0]
 			break
 		}
@@ -659,10 +660,10 @@ func latestURL(tag string, arg string) string {
 		file := r[6 : len(r)-1]
 		ok := false
 		if arg != "" {
-			ok = strings.HasPrefix(file, "sim-recon-"+arg) && strings.HasSuffix(file, "-"+tag+".tar.gz")
+			ok = strings.HasPrefix(file, "halld_recon-"+arg) && strings.HasSuffix(file, "-"+tag+".tar.gz")
 		} else {
-			ok = strings.HasPrefix(file, "sim-recon-") && strings.HasSuffix(file, "-"+tag+".tar.gz") &&
-				!strings.HasPrefix(file, "sim-recon-deps-")
+			ok = strings.HasPrefix(file, "halld_recon-") && strings.HasSuffix(file, "-"+tag+".tar.gz") &&
+				!strings.HasPrefix(file, "halld_recon-deps-")
 		}
 		if ok {
 			re = regexp.MustCompile("(\\d{4})-(\\d{2})-(\\d{2})")
