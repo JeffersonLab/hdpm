@@ -163,6 +163,12 @@ var masterPackages = [...]Package{
 		Cmds:       nil,
 		Deps:       nil,
 		IsPrebuilt: false},
+	{Name: "gluex_MCwrapper", Version: "master",
+		URL:        "https://github.com/JeffersonLab/gluex_MCwrapper/archive/[VER].tar.gz",
+		Path:       "gluex_MCwrapper/[VER]",
+		Cmds:       nil,
+		Deps:       nil,
+		IsPrebuilt: false},
 }
 
 // Extra package settings
@@ -305,6 +311,7 @@ var jsep = map[string]string{
 	"hdgeant4":            "-",
 	"gluex_root_analysis": "-",
 	"hd_utilities":        "-",
+	"gluex_MCwrapper":     "-",
 }
 
 func splitVersion(ver string) (string, string, string) {
@@ -689,7 +696,7 @@ Path: /group/halld/www/halldweb/html/dist
 					continue
 				}
 				if jlab || jdev {
-				        if jdev && p1.in([]string{"hdds", "halld_recon", "halld_sim", "hdgeant4", "gluex_root_analysis", "hd_utilities"}) {
+				    if jdev && p1.in([]string{"hdds", "halld_recon", "halld_sim", "hdgeant4", "gluex_root_analysis", "hd_utilities", "gluex_MCwrapper"}) {
 						p1.Version = "master"
 						if strings.HasPrefix(p1.Path, JPD) {
 							p1.Path = filepath.Join(p1.Name, "[VER]")

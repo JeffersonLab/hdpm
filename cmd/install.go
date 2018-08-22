@@ -125,7 +125,7 @@ func runInstall(cmd *cobra.Command, args []string) {
 }
 
 func (p *Package) isInstalled() bool {
-	return p.IsPrebuilt || p.Name == "hd_utilities" || p.Name == "virtualenv"
+	return p.IsPrebuilt || p.Name == "hd_utilities" || p.Name == "gluex_MCwrapper" || p.Name == "virtualenv"
 }
 
 func (p *Package) install(isFirst *bool) {

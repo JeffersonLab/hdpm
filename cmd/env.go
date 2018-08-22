@@ -256,10 +256,10 @@ func getEnv() map[string]string {
 		ENV["AMPTOOLS"] = filepath.Join(path["amptools"], "AmpTools")
 		ENV["AMPPLOTTER"] = filepath.Join(path["amptools"], "AmpPlotter")
 	}
-	if path["hd_utilities"] != "" {
+	if path["gluex_MCwrapper"] != "" {
 		mcw := os.Getenv("MCWRAPPER_CENTRAL")
 		if mcw == "" {
-			ENV["MCWRAPPER_CENTRAL"] = filepath.Join(path["hd_utilities"], "MCwrapper")
+			ENV["MCWRAPPER_CENTRAL"] = path["gluex_MCwrapper"]
 		} else {
 			ENV["MCWRAPPER_CENTRAL"] = mcw
 		}
