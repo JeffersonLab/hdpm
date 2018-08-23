@@ -365,7 +365,7 @@ func (p *Package) checkDeps() {
 		return
 	}
 	amptools := getPackage("amptools")
-	if !isPath(filepath.Join(amptools.Path, "success.hdpm")) {
+	if !isPath(filepath.Join(amptools.Path, "success.hdpm")) && !amptools.IsPrebuilt {
 		unsetenv("AMPTOOLS")
 		unsetenv("AMPPLOTTER")
 	}
